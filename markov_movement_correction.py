@@ -61,9 +61,9 @@ def expandTimepoints(imgFn, baseDir):
     print(img.get_data().shape)
     coord = img.coordmap
 
-    if not os.path.exists(baseDir+'tmp/timepoints/'):
-        os.mkdir(baseDir+'tmp/timepoints/')
-    outDir = baseDir +'tmp/timepoints/'
+    if not os.path.exists(baseDir+'timepoints/'):
+        os.mkdir(baseDir+'timepoints/')
+    outDir = baseDir +'timepoints/'
 
     # pull out the first image, timepoint 0, as the template
     template = img[:,:,:,0].get_data()[:,:,:,None]
@@ -197,12 +197,12 @@ user=getpass.getuser()
 
 # set the base directory
 #baseDir = '/home/pirc/Desktop/Jenna_dev/'
-#baseDir = '/home/jms565/Research/CHP-PIRC/'
-baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+#baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
 # image filename
 #imgFn = baseDir + '0003_MR1/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-imgFn = baseDir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii'
+imgFn = baseDir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
 # imgFn = baseDir + '0003_MR2/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
 
 outputDir = baseDir+"tmp/"
