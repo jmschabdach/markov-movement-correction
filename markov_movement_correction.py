@@ -1,3 +1,4 @@
+from __future__ import print_function
 from nipy import load_image, save_image
 import numpy as np
 import getpass
@@ -10,10 +11,41 @@ from nipype.interfaces.ants import Registration
 # for saving the registered file
 from nipype.interfaces import dcmstack
 
+# threading
+import threading
+import time
+
 """
 Currently a test file. Eventual purpose is to perform movement correction on time series images.
 """
-def expandTimepoints(imgFn, outDir):
+
+#---------------------------------------------------------------------------------
+# Threading Class
+#---------------------------------------------------------------------------------
+class motionCorrectionThread(threading.Thread):
+    """
+    Implementation of the threading class.
+    """
+    def __init__(self, threadId, name, templateFn, timepointFn, outputFn, outputDir):
+        # What other properties my threads will need?
+        threading.Thread.__init__(self)
+        self.threadId = threadId
+        self.name = name
+        self.templateFn = templateFn
+        self.timepointFn = timepointFn
+        self.outputFn = outputFn
+        self.outputDir = outputDir
+
+    def run(self):
+        print("Starting motion correction for", self.name)
+        registerToTemplate(self.templateFn, self.timepointFn, self.outputFn, self.outputDir)
+        print("Finished motion correction for", self.name)
+
+
+#---------------------------------------------------------------------------------
+# Motion Correction: Helper Functions
+#---------------------------------------------------------------------------------
+def expandTimepoints(imgFn, baseDir):
     """
     Expand a time series image into individual images in the tmp folder
 
@@ -26,7 +58,12 @@ def expandTimepoints(imgFn, outDir):
     """
     # load the image
     img = load_image(imgFn)
+    print(img.get_data().shape)
     coord = img.coordmap
+
+    if not os.path.exists(baseDir+'tmp/timepoints/'):
+        os.mkdir(baseDir+'tmp/timepoints/')
+    outDir = baseDir +'tmp/timepoints/'
 
     # pull out the first image, timepoint 0, as the template
     template = img[:,:,:,0].get_data()[:,:,:,None]
@@ -37,7 +74,7 @@ def expandTimepoints(imgFn, outDir):
     filenames = [outDir+'template.nii.gz']
 
     # for the remaining images
-    for i in xrange(1, len(img.shape[3]), 1):
+    for i in xrange(1, img.get_data().shape[3], 1):
         # pull out the image and save it
         tmp = img[:,:,:,i].get_data()[:,:,:,None]
         tmp_img = Image(tmp, coord)
@@ -48,7 +85,7 @@ def expandTimepoints(imgFn, outDir):
     return filenames
 
 
-def registerTimepoints(fixedImgFn, movingImgFn, outputFn):
+def registerToTemplate(fixedImgFn, movingImgFn, outputFn, outputDir):
     """
     Register 2 images taken at different timepoints.
 
@@ -56,6 +93,7 @@ def registerTimepoints(fixedImgFn, movingImgFn, outputFn):
     - fixedImgFn: filename of the fixed image (should be the template image)
     - movingImgFn: filename of the moving image (should be the Jn image)
     - outputFn: name of the file to write the transformed image to.
+    - outputDir: path to the tmp directory
 
     Outputs:
     - Currently, nothing. Should return or save the transformation
@@ -66,9 +104,7 @@ def registerTimepoints(fixedImgFn, movingImgFn, outputFn):
     reg = Registration()
     reg.inputs.fixed_image = fixedImgFn
     reg.inputs.moving_image = movingImgFn
-    reg.inputs.output_transform_prefix = "tmp/output_"
-    #reg.inputs.moving_image = 'moving1.nii'
-    #reg.inputs.initial_moving_transform = 'trans.mat'
+    reg.inputs.output_transform_prefix = outputDir+"output_"
     reg.inputs.transforms = ['SyN']
     reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
     reg.inputs.number_of_iterations = [[100, 50, 30]]
@@ -89,9 +125,9 @@ def registerTimepoints(fixedImgFn, movingImgFn, outputFn):
     reg.inputs.use_estimate_learning_rate_once = [True]
     reg.inputs.use_histogram_matching = [True] # This is the default
     reg.inputs.output_warped_image = outputFn
-    print reg.cmdline
+    print(reg.cmdline)
     reg.run()
-    print "Finished running registration!"
+    print("Finished running registration!")
 
 
 def applyTransformToTemplate(templateImg, transform):
@@ -110,50 +146,104 @@ def applyTransformToTemplate(templateImg, transform):
     pass
 
 
+#---------------------------------------------------------------------------------
+# Motion Correction: Big Functions
+#---------------------------------------------------------------------------------
+def motionCorrection(timepointFns, outputDir):
+    """
+    Register each timepoint to the template image.
+
+    Inputs:
+    - timepointFns: list of filenames for each timepoint
+    - outputDir: directory to write the output files to
+
+    Outputs:
+    - registeredFns: list of registered timepoint files
+
+    Effects:
+    - Writes each registered file to /path/markov-movement-correction/tmp/registered/
+    """
+
+    if not os.path.exists(baseDir+'tmp/registered/'):
+        os.mkdir(baseDir+'tmp/registered/')
+    # get the template image filename
+    templateFn = timepointFns[0]
+    # set up list
+    registeredFns = []
+    # for each subsequent image
+    # for i in xrange(1, len(timepointFns), 1):
+    for i in xrange(1, 4, 1):
+        # set the output filename
+        outFn = baseDir+'tmp/registered/'+ str(i).zfill(3)+'.nii.gz'
+        registeredFns.append(outFn)
+        outputDir = baseDir + 'tmp/'
+        # start a thread to register the new timepoint to the template
+        t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], 
+                     outFn, outputDir)
+        t.start()
+        # do I need to limit the number of threads?
+        # or will they automatically limit themselves to the number of cores?
+    return registeredFns
+
+
 # Is this line necessary? What does it do?
 user=getpass.getuser()
 
 # set the base directory
-#base_dir = '/home/pirc/Desktop/Jenna_dev/'
-#base_dir = '/home/jms565/Research/CHP-PIRC/'
-base_dir = '/home/jenna/Research/CHP-PIRC/'
+#baseDir = '/home/pirc/Desktop/Jenna_dev/'
+#baseDir = '/home/jms565/Research/CHP-PIRC/'
+baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
 # image filename
-#imgFn = base_dir + '0003_MR1/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-imgFn = base_dir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-# imgFn = base_dir + '0003_MR2/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
+#imgFn = baseDir + '0003_MR1/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
+imgFn = baseDir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii'
+# imgFn = baseDir + '0003_MR2/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
 
+outputDir = baseDir+"tmp/"
+
+# make the tmp directory
+if not os.path.exists(baseDir+'tmp/'):
+    os.mkdir(baseDir+'tmp/')
+
+# divide the image into timepoints
+timepointFns = expandTimepoints(imgFn, baseDir+'tmp/')
+
+# register all timepoints to the template image (timepoint 0)
+registeredFns = motionCorrection(timepointFns, outputDir)
+
+# combine the registered timepoints into 1 file
+niftiMerger = dcmstack.MergeNifti()
+niftiMerger.inputs.in_files = registeredFns
+niftiMerger.inputs.out_path = baseDir+'tmp/registered_0003_MR1'
+
+#------------------------------------------------------------------------------------------
+"""
 # load the image
 img = load_image(imgFn)
 coord = img.coordmap
-
 # get the images for the 3 time points of current interest
 template = img[:,:,:,0].get_data()[:,:,:,None]
 slightMovement = img[:,:,:,1].get_data()[:,:,:,None]
 lotsMovement = img[:,:,:,144].get_data()[:,:,:,None]
-
-# save the images so we can do registration using ANTS
-if not os.path.exists(base_dir+'tmp/'):
-    os.mkdir(base_dir+'tmp/')
-
 print template.shape
 template_img = Image(template, coord)
-save_image(template_img, base_dir+'tmp/template.nii.gz')
+save_image(template_img, baseDir+'tmp/template.nii.gz')
 slight_img = Image(slightMovement, coord)
-save_image(template_img, base_dir+'tmp/slight.nii.gz')
+save_image(template_img, baseDir+'tmp/slight.nii.gz')
 lots_img = Image(lotsMovement, coord)
-save_image(lots_img, base_dir+'tmp/lots.nii.gz')
+save_image(lots_img, baseDir+'tmp/lots.nii.gz')
 
 # register the timepoints
-outputFn = base_dir+'tmp/slight_transformed.nii.gz'
-registerTimepoints(base_dir+'tmp/template.nii.gz', base_dir+'tmp/slight.nii.gz', outputFn)
+outputFn = baseDir+'tmp/slight_transformed.nii.gz'
+registerToTemplate(baseDir+'tmp/template.nii.gz', baseDir+'tmp/slight.nii.gz', outputFn, baseDir+'tmp/')
 
 # save the template and the transformed image to the same .nii.gz file
-comboImgFn = base_dir+'tmp/template_and_transformed'
-comboFiles = [base_dir+'tmp/template.nii.gz', base_dir+'tmp/slight_transformed.nii.gz']
+comboImgFn = baseDir+'tmp/template_and_transformed'
+comboFiles = [baseDir+'tmp/template.nii.gz', baseDir+'tmp/slight_transformed.nii.gz']
 niftiMerger = dcmstack.MergeNifti()
 niftiMerger.inputs.in_files = comboFiles
 niftiMerger.inputs.out_path = comboImgFn
 niftiMerger.run()
+"""
 
 # when finished, remove the tmp directory
