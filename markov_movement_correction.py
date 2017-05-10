@@ -20,7 +20,7 @@ Currently a test file. Eventual purpose is to perform movement correction on tim
 """
 
 #---------------------------------------------------------------------------------
-# Threading Classes
+# Threading Class
 #---------------------------------------------------------------------------------
 class motionCorrectionThread(threading.Thread):
     """
@@ -69,6 +69,8 @@ def expandTimepoints(imgFn, baseDir):
     template = img[:,:,:,0].get_data()[:,:,:,None]
     template_img = Image(template, coord)
     save_image(template_img, outDir+'template.nii.gz')
+    # also save the first image as 000, but don't add the name to the list
+    save_image(template_img, outDir+str(0).zfill(3)+'.nii.gz')
 
     # build the list of filenames
     filenames = [outDir+'template.nii.gz']
@@ -85,15 +87,17 @@ def expandTimepoints(imgFn, baseDir):
     return filenames
 
 
-def registerToTemplate(fixedImgFn, movingImgFn, outputFn, outputDir):
+def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None):
     """
     Register 2 images taken at different timepoints.
 
     Inputs:
     - fixedImgFn: filename of the fixed image (should be the template image)
     - movingImgFn: filename of the moving image (should be the Jn image)
-    - outputFn: name of the file to write the transformed image to.
-    - outputDir: path to the tmp directory
+    - outFn: name of the file to write the transformed image to.
+    - outDir: path to the tmp directory
+    - initialize: optional parameter to specify the location of the 
+                  transformation matrix from the previous registration
 
     Outputs:
     - Currently, nothing. Should return or save the transformation
@@ -104,7 +108,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outputFn, outputDir):
     reg = Registration()
     reg.inputs.fixed_image = fixedImgFn
     reg.inputs.moving_image = movingImgFn
-    reg.inputs.output_transform_prefix = outputDir+"output_"
+    reg.inputs.output_transform_prefix = outDir+"output_"
     reg.inputs.transforms = ['SyN']
     reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
     reg.inputs.number_of_iterations = [[100, 50, 30]]
@@ -124,38 +128,48 @@ def registerToTemplate(fixedImgFn, movingImgFn, outputFn, outputDir):
     reg.inputs.shrink_factors = [[3,2,1]]  # probably should fine-tune these?
     reg.inputs.use_estimate_learning_rate_once = [True]
     reg.inputs.use_histogram_matching = [True] # This is the default
-    reg.inputs.output_warped_image = outputFn
+    reg.inputs.output_warped_image = outFn
+
+    if initialize is not None:
+        reg.inputs.initial_moving_transform = initialize
+        reg.inputs.invert_initial_moving_transform = False
+
     print(reg.cmdline)
     reg.run()
     print("Finished running registration!")
 
 
-def applyTransformToTemplate(templateImg, transform):
+def stackNiftis(filenames, outFn):
     """
-    Use ANTs to apply the inverse of the transform to the template image.
-
-    Previously, the Jn image (movement image) was transformed to match the
-    template image. Now we want to transform the template image to match Jn
-    so that the template will be close to Jn+1.
+    Stack the specified nifti files into one .nii.gz file.
 
     Inputs:
-    - templateImg:
-    - transform: the transformation from Jn to template
+    - filenames: list of files
+    - outFn: output filename
 
+    Outputs:
+    - None
+
+    Effects:
+    - Create a new image out of the registered images
     """
-    pass
-
+    niftiMerger = dcmstack.MergeNifti()
+    niftiMerger.inputs.in_files = filenames
+    niftiMerger.inputs.out_path = outFn
+    niftiMerger.run()
+    print('Registered files merged to',outFn)
 
 #---------------------------------------------------------------------------------
 # Motion Correction: Big Functions
 #---------------------------------------------------------------------------------
-def motionCorrection(timepointFns, outputDir):
+def motionCorrection(timepointFns, outputDir, baseDir):
     """
     Register each timepoint to the template image.
 
     Inputs:
     - timepointFns: list of filenames for each timepoint
     - outputDir: directory to write the output files to
+    - baseDir: base directory
 
     Outputs:
     - registeredFns: list of registered timepoint files
@@ -192,64 +206,94 @@ def motionCorrection(timepointFns, outputDir):
     return registeredFns
 
 
-# Is this line necessary? What does it do?
-user=getpass.getuser()
+def markovCorrection(timepoints, outputDir, baseDir):
+    """
+    Apply the markov motion correction algorithm to a timeseries image.
 
-# set the base directory
-#baseDir = '/home/pirc/Desktop/Jenna_dev/'
-baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
-#baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+    Inputs:
+    - timepointFns: list of filenames for each timepoint
+    - outputDir: directory to write the output files to
+    - baseDir: base directory
 
-# image filename
-#imgFn = baseDir + '0003_MR1/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-imgFn = baseDir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-# imgFn = baseDir + '0003_MR2/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
+    Outputs:
+    - registeredFns: list of registered timepoint files
 
-outputDir = baseDir+"tmp/"
-# make the tmp directory
-if not os.path.exists(outputDir):
-    os.mkdir(outputDir)
+    Effects:
+    - Writes each registered file to /path/markov-movement-correction/tmp/markov/
+    """
+    if not os.path.exists(baseDir+'tmp/markov/'):
+        os.mkdir(baseDir+'tmp/markov/')
+    # get the template image filename
+    templateFn = timepointFns[0]
+    # set up list: want the original 000.nii.gz file
+    registeredFns = [baseDir+'tmp/timepoints/'+str(0).zfill(3)+'.nii.gz']
+    
+    # register the first timepoint to the template
+    outFn = baseDir+'tmp/markov/'+ str(1).zfill(3)+'.nii.gz'
+    outDir = baseDir+'tmp/'
+    registerToTemplate(templateFn, timepoints[1], outFn, outDir)
 
-# divide the image into timepoints
-timepointFns = expandTimepoints(imgFn, baseDir+'tmp/')
+    # location of the transform file:
+    transformFn = baseDir+'tmp/output_InverseComposite.h5'
 
-# register all timepoints to the template image (timepoint 0)
-registeredFns = motionCorrection(timepointFns, outputDir)
+    # for each subsequent image
+    # for i in xrange(2, len(timepointFns), 1):
+    for i in xrange(2, 3, 1):
+        # set the output filename
+        outFn = baseDir+'tmp/markov/'+ str(i).zfill(3)+'.nii.gz'
+        registeredFns.append(outFn)
+        outDir = baseDir + 'tmp/'
+        # register the new timepoint to the template, using initialized transform
+        registerToTemplate(templateFn, timepointFns[i], outFn, outDir, initialize)
+        
+    return registeredFns
 
-# combine the registered timepoints into 1 file
-niftiMerger = dcmstack.MergeNifti()
-niftiMerger.inputs.in_files = registeredFns
-niftiMerger.inputs.out_path = baseDir+'tmp/registered_0003_MR1'
-niftiMerger.run()
+#---------------------------------------------------------------------------------
+# Main
+#---------------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------------------
-"""
-# load the image
-img = load_image(imgFn)
-coord = img.coordmap
-# get the images for the 3 time points of current interest
-template = img[:,:,:,0].get_data()[:,:,:,None]
-slightMovement = img[:,:,:,1].get_data()[:,:,:,None]
-lotsMovement = img[:,:,:,144].get_data()[:,:,:,None]
-print template.shape
-template_img = Image(template, coord)
-save_image(template_img, baseDir+'tmp/template.nii.gz')
-slight_img = Image(slightMovement, coord)
-save_image(template_img, baseDir+'tmp/slight.nii.gz')
-lots_img = Image(lotsMovement, coord)
-save_image(lots_img, baseDir+'tmp/lots.nii.gz')
+def main(baseDir):
+    # Set up argument parser
+    # image filename
+    # which type of motion correction
 
-# register the timepoints
-outputFn = baseDir+'tmp/slight_transformed.nii.gz'
-registerToTemplate(baseDir+'tmp/template.nii.gz', baseDir+'tmp/slight.nii.gz', outputFn, baseDir+'tmp/')
+    # image filename
+    #imgFn = baseDir + '0003_MR1/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
+    imgFn = baseDir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
+    # imgFn = baseDir + '0003_MR2/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
 
-# save the template and the transformed image to the same .nii.gz file
-comboImgFn = baseDir+'tmp/template_and_transformed'
-comboFiles = [baseDir+'tmp/template.nii.gz', baseDir+'tmp/slight_transformed.nii.gz']
-niftiMerger = dcmstack.MergeNifti()
-niftiMerger.inputs.in_files = comboFiles
-niftiMerger.inputs.out_path = comboImgFn
-niftiMerger.run()
-"""
+    # make the tmp directory
+    outputDir = baseDir+"tmp/"
+    if not os.path.exists(outputDir):
+        os.mkdir(outputDir)
 
-# when finished, remove the tmp directory
+    # divide the image into timepoints
+    timepointFns = expandTimepoints(imgFn, outputDir)
+
+    # Motion correction to template: register all timepoints to the template image (timepoint 0)
+    registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+
+    # Markov motion correction: register all timepoints to preregistered 
+
+    # combine the registered timepoints into 1 file
+    stackNiftis(registeredFns, baseDir+'tmp/registered_0003_MR1')
+
+    #------------------------------------------------------------------------------------------
+    """
+    # load the image
+    img = load_image(imgFn)
+    coord = img.coordmap
+    # get the images for the 3 time points of current interest
+    template = img[:,:,:,0].get_data()[:,:,:,None]
+    slightMovement = img[:,:,:,1].get_data()[:,:,:,None]
+    lotsMovement = img[:,:,:,144].get_data()[:,:,:,None]
+    """
+    # when finished, remove the tmp directory
+
+
+if __name__ == "__main__":
+    # set the base directory
+    #baseDir = '/home/pirc/Desktop/Jenna_dev/'
+    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    #baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+    main(baseDir)
