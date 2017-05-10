@@ -20,7 +20,7 @@ Currently a test file. Eventual purpose is to perform movement correction on tim
 """
 
 #---------------------------------------------------------------------------------
-# Threading Class
+# Threading Classes
 #---------------------------------------------------------------------------------
 class motionCorrectionThread(threading.Thread):
     """
@@ -172,8 +172,8 @@ def motionCorrection(timepointFns, outputDir):
     registeredFns = []
     myThreads = []
     # for each subsequent image
-    # for i in xrange(1, len(timepointFns), 1):
-    for i in xrange(1, 4, 1):
+    for i in xrange(1, len(timepointFns), 1):
+    # for i in xrange(1, 4, 1):
         # set the output filename
         outFn = baseDir+'tmp/registered/'+ str(i).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
@@ -206,10 +206,9 @@ imgFn = baseDir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.g
 # imgFn = baseDir + '0003_MR2/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
 
 outputDir = baseDir+"tmp/"
-
 # make the tmp directory
-if not os.path.exists(baseDir+'tmp/'):
-    os.mkdir(baseDir+'tmp/')
+if not os.path.exists(outputDir):
+    os.mkdir(outputDir)
 
 # divide the image into timepoints
 timepointFns = expandTimepoints(imgFn, baseDir+'tmp/')
@@ -221,6 +220,7 @@ registeredFns = motionCorrection(timepointFns, outputDir)
 niftiMerger = dcmstack.MergeNifti()
 niftiMerger.inputs.in_files = registeredFns
 niftiMerger.inputs.out_path = baseDir+'tmp/registered_0003_MR1'
+niftiMerger.run()
 
 #------------------------------------------------------------------------------------------
 """
