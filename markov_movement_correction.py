@@ -1,9 +1,12 @@
 from __future__ import print_function
-from nipy import load_image, save_image
 import numpy as np
 import getpass
-from nipy.core.api import Image
 import os
+import argparse
+
+# for loading/saving the images
+from nipy.core.api import Image
+from nipy import load_image, save_image
 
 # for the registration
 from nipype.interfaces.ants import Registration
@@ -254,8 +257,15 @@ def markovCorrection(timepoints, outputDir, baseDir):
 
 def main(baseDir):
     # Set up argument parser
-    # image filename
+    parser = argparse.ArgumentParser(description="Perform motion correction on time-series images.")
+    # image filenames
+    parser.add_argument('-i', '--inputFn', type=str, help='The name of the file to correct')
+    parser.add_argument('-o', '--outputFn', type=str, help='The name of the file to save the correction to')
     # which type of motion correction
+    parser.add_argument('-t', '--correctionType', type=str, help='Specify which type of correction to run.')
+
+    # now parse the arguments
+    args = parser.parse_args()
 
     # image filename
     #imgFn = baseDir + '0003_MR1/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
@@ -271,9 +281,10 @@ def main(baseDir):
     timepointFns = expandTimepoints(imgFn, outputDir)
 
     # Motion correction to template: register all timepoints to the template image (timepoint 0)
-    registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+    # registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
 
     # Markov motion correction: register all timepoints to preregistered 
+    registeredFns = markovCorrection(timepoints, outputDir, baseDir)
 
     # combine the registered timepoints into 1 file
     stackNiftis(registeredFns, baseDir+'tmp/registered_0003_MR1')
