@@ -168,8 +168,9 @@ def motionCorrection(timepointFns, outputDir):
         os.mkdir(baseDir+'tmp/registered/')
     # get the template image filename
     templateFn = timepointFns[0]
-    # set up list
+    # set up lists
     registeredFns = []
+    myThreads = []
     # for each subsequent image
     # for i in xrange(1, len(timepointFns), 1):
     for i in xrange(1, 4, 1):
@@ -180,9 +181,14 @@ def motionCorrection(timepointFns, outputDir):
         # start a thread to register the new timepoint to the template
         t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], 
                      outFn, outputDir)
+        myThreads.append(t)
         t.start()
         # do I need to limit the number of threads?
         # or will they automatically limit themselves to the number of cores?
+
+    for t in myThreads:
+        t.join()
+        
     return registeredFns
 
 
