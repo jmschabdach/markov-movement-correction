@@ -16,7 +16,6 @@ from nipype.interfaces import dcmstack
 
 # threading
 import threading
-import time
 
 """
 Currently a test file. Eventual purpose is to perform movement correction on time series images.
@@ -99,7 +98,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None):
     - movingImgFn: filename of the moving image (should be the Jn image)
     - outFn: name of the file to write the transformed image to.
     - outDir: path to the tmp directory
-    - initialize: optional parameter to specify the location of the 
+    - initialize: optional parameter to specify the location of the
                   transformation matrix from the previous registration
 
     Outputs:
@@ -196,7 +195,7 @@ def motionCorrection(timepointFns, outputDir, baseDir):
         registeredFns.append(outFn)
         outputDir = baseDir + 'tmp/'
         # start a thread to register the new timepoint to the template
-        t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], 
+        t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i],
                      outFn, outputDir)
         myThreads.append(t)
         t.start()
@@ -205,7 +204,7 @@ def motionCorrection(timepointFns, outputDir, baseDir):
 
     for t in myThreads:
         t.join()
-        
+
     return registeredFns
 
 
@@ -227,10 +226,10 @@ def markovCorrection(timepoints, outputDir, baseDir):
     if not os.path.exists(baseDir+'tmp/markov/'):
         os.mkdir(baseDir+'tmp/markov/')
     # get the template image filename
-    templateFn = timepointFns[0]
+    templateFn = timepoints[0]
     # set up list: want the original 000.nii.gz file
     registeredFns = [baseDir+'tmp/timepoints/'+str(0).zfill(3)+'.nii.gz']
-    
+
     # register the first timepoint to the template
     outFn = baseDir+'tmp/markov/'+ str(1).zfill(3)+'.nii.gz'
     outDir = baseDir+'tmp/'
@@ -240,15 +239,15 @@ def markovCorrection(timepoints, outputDir, baseDir):
     transformFn = baseDir+'tmp/output_InverseComposite.h5'
 
     # for each subsequent image
-    # for i in xrange(2, len(timepointFns), 1):
-    for i in xrange(2, 3, 1):
+    for i in xrange(2, len(timepoints), 1):
+    # for i in xrange(2, 3, 1):
         # set the output filename
         outFn = baseDir+'tmp/markov/'+ str(i).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
         outDir = baseDir + 'tmp/'
         # register the new timepoint to the template, using initialized transform
-        registerToTemplate(templateFn, timepointFns[i], outFn, outDir, initialize)
-        
+        registerToTemplate(templateFn, timepoints[i], outFn, outDir, transformFn)
+
     return registeredFns
 
 #---------------------------------------------------------------------------------
@@ -281,13 +280,15 @@ def main(baseDir):
     timepointFns = expandTimepoints(imgFn, outputDir)
 
     # Motion correction to template: register all timepoints to the template image (timepoint 0)
-    # registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+    #registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+    #comboFn = baseDir+'tmp/motion_registered_0003_MR1'
 
-    # Markov motion correction: register all timepoints to preregistered 
-    registeredFns = markovCorrection(timepoints, outputDir, baseDir)
+    # Markov motion correction: register all timepoints to preregistered
+    registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
+    comboFn = baseDir+'tmp/markov_registered_0003_MR1'
 
     # combine the registered timepoints into 1 file
-    stackNiftis(registeredFns, baseDir+'tmp/registered_0003_MR1')
+    stackNiftis(registeredFns, comboFn)
 
     #------------------------------------------------------------------------------------------
     """
@@ -304,7 +305,8 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    #baseDir = '/home/pirc/Desktop/Jenna_dev/'
-    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    #baseDir = '/home/pirc/Desktop/Jenna_dev/markov-movement-correction/'
+    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     #baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
     main(baseDir)
