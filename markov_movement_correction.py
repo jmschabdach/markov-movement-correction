@@ -290,7 +290,7 @@ def main(baseDir):
     # combine the registered timepoints into 1 file
     stackNiftis(registeredFns, comboFn)
 
-    #------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
     """
     # load the image
     img = load_image(imgFn)
@@ -301,7 +301,24 @@ def main(baseDir):
     lotsMovement = img[:,:,:,144].get_data()[:,:,:,None]
     """
     # when finished, remove the tmp directory
+#--------------------------------------------------------------------------------------
+def testStackNifti():
+    """
+    Woo testing things
+    """
+    outfn = '/home/jenna/Research/CHP-PIRC/markov-movement_correction/registered_0003_MR1'
+    fns = []
+    with open('tmp/filenames.txt') as f:
+        fns = f.read().splitlines()
 
+    fns = ['/home/jenna/Research/CHP-PIRC/markov-movement-correction/tmp/registered/'+s for s in fns]
+    fns.insert(0, 'home/jenna/Research/CHP-PIRC/markov-movement-correction/tmp/timepoints/000.nii.gz')
+
+    # now set up the nifti merger
+    niftiMerger = dcmstack.MergeNifti()
+    niftiMerger.inputs.in_files = fns
+    niftiMerger.inputs.out_path = outFn
+    niftiMerger.run()
 
 if __name__ == "__main__":
     # set the base directory
@@ -309,4 +326,5 @@ if __name__ == "__main__":
     baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
     #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     #baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
-    main(baseDir)
+    # main(baseDir)
+    testStackNifti()
