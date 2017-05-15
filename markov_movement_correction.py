@@ -342,7 +342,7 @@ def testStackNifti(basePath):
     print(imgs.shape)
     print(coords)
     
-    registeredImg = Image(imgs, coord)
+    registeredImg = Image(imgs, coords)
     save_image(registeredImg, outfn)
 
 
