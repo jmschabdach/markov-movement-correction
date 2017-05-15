@@ -371,6 +371,9 @@ def main(baseDir):
         registeredFns = motionCorrection(timepointFns, outputDir, baseDir, prealign=True)
     elif args.correctionType == 'markov':
         registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
+    else:
+        print("Error: the type of motion correction entered is not currently supported.")
+        print("       Entered:", args.correctionType)
 
     """
     # Motion correction to template: register all timepoints to the template image (timepoint 0)
