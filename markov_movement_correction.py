@@ -267,8 +267,8 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     registeredFns = []
     myThreads = []
     # for each subsequent image
-    # for i in xrange(1, len(timepointFns), 1):
-    for i in xrange(1, 4, 1):
+    for i in xrange(1, len(timepointFns), 1):
+    # for i in xrange(1, 4, 1):
         # set the output filename
         outFn = baseDir+'tmp/registered/'+ str(i).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
