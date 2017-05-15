@@ -302,26 +302,15 @@ def main(baseDir):
     """
     # when finished, remove the tmp directory
 #--------------------------------------------------------------------------------------
-def testStackNifti(basePath):
+def testStackNifti(origFn, registeredFns, outFn):
     """
-    Woo testing things
+    Combine the registered timepoint images into a single file.
+
+    Inputs:
+    - origFn: filename of the original image file
+    - registeredFns: list of filenames for the registered timepoint images
+    - outFn: name of the file to write the combined image to
     """
-    # filenames should be inputs
-    origFn = basePath+'0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-    outfn = basePath+'registered_0003_MR1'
-    fns = []
-    with open(basePath+'tmp/filenames') as f:
-        fns = f.read().splitlines()
-
-    fns = [basePath+'tmp/registered/'+s for s in fns]
-    fns.insert(0, basePath+'tmp/timepoints/000.nii.gz')
-
-    # now set up the nifti merger
-    # niftiMerger = dcmstack.MergeNifti()
-    # niftiMerger.inputs.in_files = fns
-    # niftiMerger.inputs.out_path = outFn
-    # niftiMerger.run()
-
     # load the original image
     origImg = load_image(origFn)
     # get the coordinates
@@ -330,7 +319,7 @@ def testStackNifti(basePath):
 
     imgs = []
     # load all of the images
-    for imgFn in fns:
+    for imgFn in registeredFns:
         # load the image
         img = load_image(imgFn)
         if len(img.get_data().shape) == 4:
@@ -353,4 +342,13 @@ if __name__ == "__main__":
     #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     #baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
     # main(baseDir)
-    testStackNifti(baseDir)
+
+    origFn = baseDir+'0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
+    outfn = baseDir+'registered_0003_MR1'
+    fns = []
+    with open(baseDir+'tmp/filenames') as f:
+        fns = f.read().splitlines()
+
+    fns = [baseDir+'tmp/registered/'+s for s in fns]
+    fns.insert(0, baseDir+'tmp/timepoints/000.nii.gz')
+    testStackNifti(origFn, fns, outfn)
