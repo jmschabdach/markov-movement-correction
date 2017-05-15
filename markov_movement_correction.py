@@ -28,7 +28,7 @@ class motionCorrectionThread(threading.Thread):
     """
     Implementation of the threading class.
     """
-    def __init__(self, threadId, name, templateFn, timepointFn, outputFn, outputDir):
+    def __init__(self, threadId, name, templateFn, timepointFn, outputFn, outputDir, prealign=False):
         # What other properties my threads will need?
         threading.Thread.__init__(self)
         self.threadId = threadId
@@ -37,10 +37,14 @@ class motionCorrectionThread(threading.Thread):
         self.timepointFn = timepointFn
         self.outputFn = outputFn
         self.outputDir = outputDir
+        self.prealign = prealign
 
     def run(self):
         print("Starting motion correction for", self.name)
-        registerToTemplate(self.templateFn, self.timepointFn, self.outputFn, self.outputDir)
+        if not self.prealign:
+            registerToTemplate(self.templateFn, self.timepointFn, self.outputFn, self.outputDir)
+        else:
+            registerToTemplatePrealign(self.templateFn, self.timepointFn, self.outputFn, self.outputDir)
         print("Finished motion correction for", self.name)
 
 
@@ -136,35 +140,108 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None):
         reg.inputs.initial_moving_transform = initialize
         reg.inputs.invert_initial_moving_transform = False
 
-    print(reg.cmdline)
+    # print(reg.cmdline)
+    print("Starting registration for",outFn)
     reg.run()
-    print("Finished running registration!")
+    print("Finished running registration for", outFn)
 
 
-def stackNiftis(filenames, outFn):
+def registerToTemplatePrealign(fixedImgFn, movingImgFn, outFn, outDir, initialize=None):
     """
-    Stack the specified nifti files into one .nii.gz file.
+    Register 2 images taken at different timepoints.
 
     Inputs:
-    - filenames: list of files
-    - outFn: output filename
+    - fixedImgFn: filename of the fixed image (should be the template image)
+    - movingImgFn: filename of the moving image (should be the Jn image)
+    - outFn: name of the file to write the transformed image to.
+    - outDir: path to the tmp directory
+    - initialize: optional parameter to specify the location of the
+                  transformation matrix from the previous registration
 
     Outputs:
-    - None
+    - Currently, nothing. Should return or save the transformation
 
     Effects:
-    - Create a new image out of the registered images
+    - Saves the registered image
     """
-    niftiMerger = dcmstack.MergeNifti()
-    niftiMerger.inputs.in_files = filenames
-    niftiMerger.inputs.out_path = outFn
-    niftiMerger.run()
+    reg = Registration()
+    reg.inputs.fixed_image = fixedImgFn
+    reg.inputs.moving_image = movingImgFn
+    reg.inputs.output_transform_prefix = outDir+"output_"
+    reg.inputs.transforms = ['Affine', 'SyN']
+    reg.inputs.transform_parameters = [(2.0,)(0.25, 3.0, 0.0)]
+    reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]]
+    reg.inputs.dimension = 3
+    reg.inputs.write_composite_transform = True
+    reg.inputs.collapse_output_transforms = False
+    reg.inputs.initialize_transforms_per_stage = False
+    reg.inputs.metric = ['CC']*2
+    reg.inputs.metric_weight = [1]*2 # Default (value ignored currently by ANTs)
+    reg.inputs.radius_or_number_of_bins = [32]*2
+    reg.inputs.sampling_strategy = ['Random', None]
+    reg.inputs.sampling_percentage = [0.05, None]
+    reg.inputs.convergence_threshold = [1.e-8, 1.e-9]
+    reg.inputs.convergence_window_size = [20]*2
+    reg.inputs.smoothing_sigmas = [[1,0], [2,1,0]]  # probably should fine-tune these?
+    reg.inputs.sigma_units = ['vox'] * 2
+    reg.inputs.shrink_factors = [[2,1], [3,2,1]]  # probably should fine-tune these?
+    reg.inputs.use_estimate_learning_rate_once = [True, True]
+    reg.inputs.use_histogram_matching = [True, True] # This is the default
+    reg.inputs.output_warped_image = outFn
+
+    if initialize is not None:
+        reg.inputs.initial_moving_transform = initialize
+        reg.inputs.invert_initial_moving_transform = False
+
+    # print(reg.cmdline)
+    print("Starting registration for",outFn)
+    reg.run()
+    print("Finished running registration for", outFn)
+
+
+def stackNiftis(origFn, registeredFns, outFn):
+    """
+    Combine the registered timepoint images into a single file.
+
+    Inputs:
+    - origFn: filename of the original image file
+    - registeredFns: list of filenames for the registered timepoint images
+    - outFn: name of the file to write the combined image to
+
+    Returns:
+    - Nothing
+
+    Effect:
+    - Combine the registered timepoint images into a single file
+    """
+    # load the original image
+    origImg = load_image(origFn)
+    # get the coordinates
+    coords = origImg.coordmap
+    print(origImg.get_data().shape)
+
+    imgs = []
+    # load all of the images
+    for imgFn in registeredFns:
+        # load the image
+        img = load_image(imgFn)
+        if len(img.get_data().shape) == 4:
+            imgs.append(np.squeeze(img.get_data()))
+        else:
+            imgs.append(img.get_data())
+
+    imgs = np.stack(imgs, axis=-1)
+    print(imgs.shape)
+    print(coords)
+    
+    registeredImg = Image(imgs, coords)
+    save_image(registeredImg, outfn)
     print('Registered files merged to',outFn)
 
 #---------------------------------------------------------------------------------
 # Motion Correction: Big Functions
 #---------------------------------------------------------------------------------
-def motionCorrection(timepointFns, outputDir, baseDir):
+def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     """
     Register each timepoint to the template image.
 
@@ -172,6 +249,8 @@ def motionCorrection(timepointFns, outputDir, baseDir):
     - timepointFns: list of filenames for each timepoint
     - outputDir: directory to write the output files to
     - baseDir: base directory
+    - prealign: default is False - do you want to prealign the nonlinear 
+                registration using an affine transform?
 
     Outputs:
     - registeredFns: list of registered timepoint files
@@ -188,15 +267,14 @@ def motionCorrection(timepointFns, outputDir, baseDir):
     registeredFns = []
     myThreads = []
     # for each subsequent image
-    for i in xrange(1, len(timepointFns), 1):
-    # for i in xrange(1, 4, 1):
+    # for i in xrange(1, len(timepointFns), 1):
+    for i in xrange(1, 4, 1):
         # set the output filename
         outFn = baseDir+'tmp/registered/'+ str(i).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
         outputDir = baseDir + 'tmp/'
         # start a thread to register the new timepoint to the template
-        t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i],
-                     outFn, outputDir)
+        t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, prealign=prealign)
         myThreads.append(t)
         t.start()
         # do I need to limit the number of threads?
@@ -301,38 +379,7 @@ def main(baseDir):
     lotsMovement = img[:,:,:,144].get_data()[:,:,:,None]
     """
     # when finished, remove the tmp directory
-#--------------------------------------------------------------------------------------
-def testStackNifti(origFn, registeredFns, outFn):
-    """
-    Combine the registered timepoint images into a single file.
-
-    Inputs:
-    - origFn: filename of the original image file
-    - registeredFns: list of filenames for the registered timepoint images
-    - outFn: name of the file to write the combined image to
-    """
-    # load the original image
-    origImg = load_image(origFn)
-    # get the coordinates
-    coords = origImg.coordmap
-    print(origImg.get_data().shape)
-
-    imgs = []
-    # load all of the images
-    for imgFn in registeredFns:
-        # load the image
-        img = load_image(imgFn)
-        if len(img.get_data().shape) == 4:
-            imgs.append(np.squeeze(img.get_data()))
-        else:
-            imgs.append(img.get_data())
-
-    imgs = np.stack(imgs, axis=-1)
-    print(imgs.shape)
-    print(coords)
-    
-    registeredImg = Image(imgs, coords)
-    save_image(registeredImg, outfn)
+#-----------------------------------------------------------------------------------------
 
 
 if __name__ == "__main__":
@@ -341,14 +388,14 @@ if __name__ == "__main__":
     # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
     #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     #baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
-    # main(baseDir)
+    main(baseDir)
 
-    origFn = baseDir+'0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-    outfn = baseDir+'registered_0003_MR1'
-    fns = []
-    with open(baseDir+'tmp/filenames') as f:
-        fns = f.read().splitlines()
+    # origFn = baseDir+'0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
+    # outfn = baseDir+'registered_0003_MR1'
+    # fns = []
+    # with open(baseDir+'tmp/filenames') as f:
+    #     fns = f.read().splitlines()
 
-    fns = [baseDir+'tmp/registered/'+s for s in fns]
-    fns.insert(0, baseDir+'tmp/timepoints/000.nii.gz')
-    testStackNifti(origFn, fns, outfn)
+    # fns = [baseDir+'tmp/registered/'+s for s in fns]
+    # fns.insert(0, baseDir+'tmp/timepoints/000.nii.gz')
+    # testStackNifti(origFn, fns, outfn)
