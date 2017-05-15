@@ -302,23 +302,46 @@ def main(baseDir):
     """
     # when finished, remove the tmp directory
 #--------------------------------------------------------------------------------------
-def testStackNifti():
+def testStackNifti(basePath):
     """
     Woo testing things
     """
-    outfn = '/home/jenna/Research/CHP-PIRC/markov-movement_correction/registered_0003_MR1'
+    # filenames should be inputs
+    origFn = basePath+'0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
+    outfn = basePath+'registered_0003_MR1'
     fns = []
-    with open('tmp/filenames.txt') as f:
+    with open(basePath+'tmp/filenames') as f:
         fns = f.read().splitlines()
 
-    fns = ['/home/jenna/Research/CHP-PIRC/markov-movement-correction/tmp/registered/'+s for s in fns]
-    fns.insert(0, 'home/jenna/Research/CHP-PIRC/markov-movement-correction/tmp/timepoints/000.nii.gz')
+    fns = [basePath+'tmp/registered/'+s for s in fns]
+    fns.insert(0, basePath+'tmp/timepoints/000.nii.gz')
 
     # now set up the nifti merger
-    niftiMerger = dcmstack.MergeNifti()
-    niftiMerger.inputs.in_files = fns
-    niftiMerger.inputs.out_path = outFn
-    niftiMerger.run()
+    # niftiMerger = dcmstack.MergeNifti()
+    # niftiMerger.inputs.in_files = fns
+    # niftiMerger.inputs.out_path = outFn
+    # niftiMerger.run()
+
+    # load the original image
+    origImg = load_image(origImg)
+    # get the coordinates
+    coords = origImg.coordmap
+    print(origImg.get_data().shape)
+
+    imgs = []
+    # load all of the images
+    for imgFn in fns:
+        # load the image
+        img = load_image(imgFn)
+        # add the image data to the list
+        imgs.append(img.get_data())
+
+    imgs = np.asarray(imgs)
+    print(imgs.shape)
+    
+    registeredImg = Image(template, coord)
+    save_image(registeredImg, outfn)
+
 
 if __name__ == "__main__":
     # set the base directory
@@ -327,4 +350,4 @@ if __name__ == "__main__":
     #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     #baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
     # main(baseDir)
-    testStackNifti()
+    testStackNifti(baseDir)
