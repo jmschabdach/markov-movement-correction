@@ -333,9 +333,10 @@ def testStackNifti(basePath):
     for imgFn in fns:
         # load the image
         img = load_image(imgFn)
-        print(img.get_data().shape)
-        # add the image data to the list
-        imgs.append(img.get_data())
+        if len(img.get_data().shape) == 4:
+            imgs.append(np.squeeze(img.get_data()))
+        else:
+            imgs.append(img.get_data())
 
     imgs = np.stack(imgs, axis=-1)
     print(imgs.shape)
