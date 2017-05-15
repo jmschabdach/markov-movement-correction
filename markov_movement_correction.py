@@ -169,7 +169,7 @@ def registerToTemplatePrealign(fixedImgFn, movingImgFn, outFn, outDir, initializ
     reg.inputs.moving_image = movingImgFn
     reg.inputs.output_transform_prefix = outDir+"output_"
     reg.inputs.transforms = ['Affine', 'SyN']
-    reg.inputs.transform_parameters = [(2.0,0.5), (0.25, 3.0, 0.0)]
+    reg.inputs.transform_parameters = [(2.0, 0.5, 0.0), (0.25, 3.0, 0.0)]
     reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]]
     reg.inputs.dimension = 3
     reg.inputs.write_composite_transform = True
