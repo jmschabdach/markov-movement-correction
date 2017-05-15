@@ -336,10 +336,11 @@ def testStackNifti(basePath):
         # add the image data to the list
         imgs.append(img.get_data())
 
-    imgs = np.asarray(imgs)
+    imgs = np.stack(imgs, axis=-1)
     print(imgs.shape)
+    print(coord)
     
-    registeredImg = Image(template, coord)
+    registeredImg = Image(imgs, coord)
     save_image(registeredImg, outfn)
 
 
