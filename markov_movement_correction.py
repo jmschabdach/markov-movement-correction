@@ -353,7 +353,7 @@ def main(baseDir):
     #imgFn = baseDir + '0003_MR1/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
     # imgFn = baseDir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
     # imgFn = baseDir + '0003_MR2/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-    imgFn = baseDir + args.inputFn
+    origFn = baseDir + args.inputFn
 
     # make the tmp directory
     outputDir = baseDir+"tmp/"
@@ -361,7 +361,7 @@ def main(baseDir):
         os.mkdir(outputDir)
 
     # divide the image into timepoints
-    timepointFns = expandTimepoints(imgFn, outputDir)
+    timepointFns = expandTimepoints(origFn, outputDir)
 
     # Select the specified motion correction algorithm
     registeredFns = []
@@ -384,7 +384,7 @@ def main(baseDir):
 
     # combine the registered timepoints into 1 file
     comboFn = baseDir+args.outputFn
-    stackNiftis(registeredFns, comboFn)
+    stackNiftis(origFn, registeredFns, comboFn)
 
 #------------------------------------------------------------------------------------------
     """
