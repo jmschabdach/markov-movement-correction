@@ -358,12 +358,12 @@ def main(baseDir):
     timepointFns = expandTimepoints(imgFn, outputDir)
 
     # Motion correction to template: register all timepoints to the template image (timepoint 0)
-    #registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
-    #comboFn = baseDir+'tmp/motion_registered_0003_MR1'
+    registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+    comboFn = baseDir+'tmp/motion_registered_0003_MR1'
 
     # Markov motion correction: register all timepoints to preregistered
-    registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
-    comboFn = baseDir+'tmp/markov_registered_0003_MR1'
+    # registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
+    # comboFn = baseDir+'tmp/markov_registered_0003_MR1'
 
     # combine the registered timepoints into 1 file
     stackNiftis(registeredFns, comboFn)
