@@ -333,6 +333,7 @@ def testStackNifti(basePath):
     for imgFn in fns:
         # load the image
         img = load_image(imgFn)
+        print type(img.get_data())
         # add the image data to the list
         imgs.append(img.get_data())
 
