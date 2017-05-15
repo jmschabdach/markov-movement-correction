@@ -339,15 +339,21 @@ def main(baseDir):
     parser.add_argument('-i', '--inputFn', type=str, help='The name of the file to correct')
     parser.add_argument('-o', '--outputFn', type=str, help='The name of the file to save the correction to')
     # which type of motion correction
-    parser.add_argument('-t', '--correctionType', type=str, help='Specify which type of correction to run.')
+    parser.add_argument('-t', '--correctionType', type=str, help='Specify which type of correction to run. '
+                        +'Options include: markov, non-markov, non-markov-affine')
 
     # now parse the arguments
     args = parser.parse_args()
+    print(args)
+    print(args.correctionType)
+    print(args.inputFn)
+    print(args.outputFn)
 
     # image filename
     #imgFn = baseDir + '0003_MR1/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-    imgFn = baseDir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
+    # imgFn = baseDir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
     # imgFn = baseDir + '0003_MR2/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
+    imgFn = baseDir + args.inputFn
 
     # make the tmp directory
     outputDir = baseDir+"tmp/"
@@ -357,15 +363,27 @@ def main(baseDir):
     # divide the image into timepoints
     timepointFns = expandTimepoints(imgFn, outputDir)
 
+    # Select the specified motion correction algorithm
+    registeredFns = []
+    if args.correctionType == 'non-markov':
+        registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+    elif args.correctionType == 'non-markov-affine':
+        registeredFns = motionCorrection(timepointFns, outputDir, baseDir, prealign=True)
+    elif args.correctionType == 'markov':
+        registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
+
+    """
     # Motion correction to template: register all timepoints to the template image (timepoint 0)
-    registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
-    comboFn = baseDir+'tmp/motion_registered_0003_MR1'
+    # registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+    # comboFn = baseDir+'tmp/motion_registered_0003_MR1'
 
     # Markov motion correction: register all timepoints to preregistered
     # registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
     # comboFn = baseDir+'tmp/markov_registered_0003_MR1'
+    """
 
     # combine the registered timepoints into 1 file
+    comboFn = baseDir+args.outputFn
     stackNiftis(registeredFns, comboFn)
 
 #------------------------------------------------------------------------------------------
