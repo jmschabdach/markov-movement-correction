@@ -120,20 +120,25 @@ def main(baseDir):
     imgFn3 = baseDir+ "TC_050_01a)S08CORT23DSPACE_T2_Bias_Corrected.nii.gz"
     # set up the list of hyperparameter values that can be used 
     #  and the different values to test
-    hyperparameters = {
-        "radius_or_number_of_bins": [64, 32, 16, 8], #[48, 44, 40, 36, 32, 28, , 8],
-        "convergence_threshold": [1., 1.e-2, 1.e-4, 1.e-5, 1.e-7, 1.e-9],
-        "convergence_window_size": [5, 10, 20, 30, 40, 50],
-        "smoothing_sigmas": [[2,1,0], [5,5,5], [4,4,4], [3,3,3], [2,2,2], [1,1,1], [0,0,0]],
-        "shrink_factors": [[3,2,1], [3], [6,6,6], [5,5,5], [4,4,4], [3,3,3], [2,2,2], [1,1,1]]
-    }
-    defaults = {
-        "radius_or_number_of_bins": 32,
-        "convergence_threshold": 1.e-9,
-        "convergence_window_size": 20,
-        "smoothing_sigmas": [2,1,0],
-        "shrink_factors": [3,2,1]
-    }
+    # hyperparameters = {
+    #     "radius_or_number_of_bins": [64, 32, 16, 8], #[48, 44, 40, 36, 32, 28, , 8],
+    #     "convergence_threshold": [1., 1.e-2, 1.e-4, 1.e-5, 1.e-7, 1.e-9],
+    #     "convergence_window_size": [5, 10, 20, 30, 40, 50],
+    #     "smoothing_sigmas": [[2,1,0], [5,5,5], [4,4,4], [3,3,3], [2,2,2], [1,1,1], [0,0,0]],
+    #     "shrink_factors": [[3,2,1], [3], [6,6,6], [5,5,5], [4,4,4], [3,3,3], [2,2,2], [1,1,1]]
+    # }
+    radius =[64, 48, 32, 16, 8] #[48, 44, 40, 36, 32, 28, , 8],
+    convergence_threshold = [1.e-2, 1.e-4, 1.e-6, 1.e-8]
+    convergence_window_size = [5, 10, 20, 30, 40, 50]
+    smoothing_sigmas = [[6,6,6], [4,4,4], [2,2,2], [0,0,0]] # [[6,6,6],[5,5,5], [4,4,4], [3,3,3], [2,2,2], [1,1,1], [0,0,0]]
+    shrink_factors = [[6,6,6], [4,4,4], [2,2,2], [0,0,0]]
+    # defaults = {
+    #     "radius_or_number_of_bins": 32,
+    #     "convergence_threshold": 1.e-9,
+    #     "convergence_window_size": 20,
+    #     "smoothing_sigmas": [2,1,0],
+    #     "shrink_factors": [3,2,1]
+    # }
     # initialize the parameter info file
     line = "radius_or_number_of_bins, convergence_threshold, convergence_window_size, smoothing_sigmas, shrink_factors, time\n"
     f = open(baseDir+'ANTsOptimal_hyperparams.csv', 'w+')
@@ -148,24 +153,28 @@ def main(baseDir):
 
     # lock = allocate_lock()
 
-    for key, optsList in hyperparameters.iteritems():
-        for opt in optsList:
-            hp = defaults.copy()
-            hp[key] = opt
-            # make the output filename
-            outFn = outDir+str(key)+"_"+str(opt)+".nii.gz"
+    for r in radius:
+        for t in convergence_threshold:
+            for w in convergence_window_size:
+                for s in smoothing_sigmas:
+                    for k in shrink_factors:
+                        # make the output filename
+                        outFn = outDir+str(key)+"_"+str(opt)+".nii.gz"
 
-            # start the thread for those hyperparameters
-            # t = myThread(threadId, imgFn1, imgFn2, outFn, outDir, hp)
-            # t.start()
-            # threadId += 1
+                        hyperparameters = {
+                            "radius_or_number_of_bins": r,
+                            "convergence_threshold": t,
+                            "convergence_window_size": w,
+                            "smoothing_sigmas": s,
+                            "shrink_factors": k
+                        }
 
-            # realized threading was a bad idea - can't get an accurate time-for-registration
-            startTime = time.clock()
-            registerToTemplate(imgFn1, imgFn2, outFn, outDir, hyperparams)
-            totalTime = time.clock() - startTime
-            print("Registration completed in", totalTime)
-            saveParams(hyperparams, totalTime, baseDir)
+                        # realized threading was a bad idea - can't get an accurate time-for-registration
+                        startTime = time.clock()
+                        registerToTemplate(imgFn1, imgFn2, outFn, outDir, hyperparams)
+                        totalTime = time.clock() - startTime
+                        print("Registration completed in", totalTime)
+                        saveParams(hyperparams, totalTime, baseDir)
 
 if __name__ == "__main__":
     # set the base directory
