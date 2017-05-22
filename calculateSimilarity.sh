@@ -20,11 +20,22 @@ done
 DIR='/home/pirc/Desktop/Jenna_dev/markov-movement-correction/tmp/noAffine/*'
 # for all the images in the registered (non-affine) version
 count=0
-echo "Timepoint, Similarity, Mutual_Information" > /home/pirc/Desktop/Jenna_dev/markov-movement-correction/similarities_registrated_nonAffine.csv
+echo "Timepoint, Similarity, Mutual_Information" > /home/pirc/Desktop/Jenna_dev/markov-movement-correction/similarities_registered_nonAffine.csv
 for img in $DIR ; do
      # compare each image to the template
     sims=$(./utils/similarity.sh $TEMPLATE $img)
-    echo $count, $sims >> /home/pirc/Desktop/Jenna_dev/markov-movement-correction/similarities_registrated_nonAffine.csv
+    echo $count, $sims >> /home/pirc/Desktop/Jenna_dev/markov-movement-correction/similarities_registered_nonAffine.csv
+    count=$((count+1))
+done
+
+DIR='/home/pirc/Desktop/Jenna_dev/markov-movement-correction/tmp/markov/*'
+# for all the images in the non-registered version
+count=0
+echo "Timepoint, Similarity, Mutual_Information" > /home/pirc/Desktop/Jenna_dev/markov-movement-correction/similarities_markov_nonAffine.csv
+for img in $DIR ; do
+    # compare each image to the template
+    sims=$(./utils/similarity.sh $TEMPLATE $img)
+    echo $count, $sims >> /home/pirc/Desktop/Jenna_dev/markov-movement-correction/similarities_markov_nonAffine.csv
     count=$((count+1))
 done
 

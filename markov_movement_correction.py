@@ -356,7 +356,7 @@ def main(baseDir):
     origFn = baseDir + args.inputFn
 
     # make the tmp directory
-    outputDir = baseDir+"tmp/"
+    outputDir = baseDir+"tmp/"+args.inputFn.split(".")[0]+"/"
     if not os.path.exists(outputDir):
         os.mkdir(outputDir)
 
@@ -405,18 +405,8 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    baseDir = '/home/pirc/Desktop/Jenna_dev/markov-movement-correction/'
-    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    # baseDir = '/home/pirc/Desktop/Jenna_dev/markov-movement-correction/'
+    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
     #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     #baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
     main(baseDir)
-
-    # origFn = baseDir+'0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-    # outfn = baseDir+'registered_0003_MR1'
-    # fns = []
-    # with open(baseDir+'tmp/filenames') as f:
-    #     fns = f.read().splitlines()
-
-    # fns = [baseDir+'tmp/registered/'+s for s in fns]
-    # fns.insert(0, baseDir+'tmp/timepoints/000.nii.gz')
-    # testStackNifti(origFn, fns, outfn)
