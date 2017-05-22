@@ -248,7 +248,6 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     Inputs:
     - timepointFns: list of filenames for each timepoint
     - outputDir: directory to write the output files to
-    - baseDir: base directory
     - prealign: default is False - do you want to prealign the nonlinear 
                 registration using an affine transform?
 
@@ -259,8 +258,8 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     - Writes each registered file to /path/markov-movement-correction/tmp/registered/
     """
 
-    if not os.path.exists(baseDir+'tmp/registered/'):
-        os.mkdir(baseDir+'tmp/registered/')
+    if not os.path.exists(outputDir+'registered/'):
+        os.mkdir(outputDir+'registered/')
     # get the template image filename
     templateFn = timepointFns[0]
     # set up lists
@@ -270,9 +269,8 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     for i in xrange(1, len(timepointFns), 1):
     # for i in xrange(1, 4, 1):
         # set the output filename
-        outFn = baseDir+'tmp/registered/'+ str(i).zfill(3)+'.nii.gz'
+        outFn = outputDir'registered/'+ str(i).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
-        outputDir = baseDir + 'tmp/'
         # start a thread to register the new timepoint to the template
         t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, prealign=prealign)
         myThreads.append(t)
@@ -301,30 +299,28 @@ def markovCorrection(timepoints, outputDir, baseDir):
     Effects:
     - Writes each registered file to /path/markov-movement-correction/tmp/markov/
     """
-    if not os.path.exists(baseDir+'tmp/markov/'):
-        os.mkdir(baseDir+'tmp/markov/')
+    if not os.path.exists(outputDir+'markov/'):
+        os.mkdir(outputDir+'markov/')
     # get the template image filename
     templateFn = timepoints[0]
     # set up list: want the original 000.nii.gz file
-    registeredFns = [baseDir+'tmp/timepoints/'+str(0).zfill(3)+'.nii.gz']
+    registeredFns = [outputDir+'timepoints/'+str(0).zfill(3)+'.nii.gz']
 
     # register the first timepoint to the template
-    outFn = baseDir+'tmp/markov/'+ str(1).zfill(3)+'.nii.gz'
-    outDir = baseDir+'tmp/'
-    registerToTemplate(templateFn, timepoints[1], outFn, outDir)
+    outFn = outputDir+'markov/'+ str(1).zfill(3)+'.nii.gz'
+    registerToTemplate(templateFn, timepoints[1], outFn, outputDir)
 
     # location of the transform file:
-    transformFn = baseDir+'tmp/output_InverseComposite.h5'
+    transformFn = outputDir+'output_InverseComposite.h5'
 
     # for each subsequent image
     for i in xrange(2, len(timepoints), 1):
     # for i in xrange(2, 3, 1):
         # set the output filename
-        outFn = baseDir+'tmp/markov/'+ str(i).zfill(3)+'.nii.gz'
+        outFn = outputDir+'markov/'+ str(1).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
-        outDir = baseDir + 'tmp/'
         # register the new timepoint to the template, using initialized transform
-        registerToTemplate(templateFn, timepoints[i], outFn, outDir, transformFn)
+        registerToTemplate(templateFn, timepoints[i], outFn, outputDir, transformFn)
 
     return registeredFns
 
