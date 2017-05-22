@@ -138,7 +138,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None):
 
     if initialize is not None:
         reg.inputs.initial_moving_transform = initialize
-        reg.inputs.invert_initial_moving_transform = False
+        reg.inputs.invert_initial_moving_transform = True
 
     # print(reg.cmdline)
     print("Starting registration for",outFn)
@@ -191,7 +191,7 @@ def registerToTemplatePrealign(fixedImgFn, movingImgFn, outFn, outDir, initializ
 
     if initialize is not None:
         reg.inputs.initial_moving_transform = initialize
-        reg.inputs.invert_initial_moving_transform = False
+        reg.inputs.invert_initial_moving_transform = True
 
     # print(reg.cmdline)
     print("Starting registration for",outFn)
