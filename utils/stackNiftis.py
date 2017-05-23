@@ -13,6 +13,7 @@ parser.add_argument('-d', '--directory', help='Directory containing a series of 
                     required=True)
 parser.add_argument('-o', '--image', help='Filename of the output image to write to (default directory is the input directory)',
                     default='')
+parser.add_argument('-c', '--coordinate_image', help='Name of the image with the correct coordinate map', required=True)
 
 # parse the args
 args = parser.parse_args()
@@ -31,7 +32,7 @@ if outFn == '':
     outFn = imgsDir+outFn
 
 # get the coordinates
-img = load_image(files[0])
+img = load_image(args.coordinate_image)
 coords = img.coordmap
 print(coords)
 print(img.shape)
