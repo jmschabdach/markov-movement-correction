@@ -33,6 +33,8 @@ if outFn == '':
 # get the coordinates
 img = load_image(files[0])
 coords = img.coordmap
+print(coords)
+print(img.shape)
 
 # Now stack the images
 imgs = []
@@ -44,6 +46,8 @@ for fn in files:
         imgs.append(img.get_data())
 
 imgStack = np.stack(imgs, axis=-1)
+print(imgStack.shape)
+print(coords)
 
 # and save the stacked image
 registeredImg = Image(imgStack, coords)
