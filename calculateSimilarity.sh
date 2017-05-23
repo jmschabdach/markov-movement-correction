@@ -12,7 +12,6 @@ DIR="$BASE/timepoints_0/*"
 count=0
 echo "Timepoint, Similarity, Mutual_Information" > "$BASE/similarities_preregistration.csv"
 for img in $DIR ; do
-    echo $img
     # compare each image to the template
     sims=$(./utils/similarity.sh $TEMPLATE $img)
     echo $count, $sims >> "$BASE/similarities_preregistration.csv"
@@ -25,7 +24,6 @@ DIR="$BASE/noAffine/*"
 count=0
 echo "Timepoint, Similarity, Mutual_Information" > "$BASE/similarities_registered.csv"
 for img in $DIR ; do
-    echo $img
      # compare each image to the template
     sims=$(./utils/similarity.sh $TEMPLATE $img)
     echo $count, $sims >> "$BASE/similarities_registered.csv"
@@ -39,7 +37,6 @@ count=0
 echo "Timepoint, Similarity, Mutual_Information" > "$BASE/similarities_markov.csv"
 for img in $DIR ; do
     # compare each image to the template
-    echo $img
     sims=$(./utils/similarity.sh $TEMPLATE $img)
     echo $count, $sims >> "$BASE/similarities_markov.csv"
     count=$((count+1))
