@@ -18,7 +18,7 @@ for img in $DIR ; do
     count=$((count+1))
 done
 
-cp $TEMPLATE "$BASE/noAffine/"
+# cp $TEMPLATE "$BASE/noAffine/"
 DIR="$BASE/noAffine/*"
 # for all the images in the registered (non-affine) version
 count=0
@@ -30,7 +30,7 @@ for img in $DIR ; do
     count=$((count+1))
 done
 
-cp $TEMPLATE "$BASE/markov/ "
+# cp $TEMPLATE "$BASE/markov/"
 DIR="$BASE/markov/*"
 # for all the images in the non-registered version
 count=0
