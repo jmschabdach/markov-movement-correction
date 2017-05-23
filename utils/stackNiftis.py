@@ -24,7 +24,7 @@ if not os.path.exists(imgsDir):
     raise IOError('Error: the specified directory does not exist')
 
 # check that directory contains .nii or .nii.gz images
-files = [f for f in listdir(imgsDir) if isfile(join(imgsDir, f)) and (f.endswith('.nii.gz') or f.endswith('.nii'))]
+files = [join(imgsDir, f) for f in listdir(imgsDir) if isfile(join(imgsDir, f)) and (f.endswith('.nii.gz') or f.endswith('.nii'))]
 
 # make the output file name
 if outFn == '':
