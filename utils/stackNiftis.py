@@ -3,7 +3,7 @@ import argparse
 from nipy import load_image, save_image
 from nipy.core.api import Image
 import os
-import numpy as n
+import numpy as np
 from os import listdir
 from os.path import isfile, join
 
