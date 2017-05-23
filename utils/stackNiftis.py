@@ -4,13 +4,13 @@ from nipy import load_image, save_image
 from nipy.core.api import Image
 import os
 import numpy as n
-from os.path import isfile, joinp 
+from os.path import isfile, join
 
 # set up the argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--directory', help='Directory containing a series of timepoint .nii or .nii.gz images to combine into a single image',
                     required=True)
-parser.add_argument('-i', '--image', help='Filename of the output image to write to (default directory is the input directory)',
+parser.add_argument('-o', '--image', help='Filename of the output image to write to (default directory is the input directory)',
                     default='')
 
 # parse the args
