@@ -31,13 +31,13 @@ if outFn == '':
     outFn = imgsDir+outFn
 
 # get the coordinates
-img = load_image(fn[0])
+img = load_image(files[0])
 coords = img.coordmap
 
 # Now stack the images
 imgs = []
 for fn in files:
-    img = load_image(files)
+    img = load_image(fn)
     if len(img.get_data().shape) == 4:
         imgs.append(np.squeeze(img.get_data()))
     else:
