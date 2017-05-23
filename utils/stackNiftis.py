@@ -37,7 +37,7 @@ coords = img.coordmap
 # Now stack the images
 imgs = []
 for fn in files:
-    img = load_image(fn)
+    img = load_image(files)
     if len(img.get_data().shape) == 4:
         imgs.append(np.squeeze(img.get_data()))
     else:
