@@ -153,15 +153,17 @@ def main(baseDir):
 
     # lock = allocate_lock()
 
+
     for r in radius:
         for t in convergence_threshold:
             for w in convergence_window_size:
                 for s in smoothing_sigmas:
                     for k in shrink_factors:
                         # make the output filename
-                        outFn = outDir+str(key)+"_"+str(opt)+".nii.gz"
+                        name = "radius"+str(r)+"_threshold"+str(t)+"_windowSize"+str(w)+"_sigmas"+str(s)+"_factors"+str(k)
+                        outFn = outDir+name+".nii.gz"
 
-                        hyperparameters = {
+                        hyperparams = {
                             "radius_or_number_of_bins": r,
                             "convergence_threshold": t,
                             "convergence_window_size": w,
@@ -171,10 +173,14 @@ def main(baseDir):
 
                         # realized threading was a bad idea - can't get an accurate time-for-registration
                         startTime = time.clock()
-                        registerToTemplate(imgFn1, imgFn2, outFn, outDir, hyperparams)
-                        totalTime = time.clock() - startTime
-                        print("Registration completed in", totalTime)
-                        saveParams(hyperparams, totalTime, baseDir)
+                        try:
+                            registerToTemplate(imgFn1, imgFn2, outFn, outDir, hyperparams)
+                            totalTime = time.clock() - startTime
+                            print("Registration completed in", totalTime)
+                            saveParams(hyperparams, totalTime, baseDir)
+                        except RuntimeError:
+                            print("Hyperparameters invalid?")
+                            saveParams(hyperparams, -1, baseDir)
 
 if __name__ == "__main__":
     # set the base directory
