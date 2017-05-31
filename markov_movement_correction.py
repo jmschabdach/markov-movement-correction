@@ -3,6 +3,8 @@ import numpy as np
 import getpass
 import os
 import argparse
+import time
+import shutil
 
 # for loading/saving the images
 from nipy.core.api import Image
@@ -22,7 +24,7 @@ Currently a test file. Eventual purpose is to perform movement correction on tim
 """
 
 #---------------------------------------------------------------------------------
-# Threading Class
+# Threading Classes
 #---------------------------------------------------------------------------------
 class motionCorrectionThread(threading.Thread):
     """
@@ -47,6 +49,33 @@ class motionCorrectionThread(threading.Thread):
             registerToTemplatePrealign(self.templateFn, self.timepointFn, self.outputFn, self.outputDir)
         print("Finished motion correction for", self.name)
 
+class bifurcatedMarkovThread(threading.Thread):
+    """
+    Implementation of the threading class.
+
+    Purpose: allow for bifurcating markov motion correction. 
+    """
+    def __init__(self, threadId, threadName, filenames, outputDir, baseDir):
+        threading.Thread.__init__(self)
+        self.threadId = threadId
+        self.name = threadName
+        self.fns = filenames
+        self.outputDir = outputDir
+        self.baseDir = baseDir
+        self._return = None
+
+    def run(self):
+        # if self._Thread__target is not None:
+        print("Starting the bifurcated markov motion correction for", self.name)
+        outfiles = markovCorrection(self.fns, self.outputDir, self.baseDir, corrId=self.threadId)
+        # outfiles = ["ohai", self.name]
+        # time.sleep(20/self.threadId)
+        print("Finished the bifurcated markov motion correction for", self.name)
+        self._return = outfiles
+
+    def join(self):
+        threading.Thread.join(self)
+        return self._return
 
 #---------------------------------------------------------------------------------
 # Motion Correction: Helper Functions
@@ -79,7 +108,7 @@ def expandTimepoints(imgFn, baseDir):
     save_image(template_img, outDir+str(0).zfill(3)+'.nii.gz')
 
     # build the list of filenames
-    filenames = [outDir+'template.nii.gz']
+    filenames = [outDir+'000.nii.gz']
 
     # for the remaining images
     for i in xrange(1, img.get_data().shape[3], 1):
@@ -93,7 +122,7 @@ def expandTimepoints(imgFn, baseDir):
     return filenames
 
 
-def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None):
+def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None, corrId=None):
     """
     Register 2 images taken at different timepoints.
 
@@ -140,9 +169,13 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None):
         reg.inputs.initial_moving_transform = initialize
         reg.inputs.invert_initial_moving_transform = False
 
+    if corrId is not None:
+        reg.inputs.output_transform_prefix = outDir+"output_"+str(corrId)+"_"
+
     # print(reg.cmdline)
     print("Starting registration for",outFn)
     reg.run()
+    # print(reg.inputs.output_transform_prefix)
     print("Finished running registration for", outFn)
 
 
@@ -284,12 +317,14 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     return registeredFns
 
 
-def markovCorrection(timepoints, outputDir, baseDir):
+def markovCorrection(timepoints, outputDir, baseDir, corrId=None):
     """
     Apply the markov motion correction algorithm to a timeseries image.
+    Assumes that the first filename in the timepoints list specifies the
+    template image.
 
     Inputs:
-    - timepointFns: list of filenames for each timepoint
+    - timepoints: list of filenames for each timepoint
     - outputDir: directory to write the output files to
     - baseDir: base directory
 
@@ -303,24 +338,29 @@ def markovCorrection(timepoints, outputDir, baseDir):
         os.mkdir(outputDir+'markov/')
     # get the template image filename
     templateFn = timepoints[0]
-    # set up list: want the original 000.nii.gz file
-    registeredFns = [outputDir+'timepoints/'+str(0).zfill(3)+'.nii.gz']
+    # copy the template file to the registered directory
+    shutil.copy(templateFn, outputDir+'markov/')
+
+    # set up list
+    registeredFns = [outputDir+"markov/"+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
 
     # register the first timepoint to the template
-    outFn = outputDir+'markov/'+ str(1).zfill(3)+'.nii.gz'
-    registerToTemplate(templateFn, timepoints[1], outFn, outputDir)
+    registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, corrId=corrId)
 
     # location of the transform file:
     transformFn = outputDir+'output_InverseComposite.h5'
+    if corrId is not None:
+        transformFn = outputDir+'output_'+str(corrId)+'_InverseComposite.h5'
 
     # for each subsequent image
     for i in xrange(2, len(timepoints), 1):
     # for i in xrange(2, 3, 1):
         # set the output filename
-        outFn = outputDir+'markov/'+ str(1).zfill(3)+'.nii.gz'
-        registeredFns.append(outFn)
+        # outFn = outputDir+'markov/'+ str(i).zfill(3)+'.nii.gz'
+        # registeredFns.append(outFn)
+        print(registeredFns[i])
         # register the new timepoint to the template, using initialized transform
-        registerToTemplate(templateFn, timepoints[i], outFn, outputDir, transformFn)
+        # registerToTemplate(templateFn, timepoints[i], registeredFns[2], outputDir, transformFn, corrId=corrId)
 
     return registeredFns
 
@@ -336,7 +376,7 @@ def main(baseDir):
     parser.add_argument('-o', '--outputFn', type=str, help='The name of the file to save the correction to')
     # which type of motion correction
     parser.add_argument('-t', '--correctionType', type=str, help='Specify which type of correction to run. '
-                        +'Options include: markov, non-markov, non-markov-affine')
+                        +'Options include: markov, non-markov, non-markov-affine, bifur-markov')
 
     # now parse the arguments
     args = parser.parse_args()
@@ -352,7 +392,7 @@ def main(baseDir):
     origFn = baseDir + args.inputFn
 
     # make the tmp directory
-    outputDir = baseDir+"tmp/"+args.inputFn.split(".")[0]+"/"
+    outputDir = baseDir+args.inputFn.split(".")[0]+"/"
     if not os.path.exists(outputDir):
         os.mkdir(outputDir)
 
@@ -367,6 +407,35 @@ def main(baseDir):
         registeredFns = motionCorrection(timepointFns, outputDir, baseDir, prealign=True)
     elif args.correctionType == 'markov':
         registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
+    elif args.correctionType == 'bifur-markov':
+        # divide the timepoint filenames list in 2
+        midpoint = len(timepointFns)/2
+        print("midpoint:",midpoint)
+        firstHalf = timepointFns[:midpoint]
+        # reverse the first list
+        firstHalf = firstHalf[::-1]  # reverse the first half list of filenames
+        print("first half of filenames:", len(firstHalf))
+        print("Template file:", firstHalf[0])
+        secondHalf = timepointFns[midpoint-1:]
+        print("second half of filenames:", len(secondHalf))
+        print("Template file:", secondHalf[0])
+        
+        # make the threads
+        t1 = bifurcatedMarkovThread(1, "firstHalf", firstHalf, outputDir, baseDir)
+        t2 = bifurcatedMarkovThread(2, "secondHalf", secondHalf, outputDir, baseDir)
+
+        # start the threads
+        t1.start()
+        t2.start()
+
+        # join on the threads
+        out1 = t1.join()
+        out2 = t2.join()
+        registeredFns = list(set(out1+out2))
+        registeredFns.sort()
+
+        print(registeredFns)
+
     else:
         print("Error: the type of motion correction entered is not currently supported.")
         print("       Entered:", args.correctionType)
@@ -402,7 +471,7 @@ def main(baseDir):
 if __name__ == "__main__":
     # set the base directory
     # baseDir = '/home/pirc/Desktop/Jenna_dev/markov-movement-correction/'
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
     #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
-    #baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+    baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
     main(baseDir)
