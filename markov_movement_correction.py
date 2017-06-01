@@ -354,13 +354,8 @@ def markovCorrection(timepoints, outputDir, baseDir, corrId=None):
 
     # for each subsequent image
     for i in xrange(2, len(timepoints), 1):
-    # for i in xrange(2, 3, 1):
-        # set the output filename
-        # outFn = outputDir+'markov/'+ str(i).zfill(3)+'.nii.gz'
-        # registeredFns.append(outFn)
-        print(registeredFns[i])
         # register the new timepoint to the template, using initialized transform
-        # registerToTemplate(templateFn, timepoints[i], registeredFns[2], outputDir, transformFn, corrId=corrId)
+        registerToTemplate(templateFn, timepoints[i], registeredFns[2], outputDir, transformFn, corrId=corrId)
 
     return registeredFns
 
