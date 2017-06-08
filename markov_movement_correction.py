@@ -20,7 +20,7 @@ from nipype.interfaces import dcmstack
 import threading
 
 """
-Currently a test file. Eventual purpose is to perform movement correction on time series images.
+The functions in this file can be used to perform different types of movement correction on a time series of 3D images.
 """
 
 #---------------------------------------------------------------------------------
@@ -67,6 +67,8 @@ class bifurcatedMarkovThread(threading.Thread):
     def run(self):
         # if self._Thread__target is not None:
         print("Starting the bifurcated markov motion correction for", self.name)
+        #print("Input files:")
+	#print(self.fns)
         outfiles = markovCorrection(self.fns, self.outputDir, self.baseDir, corrId=self.threadId)
         # outfiles = ["ohai", self.name]
         # time.sleep(20/self.threadId)
@@ -140,6 +142,8 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None, 
     Effects:
     - Saves the registered image
     """
+    #print("Output filename:", outFn)
+
     reg = Registration()
     reg.inputs.fixed_image = fixedImgFn
     reg.inputs.moving_image = movingImgFn
@@ -353,9 +357,11 @@ def markovCorrection(timepoints, outputDir, baseDir, corrId=None):
         transformFn = outputDir+'output_'+str(corrId)+'_InverseComposite.h5'
 
     # for each subsequent image
-    for i in xrange(2, len(timepoints), 1):
+    print("Number of timepoints:",len(timepoints))
+    for i in xrange(2, len(timepoints)):
+        print("Time", i, "outfn:", registeredFns[i])
         # register the new timepoint to the template, using initialized transform
-        registerToTemplate(templateFn, timepoints[i], registeredFns[2], outputDir, transformFn, corrId=corrId)
+        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformFn, corrId=corrId)
 
     return registeredFns
 
@@ -409,10 +415,10 @@ def main(baseDir):
         firstHalf = timepointFns[:midpoint]
         # reverse the first list
         firstHalf = firstHalf[::-1]  # reverse the first half list of filenames
-        print("first half of filenames:", len(firstHalf))
+        print("first half of filenames:", firstHalf)
         print("Template file:", firstHalf[0])
         secondHalf = timepointFns[midpoint-1:]
-        print("second half of filenames:", len(secondHalf))
+        print("second half of filenames:", secondHalf)
         print("Template file:", secondHalf[0])
         
         # make the threads
@@ -425,10 +431,10 @@ def main(baseDir):
 
         # join on the threads
         out1 = t1.join()
+        #t2.start()
         out2 = t2.join()
         registeredFns = list(set(out1+out2))
         registeredFns.sort()
-
         print(registeredFns)
 
     else:
@@ -466,7 +472,7 @@ def main(baseDir):
 if __name__ == "__main__":
     # set the base directory
     # baseDir = '/home/pirc/Desktop/Jenna_dev/markov-movement-correction/'
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    #baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
     #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
-    # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+    baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
     main(baseDir)
