@@ -5,6 +5,7 @@ import os
 import argparse
 import time
 import shutil
+import sys
 
 # for loading/saving the images
 from nipy.core.api import Image
@@ -102,12 +103,11 @@ def expandTimepoints(imgFn, baseDir):
         os.mkdir(baseDir+'timepoints/')
     outDir = baseDir +'timepoints/'
 
-    # pull out the first image, timepoint 0, as the template
-    template = img[:,:,:,0].get_data()[:,:,:,None]
-    template_img = Image(template, coord)
-    save_image(template_img, outDir+'template.nii.gz')
-    # also save the first image as 000, but don't add the name to the list
-    save_image(template_img, outDir+str(0).zfill(3)+'.nii.gz')
+    # pull out the first image timepoint 0
+    first = img[:,:,:,0].get_data()[:,:,:,None]
+    first_img = Image(first, coord)
+    # save the first image as 000, but don't add the name to the list
+    save_image(first_img, outDir+str(0).zfill(3)+'.nii.gz')
 
     # build the list of filenames
     filenames = [outDir+'000.nii.gz']
@@ -338,15 +338,13 @@ def markovCorrection(timepoints, outputDir, baseDir, corrId=None):
     Effects:
     - Writes each registered file to /path/markov-movement-correction/tmp/markov/
     """
-    if not os.path.exists(outputDir+'markov/'):
-        os.mkdir(outputDir+'markov/')
     # get the template image filename
     templateFn = timepoints[0]
     # copy the template file to the registered directory
-    shutil.copy(templateFn, outputDir+'markov/')
+    shutil.copy(templateFn, outputDir)
 
     # set up list
-    registeredFns = [outputDir+"markov/"+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
+    registeredFns = [outputDir+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
 
     # register the first timepoint to the template
     registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, corrId=corrId)
@@ -354,7 +352,9 @@ def markovCorrection(timepoints, outputDir, baseDir, corrId=None):
     # location of the transform file:
     transformFn = outputDir+'output_InverseComposite.h5'
     if corrId is not None:
-        transformFn = outputDir+'output_'+str(corrId)+'_InverseComposite.h5'
+        splitLoc = outputDir[:-1].rfind('/')
+        outputBase = outputDir[:splitLoc]+'/'
+        transformFn = outputBase+'output_'+str(corrId)+'_InverseComposite.h5'
 
     # for each subsequent image
     print("Number of timepoints:",len(timepoints))
@@ -407,8 +407,22 @@ def main(baseDir):
     elif args.correctionType == 'non-markov-affine':
         registeredFns = motionCorrection(timepointFns, outputDir, baseDir, prealign=True)
     elif args.correctionType == 'markov':
-        registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
+        # make the output directory
+        if not os.path.exists(outputDir+'markov/'):
+            os.mkdir(outputDir+'markov/')
+        # save the template image
+        img = load_image(timepointFns[0])
+        coord = img.coordmap
+        template = Image(img, coord)
+        print()
+        save_image(template, outputDir+"template_markov"+timepointFns[0].split('/')[-1])
+        # register the images
+        registeredFns = markovCorrection(timepointFns, outputDir+'markov/', baseDir)
     elif args.correctionType == 'bifur-markov':
+        # make the output directory 
+        if not os.path.exists(outputDir+'bifur-markov/'):
+            os.mkdir(outputDir+'bifur-markov/')
+
         # divide the timepoint filenames list in 2
         midpoint = len(timepointFns)/2
         print("midpoint:",midpoint)
@@ -420,10 +434,16 @@ def main(baseDir):
         secondHalf = timepointFns[midpoint-1:]
         print("second half of filenames:", secondHalf)
         print("Template file:", secondHalf[0])
-        
+
+        # save the template image
+        img = load_image(firstHalf[0])
+        coord = img.coordmap
+        template = Image(img, coord)
+        save_image(template, outputDir+"template_bimarkov"+firstHalf[0].split('/')[-1])
+
         # make the threads
-        t1 = bifurcatedMarkovThread(1, "firstHalf", firstHalf, outputDir, baseDir)
-        t2 = bifurcatedMarkovThread(2, "secondHalf", secondHalf, outputDir, baseDir)
+        t1 = bifurcatedMarkovThread(1, "firstHalf", firstHalf, outputDir+'bifur-markov/', baseDir)
+        t2 = bifurcatedMarkovThread(2, "secondHalf", secondHalf, outputDir+'bifur-markov/', baseDir)
 
         # start the threads
         t1.start()
@@ -472,7 +492,13 @@ def main(baseDir):
 if __name__ == "__main__":
     # set the base directory
     # baseDir = '/home/pirc/Desktop/Jenna_dev/markov-movement-correction/'
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
     #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
-    #baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+    baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+
+    # very crude numpy version check
+    npVer = np.__version__
+    npVerList = [int(i) for i in npVer.split('.')]
+    if npVerList[1] < 12:
+        sys.exit("Warning: the version for numpy is "+np.__version__+".\nPlease update to at least version 1.12.1 to use this pipeline.")
     main(baseDir)
