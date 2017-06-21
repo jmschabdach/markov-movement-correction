@@ -417,7 +417,7 @@ def main(baseDir):
         print()
         save_image(template, outputDir+"template_markov"+timepointFns[0].split('/')[-1])
         # register the images
-        registeredFns = markovCorrection(timepointFns, outputDir+'markov/', baseDir)
+        registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
     elif args.correctionType == 'bifur-markov':
         # make the output directory 
         if not os.path.exists(outputDir+'bifur-markov/'):
@@ -439,11 +439,11 @@ def main(baseDir):
         img = load_image(firstHalf[0])
         coord = img.coordmap
         template = Image(img, coord)
-        save_image(template, outputDir+"template_bimarkov"+firstHalf[0].split('/')[-1])
+        save_image(template, outputDir+"template_bimarkov_"+firstHalf[0].split('/')[-1])
 
         # make the threads
-        t1 = bifurcatedMarkovThread(1, "firstHalf", firstHalf, outputDir+'bifur-markov/', baseDir)
-        t2 = bifurcatedMarkovThread(2, "secondHalf", secondHalf, outputDir+'bifur-markov/', baseDir)
+        t1 = bifurcatedMarkovThread(1, "firstHalf", firstHalf, outputDir, baseDir)
+        t2 = bifurcatedMarkovThread(2, "secondHalf", secondHalf, outputDir, baseDir)
 
         # start the threads
         t1.start()
