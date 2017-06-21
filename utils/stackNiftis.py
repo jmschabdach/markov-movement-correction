@@ -11,8 +11,8 @@ from os.path import isfile, join
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--directory', help='Directory containing a series of timepoint .nii or .nii.gz images to combine into a single image',
                     required=True)
-parser.add_argument('-o', '--image', help='Filename of the output image to write to (default directory is the input directory)',
-                    default='')
+parser.add_argument('-o', '--out-image', help='Filename of the output image to write to (default directory is the input directory)',
+                    default='', required=True)
 parser.add_argument('-c', '--coordinate_image', help='Name of the image with the correct coordinate map', required=True)
 
 # parse the args
