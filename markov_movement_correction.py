@@ -351,10 +351,9 @@ def markovCorrection(timepoints, outputDir, baseDir, corrId=None):
 
     # location of the transform file:
     transformFn = outputDir+'output_InverseComposite.h5'
+
     if corrId is not None:
-        splitLoc = outputDir[:-1].rfind('/')
-        outputBase = outputDir[:splitLoc]+'/'
-        transformFn = outputBase+'output_'+str(corrId)+'_InverseComposite.h5'
+        transformFn = outputDir+'output_'+str(corrId)+'_InverseComposite.h5'
 
     # for each subsequent image
     print("Number of timepoints:",len(timepoints))
@@ -429,10 +428,10 @@ def main(baseDir):
         firstHalf = timepointFns[:midpoint]
         # reverse the first list
         firstHalf = firstHalf[::-1]  # reverse the first half list of filenames
-        print("first half of filenames:", firstHalf)
+        # print("first half of filenames:", firstHalf)
         print("Template file:", firstHalf[0])
         secondHalf = timepointFns[midpoint-1:]
-        print("second half of filenames:", secondHalf)
+        # print("second half of filenames:", secondHalf)
         print("Template file:", secondHalf[0])
 
         # save the template image
