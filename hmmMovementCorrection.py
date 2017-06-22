@@ -285,31 +285,34 @@ def markovCorrection(timepoints, outputDir, baseDir, corrId=None):
     Effects:
     - Writes each registered file to /path/markov-movement-correction/tmp/markov/
     """
-    # get the template image filename
-    templateFn = timepoints[0]
-    # copy the template file to the registered directory
-    shutil.copy(templateFn, outputDir)
+    print(outputDir)
+    print(baseDir)
+    # # get the template image filename
+    # templateFn = timepoints[0]
+    # # copy the template file to the registered directory
+    # shutil.copy(templateFn, outputDir)
 
-    # set up list
-    registeredFns = [outputDir+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
+    # # set up list
+    # registeredFns = [outputDir+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
 
-    # register the first timepoint to the template
-    registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, corrId=corrId)
+    # # register the first timepoint to the template
+    # registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, corrId=corrId)
 
-    # location of the transform file:
-    transformFn = outputDir+'output_InverseComposite.h5'
+    # # location of the transform file:
+    # transformFn = outputDir+'output_InverseComposite.h5'
 
-    if corrId is not None:
-        transformFn = outputDir+'output_'+str(corrId)+'_InverseComposite.h5'
+    # if corrId is not None:
+    #     transformFn = outputDir+'output_'+str(corrId)+'_InverseComposite.h5'
 
-    # for each subsequent image
-    print("Number of timepoints:",len(timepoints))
-    for i in xrange(2, len(timepoints)):
-        print("Time", i, "outfn:", registeredFns[i])
-        # register the new timepoint to the template, using initialized transform
-        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformFn, corrId=corrId)
+    # # for each subsequent image
+    # print("Number of timepoints:",len(timepoints))
+    # for i in xrange(2, len(timepoints)):
+    #     print("Time", i, "outfn:", registeredFns[i])
+    #     # register the new timepoint to the template, using initialized transform
+    #     registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformFn, corrId=corrId)
 
-    return registeredFns
+    # return registeredFns
+
 
 #---------------------------------------------------------------------------------
 # Main
@@ -327,121 +330,128 @@ def main(baseDir):
 
     # now parse the arguments
     args = parser.parse_args()
-    print(args)
-    print(args.correctionType)
-    print(args.inputFn)
-    print(args.outputFn)
+    # print(args)
+    # print(args.correctionType)
+    # print(args.inputFn)
+    # print(args.outputFn)
 
     # image filename
-    #imgFn = baseDir + '0003_MR1/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-    # imgFn = baseDir + '0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
-    # imgFn = baseDir + '0003_MR2/scans/4/18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz'
     origFn = baseDir + args.inputFn
 
+    # make the output directory
+    baseDir = baseDir+args.inputFn.split(".")[0]+"/"
+    if not os.path.exists(baseDir):
+        os.mkdir(baseDir)
+
     # make the tmp directory
-    outputDir = baseDir+args.inputFn.split(".")[0]+"/"
-    if not os.path.exists(outputDir):
-        os.mkdir(outputDir)
+    tmpDir = baseDir+'tmp/'
+    if not os.path.exists(tmpDir):
+        os.mkdir(tmpDir)
 
     # divide the image into timepoints
-    timepointFns = expandTimepoints(origFn, outputDir)
+    timepointFns = expandTimepoints(origFn, baseDir)
 
     # Select the specified motion correction algorithm
     registeredFns = []
     if args.correctionType == 'sequential':
-        registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+        # make the output directory
+        outputDir = baseDir+'sequential/'
+        if not os.path.exists(outputDir):
+            os.mkdir(outputDir)
+
+        print(outputDir)
+        # register the images sequentially
+        # registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+
     elif args.correctionType == 'hmm':
         # make the output directory
-        if not os.path.exists(outputDir+'markov/'):
-            os.mkdir(outputDir+'markov/')
-        # save the template image
+        outputDir = baseDir+'hmm/'
+        if not os.path.exists(outputDir):
+            os.mkdir(outputDir)
+
+        # load the template image
         img = load_image(timepointFns[0])
         coord = img.coordmap
         template = Image(img, coord)
-        print()
-        save_image(template, outputDir+"template_markov"+timepointFns[0].split('/')[-1])
-        # register the images
-        registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
+        # save the template image in the tmp directory
+        if not os.path.exists(tmpDir+"templates/"):
+            os.mkdir(tmpDir+"templates/")
+        save_image(template, tmpDir+"templates/hmm_"+timepointFns[0].split('/')[-1])
+
+        print(outputDir)
+        # register the images using HMM correction
+        # registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
+
     elif args.correctionType == 'bi-hmm':
         # make the output directory 
-        if not os.path.exists(outputDir+'bifur-markov/'):
-            os.mkdir(outputDir+'bifur-markov/')
+        outputDir = baseDir + "bi-hmm/"
+        if not os.path.exists(outputDir):
+            os.mkdir(outputDir)
 
-        # divide the timepoint filenames list in 2
+        print(outputDir)
+
+        # divide the timepoint filenames list in half
         midpoint = len(timepointFns)/2
         print("midpoint:",midpoint)
         firstHalf = timepointFns[:midpoint]
         # reverse the first list
         firstHalf = firstHalf[::-1]  # reverse the first half list of filenames
-        # print("first half of filenames:", firstHalf)
-        print("Template file:", firstHalf[0])
+        print("Check the template file:", firstHalf[0])
         secondHalf = timepointFns[midpoint-1:]
-        # print("second half of filenames:", secondHalf)
-        print("Template file:", secondHalf[0])
+        print("Check the template file:", secondHalf[0])
 
-        # save the template image
+        # save the template image in the tmp folder
         img = load_image(firstHalf[0])
         coord = img.coordmap
         template = Image(img, coord)
-        save_image(template, outputDir+"template_bimarkov_"+firstHalf[0].split('/')[-1])
+        if not os.path.exists(tmpDir+"templates/"):
+            os.mkdir(tmpDir+"templates/")
+        save_image(template, tmpDir+"templates/bi-hmm_"+firstHalf[0].split('/')[-1])
 
-        # make the threads
-        t1 = bifurcatedMarkovThread(1, "firstHalf", firstHalf, outputDir, baseDir)
-        t2 = bifurcatedMarkovThread(2, "secondHalf", secondHalf, outputDir, baseDir)
+        # # make the threads
+        # t1 = bifurcatedMarkovThread(1, "firstHalf", firstHalf, outputDir, baseDir)
+        # t2 = bifurcatedMarkovThread(2, "secondHalf", secondHalf, outputDir, baseDir)
 
-        # start the threads
-        t1.start()
-        t2.start()
+        # # start the threads
+        # t1.start()
+        # t2.start()
 
-        # join on the threads
-        out1 = t1.join()
-        #t2.start()
-        out2 = t2.join()
-        registeredFns = list(set(out1+out2))
-        registeredFns.sort()
-        print(registeredFns)
+        # # join on the threads
+        # out1 = t1.join()
+        # #t2.start()
+        # out2 = t2.join()
+
+        # # format the filenames
+        # registeredFns = list(set(out1+out2))
+        # registeredFns.sort()
 
     elif args.correctionType == 'stacking-hmm':
         print("Currently under construction")
+        # make the output directory
+        outputDir = baseDir + 'stacking-hmm/'
+        if not os.path.exists(outputDir):
+            os.mkdir(outputDir)
+
+        # make the compartments
+        numCompartments = 4
+        imgsPerCompartment = np.ceil(len(timepointFns)/float(numCompartments))
+        print(imgsPerCompartment)
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")
         print("       Entered:", args.correctionType)
 
-    """
-    # Motion correction to template: register all timepoints to the template image (timepoint 0)
-    # registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
-    # comboFn = baseDir+'tmp/motion_registered_0003_MR1'
-
-    # Markov motion correction: register all timepoints to preregistered
-    # registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
-    # comboFn = baseDir+'tmp/markov_registered_0003_MR1'
-    """
-
-    # combine the registered timepoints into 1 file
-    comboFn = baseDir+args.outputFn
-    stackNiftis(origFn, registeredFns, comboFn)
-
-#------------------------------------------------------------------------------------------
-    """
-    # load the image
-    img = load_image(imgFn)
-    coord = img.coordmap
-    # get the images for the 3 time points of current interest
-    template = img[:,:,:,0].get_data()[:,:,:,None]
-    slightMovement = img[:,:,:,1].get_data()[:,:,:,None]
-    lotsMovement = img[:,:,:,144].get_data()[:,:,:,None]
-    """
-    # when finished, remove the tmp directory
-#-----------------------------------------------------------------------------------------
+    # # combine the registered timepoints into 1 file
+    # comboFn = baseDir+args.outputFn
+    # stackNiftis(origFn, registeredFns, comboFn)
 
 
 if __name__ == "__main__":
     # set the base directory
     # baseDir = '/home/pirc/Desktop/Jenna_dev/markov-movement-correction/'
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
     #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
-    # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+    baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
     npVer = np.__version__
