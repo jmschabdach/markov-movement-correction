@@ -3,14 +3,27 @@ Movement correction for 4D images. Currently being tested with neonatal images. 
 
 # Use
 
-`python markov_movement_correction.py -i <input 4D image> -t <type of registration> -o <name of the file to save the registered 4D image to>`: expand the 4D image to a series of 3D images and register each timepoint to the image corresponding to image 0. 
-- `-t`: indicates which type of registration to use. Current options are `markov` and `non-markov`. The `markov` registered images are saved in a new directory `./tmp/markov/` while the `non-markov` registered images are saved in new directory `./tmp/registered/`
+`python hmmMovementCorrection.py -i <4D input image> -t <type of registration> -o <name of the file to save the registered 4D image to>`: expand the 4D image to a series of 3D images and register each timepoint to the image corresponding to image 0. 
+- `-t`: indicates which type of registration to use. Current options are `hmm`, `sequential`, `bi-hmm`, and `stacking-hmm`.
+- The code generates a new directory with the same name as the input image. Within that directory, a subdirectory is generated with the name of the type correction specified. (i.e., the `hmm` registered images are saved in a new directory `./<input 4D image name, sans extension>/hmm/`.)
 
-`bash calculateSimilarity.sh`: calculate the similarity between the 3D image at each timepoint and the template (image at timepoint 0) for the expanded 4D images in `./tmp/markov/`, `./tmp/registered/`, and `./tmp/timepoints/	
+`bash calculateSimilarity.sh <base directory> <template image>`: calculate the similarity between the 3D image at each timepoint and the template for the expanded 4D images in `<base directory>/hmm/`, `<base directory>/sequential/`, `<base directory>/bi-hmm/`, `<base directory>/stacking-hmm/`, and `<base directory>/timepoints/`. The `<base directory>/timepoints/` directory stores a collection of 3D images. Each image is a single timepoint from the original 4D input image.
+
+# Directory Structure
+
+<4D input image name>.nii.gz
+<4D input image name>
+|-- timepoints/
+|-- hmm/
+|-- bi-hmm/
+|-- stacking-hmm/
+|-- sequential/
+|-- tmp
+      |-- <currently unused, to be used for transform matrix storage>
 
 # Current pipeline
 
-- Run the movement correction for a single image using both the markov and the non-markov type options
-- Evaluate the registration using `calculateSimilarity.sh`
-- Plot the similarities for each image using the workflow in `figureGeneration.ipynb`
-- Estimate the movement content in the original image using `fsl_motion_outliers` by MIT.
+- Run the movement correction for a single image using the desired options. 
+- Evaluate the registration using `calculateSimilarity.sh`.
+- Plot the similarities for each image using the workflow in `figureGeneration.ipynb`.
+- Estimate the movement content in the original image using `fsl_motion_outliers` by MIT. (This utility produces a sparse matrix with ones in the columns where the timepoint has a significant amount of motion when compared to the other timepoints in the image.)

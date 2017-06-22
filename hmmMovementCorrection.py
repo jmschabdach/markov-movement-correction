@@ -183,59 +183,6 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None, 
     print("Finished running registration for", outFn)
 
 
-def registerToTemplatePrealign(fixedImgFn, movingImgFn, outFn, outDir, initialize=None):
-    """
-    Register 2 images taken at different timepoints.
-
-    Inputs:
-    - fixedImgFn: filename of the fixed image (should be the template image)
-    - movingImgFn: filename of the moving image (should be the Jn image)
-    - outFn: name of the file to write the transformed image to.
-    - outDir: path to the tmp directory
-    - initialize: optional parameter to specify the location of the
-                  transformation matrix from the previous registration
-
-    Outputs:
-    - Currently, nothing. Should return or save the transformation
-
-    Effects:
-    - Saves the registered image
-    """
-    reg = Registration()
-    reg.inputs.fixed_image = fixedImgFn
-    reg.inputs.moving_image = movingImgFn
-    reg.inputs.output_transform_prefix = outDir+"output_"
-    reg.inputs.transforms = ['Affine', 'SyN']
-    reg.inputs.transform_parameters = [(2.0, 0.5, 0.0), (0.25, 3.0, 0.0)]
-    reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]]
-    reg.inputs.dimension = 3
-    reg.inputs.write_composite_transform = True
-    reg.inputs.collapse_output_transforms = False
-    reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC']*2
-    reg.inputs.metric_weight = [1]*2 # Default (value ignored currently by ANTs)
-    reg.inputs.radius_or_number_of_bins = [32]*2
-    reg.inputs.sampling_strategy = ['Random', None]
-    reg.inputs.sampling_percentage = [0.05, None]
-    reg.inputs.convergence_threshold = [1.e-8, 1.e-9]
-    reg.inputs.convergence_window_size = [20]*2
-    reg.inputs.smoothing_sigmas = [[1,0], [2,1,0]]  # probably should fine-tune these?
-    reg.inputs.sigma_units = ['vox'] * 2
-    reg.inputs.shrink_factors = [[2,1], [3,2,1]]  # probably should fine-tune these?
-    reg.inputs.use_estimate_learning_rate_once = [True, True]
-    reg.inputs.use_histogram_matching = [True, True] # This is the default
-    reg.inputs.output_warped_image = outFn
-
-    if initialize is not None:
-        reg.inputs.initial_moving_transform = initialize
-        reg.inputs.invert_initial_moving_transform = False
-
-    # print(reg.cmdline)
-    print("Starting registration for",outFn)
-    reg.run()
-    print("Finished running registration for", outFn)
-
-
 def stackNiftis(origFn, registeredFns, outFn):
     """
     Combine the registered timepoint images into a single file.
@@ -376,7 +323,7 @@ def main(baseDir):
     parser.add_argument('-o', '--outputFn', type=str, help='The name of the file to save the correction to')
     # which type of motion correction
     parser.add_argument('-t', '--correctionType', type=str, help='Specify which type of correction to run. '
-                        +'Options include: markov, non-markov, non-markov-affine, bifur-markov')
+                        +'Options include: hmm, sequential, bi-hmm, stacking-hmm')
 
     # now parse the arguments
     args = parser.parse_args()
@@ -401,11 +348,9 @@ def main(baseDir):
 
     # Select the specified motion correction algorithm
     registeredFns = []
-    if args.correctionType == 'non-markov':
+    if args.correctionType == 'sequential':
         registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
-    elif args.correctionType == 'non-markov-affine':
-        registeredFns = motionCorrection(timepointFns, outputDir, baseDir, prealign=True)
-    elif args.correctionType == 'markov':
+    elif args.correctionType == 'hmm':
         # make the output directory
         if not os.path.exists(outputDir+'markov/'):
             os.mkdir(outputDir+'markov/')
@@ -417,7 +362,7 @@ def main(baseDir):
         save_image(template, outputDir+"template_markov"+timepointFns[0].split('/')[-1])
         # register the images
         registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
-    elif args.correctionType == 'bifur-markov':
+    elif args.correctionType == 'bi-hmm':
         # make the output directory 
         if not os.path.exists(outputDir+'bifur-markov/'):
             os.mkdir(outputDir+'bifur-markov/')
@@ -455,6 +400,9 @@ def main(baseDir):
         registeredFns = list(set(out1+out2))
         registeredFns.sort()
         print(registeredFns)
+
+    elif args.correctionType == 'stacking-hmm':
+        print("Currently under construction")
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")

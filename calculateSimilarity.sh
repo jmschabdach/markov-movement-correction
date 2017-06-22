@@ -22,28 +22,54 @@ for img in $DIR ; do
     count=$((count+1))
 done
 
-DIR="$BASE/markov/*"
+DIR="$BASE/hmm/*"
 if [ -d $DIR ] # check that the directory exists
     # for all the images in the non-registered version
     count=0
-    echo "Timepoint, Similarity, Mutual_Information" > "$BASE/similarities_markov.csv"
+    echo "Timepoint, Similarity, Mutual_Information" > "$BASE/similarities_hmm.csv"
     for img in $DIR ; do
         # compare each image to the template
         sims=$(./utils/similarity.sh $TEMPLATE $img)
-        echo $count, $sims >> "$BASE/similarities_markov.csv"
+        echo $count, $sims >> "$BASE/similarities_hmm.csv"
         count=$((count+1))
     done
 fi
 
-DIR="$BASE/bifur-markov/*"
+DIR="$BASE/bi-hmm/*"
 # for all the images in the bifurcating-markov version
 if [ -d $DIR ] # check that the directory exists
     count=0
-    echo "Timepoint, Similarity, Mutual_Information" > "$BASE/similarities_bifur_markov.csv"
+    echo "Timepoint, Similarity, Mutual_Information" > "$BASE/similarities_bi_hmm.csv"
     for img in $DIR ; do
         # compare each image to the template
         sims=$(./utils/similarity.sh $TEMPLATE $img)
-        echo $count, $sims >> "$BASE/similarities_bifur_markov.csv"
+        echo $count, $sims >> "$BASE/similarities_bi_hmm.csv"
+        count=$((count+1))
+    done
+fi
+
+DIR="$BASE/stacking-hmm/*"
+# for all the images in the bifurcating-markov version
+if [ -d $DIR ] # check that the directory exists
+    count=0
+    echo "Timepoint, Similarity, Mutual_Information" > "$BASE/similarities_stacking_hmm.csv"
+    for img in $DIR ; do
+        # compare each image to the template
+        sims=$(./utils/similarity.sh $TEMPLATE $img)
+        echo $count, $sims >> "$BASE/similarities_stacking_hmm.csv"
+        count=$((count+1))
+    done
+fi
+
+DIR="$BASE/sequential/*"
+if [ -d $DIR ] # check that the directory exists
+    # for all the images in the non-registered version
+    count=0
+    echo "Timepoint, Similarity, Mutual_Information" > "$BASE/similarities_sequential.csv"
+    for img in $DIR ; do
+        # compare each image to the template
+        sims=$(./utils/similarity.sh $TEMPLATE $img)
+        echo $count, $sims >> "$BASE/similarities_sequential.csv"
         count=$((count+1))
     done
 fi
