@@ -11,15 +11,15 @@ Movement correction for 4D images. Currently being tested with neonatal images. 
 
 # Directory Structure
 
-<4D input image name>.nii.gz\s\s
-<4D input image name>\s\s
-|-- timepoints/\s\s
-|-- hmm/\s\s
-|-- bi-hmm/\s\s
-|-- stacking-hmm/\s\s
-|-- sequential/\s\s
-|-- tmp\s\s
-      |-- <currently unused, to be used for transform matrix storage>\s\s
+<4D input image name>.nii.gz  
+<4D input image name>  
+|-- timepoints/  
+|-- hmm/  
+|-- bi-hmm/  
+|-- stacking-hmm/  
+|-- sequential/  
+|-- tmp/  
+      |-- <currently unused, to be used for transform matrix storage>  
 
 # Current pipeline
 
