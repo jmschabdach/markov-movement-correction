@@ -1,6 +1,12 @@
 # markov-movement-correction
 Movement correction for 4D images. Currently being tested with neonatal images. Future applications include pediatric and fetal images.
 
+# Requirements
+
+Uses the `nipy` package. 
+
+I recommend using `conda` to manage all packages required by this project.
+
 # Use
 
 `python hmmMovementCorrection.py -i <4D input image> -t <type of registration> -o <name of the file to save the registered 4D image to>`: expand the 4D image to a series of 3D images and register each timepoint to the image corresponding to image 0. 
