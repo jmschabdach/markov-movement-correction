@@ -13,13 +13,13 @@ Movement correction for 4D images. Currently being tested with neonatal images. 
 
 <4D input image name>.nii.gz  
 <4D input image name>  
-|-- timepoints/  
-|-- hmm/  
-|-- bi-hmm/  
-|-- stacking-hmm/  
-|-- sequential/  
-|-- tmp/  
-      |-- <currently unused, to be used for transform matrix storage>  
+&nbsp;&nbsp;|-- timepoints/  
+&nbsp;&nbsp;|-- hmm/  
+&nbsp;&nbsp;|-- bi-hmm/  
+&nbsp;&nbsp;|-- stacking-hmm/  
+&nbsp;&nbsp;|-- sequential/  
+&nbsp;&nbsp;|-- tmp/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|-- <currently unused, to be used for transform matrix storage>  
 
 # Current pipeline
 
