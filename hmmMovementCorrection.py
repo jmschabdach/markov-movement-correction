@@ -31,7 +31,7 @@ class motionCorrectionThread(threading.Thread):
     """
     Implementation of the threading class.
     """
-    def __init__(self, threadId, name, templateFn, timepointFn, outputFn, outputDir, prealign=False):
+    def __init__(self, threadId, name, templateFn, timepointFn, outputFn, outputDir, templatePrefix, prealign=False):
         # What other properties my threads will need?
         threading.Thread.__init__(self)
         self.threadId = threadId
@@ -40,45 +40,65 @@ class motionCorrectionThread(threading.Thread):
         self.timepointFn = timepointFn
         self.outputFn = outputFn
         self.outputDir = outputDir
+        self.templatePrefix = templatePrefix
         self.prealign = prealign
 
     def run(self):
         print("Starting motion correction for", self.name)
         if not self.prealign:
-            registerToTemplate(self.templateFn, self.timepointFn, self.outputFn, self.outputDir)
+            registerToTemplate(self.templateFn, self.timepointFn, self.outputFn, self.outputDir, self.templatePrefix)
         else:
-            registerToTemplatePrealign(self.templateFn, self.timepointFn, self.outputFn, self.outputDir)
+            registerToTemplatePrealign(self.templateFn, self.timepointFn, self.outputFn, self.outputDir, self.templatePrefix)
         print("Finished motion correction for", self.name)
 
-class bifurcatedMarkovThread(threading.Thread):
+class hmmMotionCorrectionThread(threading.Thread):
     """
     Implementation of the threading class.
 
-    Purpose: allow for bifurcating markov motion correction. 
+    Purpose: allow for sectioned HMM motion correction. 
     """
-    def __init__(self, threadId, threadName, filenames, outputDir, baseDir):
+    def __init__(self, threadId, threadName, filenames, outputDir, transformPrefix):
         threading.Thread.__init__(self)
         self.threadId = threadId
         self.name = threadName
         self.fns = filenames
         self.outputDir = outputDir
-        self.baseDir = baseDir
+        self.transformPrefix = transformPrefix
         self._return = None
 
     def run(self):
         # if self._Thread__target is not None:
-        print("Starting the bifurcated markov motion correction for", self.name)
+        print("Starting the HMM motion correction for", self.name)
         #print("Input files:")
-	#print(self.fns)
-        outfiles = markovCorrection(self.fns, self.outputDir, self.baseDir, corrId=self.threadId)
+	    #print(self.fns)
+        outfiles = markovCorrection(self.fns, self.outputDir, self.transformPrefix, corrId=self.threadId)
         # outfiles = ["ohai", self.name]
         # time.sleep(20/self.threadId)
-        print("Finished the bifurcated markov motion correction for", self.name)
+        print("Finished the HMM motion correction for", self.name)
         self._return = outfiles
 
     def join(self):
         threading.Thread.join(self)
         return self._return
+
+class linkingTransformThread(threading.Thread):
+    """
+    Implementation of the threading class.
+
+    Purpose: allow for linking transforms between compartments to be performed
+             in parallel 
+    """
+    def __init__(self, threadId, threadName, fn1, fn2, transformFn):
+        threading.Thread.__init__(self)
+        self.threadId = threadId
+        self.name = threadName
+        self.prevImg = fn1
+        self.nextImg = fn2
+        self.transformFn = transformFn
+
+    def run(self):
+        calculateLinkingTransform(self.prevImg, self.nextImg, self.transformFn)
+        print("Finished thread", self.name)
 
 #---------------------------------------------------------------------------------
 # Motion Correction: Helper Functions
@@ -124,7 +144,7 @@ def expandTimepoints(imgFn, baseDir):
     return filenames
 
 
-def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None, corrId=None):
+def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=None, corrId=None):
     """
     Register 2 images taken at different timepoints.
 
@@ -133,6 +153,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None, 
     - movingImgFn: filename of the moving image (should be the Jn image)
     - outFn: name of the file to write the transformed image to.
     - outDir: path to the tmp directory
+    - transformPrefix: prefix for the transform function
     - initialize: optional parameter to specify the location of the
                   transformation matrix from the previous registration
 
@@ -147,7 +168,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None, 
     reg = Registration()
     reg.inputs.fixed_image = fixedImgFn
     reg.inputs.moving_image = movingImgFn
-    reg.inputs.output_transform_prefix = outDir+"output_"
+    reg.inputs.output_transform_prefix = transformPrefix
     reg.inputs.transforms = ['SyN']
     reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
     reg.inputs.number_of_iterations = [[100, 50, 30]]
@@ -174,13 +195,63 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, initialize=None, 
         reg.inputs.invert_initial_moving_transform = False
 
     if corrId is not None:
-        reg.inputs.output_transform_prefix = outDir+"output_"+str(corrId)+"_"
+        reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
 
     # print(reg.cmdline)
     print("Starting registration for",outFn)
     reg.run()
     # print(reg.inputs.output_transform_prefix)
     print("Finished running registration for", outFn)
+
+
+def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
+    """
+    Register 2 images taken at different timepoints.
+
+    Inputs:
+    - prevCompImg: filename of the last image from the previous compartment
+    - nextCompImg: filename of the first image from the next compartment
+    - transformFn: name of the file to save the transform to
+
+    Outputs:
+    - None
+
+    Effects:
+    - Saves the registered image
+    """
+    #print("Output filename:", outFn)
+
+    reg = Registration()
+    reg.inputs.fixed_image = prevCompImg
+    reg.inputs.moving_image = nextCompImg
+    reg.inputs.output_transform_prefix = transformFn
+    reg.inputs.transforms = ['SyN']
+    reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+    reg.inputs.number_of_iterations = [[100, 50, 30]]
+    reg.inputs.dimension = 3
+    reg.inputs.write_composite_transform = True
+    reg.inputs.collapse_output_transforms = False
+    reg.inputs.initialize_transforms_per_stage = False
+    reg.inputs.metric = ['CC']
+    reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
+    reg.inputs.radius_or_number_of_bins = [32]
+    reg.inputs.sampling_strategy = [None]
+    reg.inputs.sampling_percentage = [None]
+    reg.inputs.convergence_threshold = [1.e-9]
+    reg.inputs.convergence_window_size = [20]
+    reg.inputs.smoothing_sigmas = [[2,1,0]]  # probably should fine-tune these?
+    reg.inputs.sigma_units = ['vox'] * 2
+    reg.inputs.shrink_factors = [[3,2,1]]  # probably should fine-tune these?
+    reg.inputs.use_estimate_learning_rate_once = [True]
+    reg.inputs.use_histogram_matching = [True] # This is the default
+    reg.inputs.output_warped_image = False
+
+    # print(reg.cmdline)
+    print("Calculating linking transform for",transformFn)
+    # reg.run()
+    # print(reg.cmdline)
+    # print(reg.inputs.output_transform_prefix)
+    print("Finished calculating linking transform for", transformFn)
 
 
 def stackNiftis(origFn, registeredFns, outFn):
@@ -268,7 +339,7 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     return registeredFns
 
 
-def markovCorrection(timepoints, outputDir, baseDir, corrId=None):
+def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     """
     Apply the markov motion correction algorithm to a timeseries image.
     Assumes that the first filename in the timepoints list specifies the
@@ -277,7 +348,7 @@ def markovCorrection(timepoints, outputDir, baseDir, corrId=None):
     Inputs:
     - timepoints: list of filenames for each timepoint
     - outputDir: directory to write the output files to
-    - baseDir: base directory
+    - transformPrefix: prefix for the transform files
 
     Outputs:
     - registeredFns: list of registered timepoint files
@@ -286,30 +357,30 @@ def markovCorrection(timepoints, outputDir, baseDir, corrId=None):
     - Writes each registered file to /path/markov-movement-correction/tmp/markov/
     """
     print(outputDir)
-    print(baseDir)
-    # # get the template image filename
-    # templateFn = timepoints[0]
-    # # copy the template file to the registered directory
-    # shutil.copy(templateFn, outputDir)
+    # get the template image filename
+    templateFn = timepoints[0]
+    # copy the template file to the registered directory
+    shutil.copy(templateFn, outputDir)
 
     # # set up list
     # registeredFns = [outputDir+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
 
+    # location of the transform file:
+    transformFn = transformPrefix+'_InverseComposite.h5'
+    if corrId is not None:
+        transformFn = transformPrefix+str(corrId)+'_InverseComposite.h5'
+
+    print("Transform function location:", transformFn)
+
     # # register the first timepoint to the template
-    # registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, corrId=corrId)
-
-    # # location of the transform file:
-    # transformFn = outputDir+'output_InverseComposite.h5'
-
-    # if corrId is not None:
-    #     transformFn = outputDir+'output_'+str(corrId)+'_InverseComposite.h5'
+    # registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, corrId=corrId)
 
     # # for each subsequent image
     # print("Number of timepoints:",len(timepoints))
     # for i in xrange(2, len(timepoints)):
     #     print("Time", i, "outfn:", registeredFns[i])
     #     # register the new timepoint to the template, using initialized transform
-    #     registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformFn, corrId=corrId)
+    #     registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, transformFn, corrId=corrId)
 
     # return registeredFns
 
@@ -330,10 +401,6 @@ def main(baseDir):
 
     # now parse the arguments
     args = parser.parse_args()
-    # print(args)
-    # print(args.correctionType)
-    # print(args.inputFn)
-    # print(args.outputFn)
 
     # image filename
     origFn = baseDir + args.inputFn
@@ -378,9 +445,15 @@ def main(baseDir):
             os.mkdir(tmpDir+"templates/")
         save_image(template, tmpDir+"templates/hmm_"+timepointFns[0].split('/')[-1])
 
+        # set up the variable to indicate the location of the transform prefix
+        if not os.path.exists(tmpDir+"prealignTransforms/"):
+            os.mkdir(tmpDir+"prealignTransforms/")
+        transformPrefix = tmpDir+"prealignTransforms/hmm_"
+
         print(outputDir)
+        print(transformPrefix)
         # register the images using HMM correction
-        # registeredFns = markovCorrection(timepointFns, outputDir, baseDir)
+        # registeredFns = markovCorrection(timepointFns, outputDir, transformPrefix)
 
     elif args.correctionType == 'bi-hmm':
         # make the output directory 
@@ -408,9 +481,14 @@ def main(baseDir):
             os.mkdir(tmpDir+"templates/")
         save_image(template, tmpDir+"templates/bi-hmm_"+firstHalf[0].split('/')[-1])
 
+        # set up the variable to indicate the location of the transform prefix
+        if not os.path.exists(tmpDir+"prealignTransforms/"):
+            os.mkdir(tmpDir+"prealignTransforms/")
+        transformPrefix = tmpDir+"prealignTransforms/bi-hmm_"
+
         # # make the threads
-        # t1 = bifurcatedMarkovThread(1, "firstHalf", firstHalf, outputDir, baseDir)
-        # t2 = bifurcatedMarkovThread(2, "secondHalf", secondHalf, outputDir, baseDir)
+        # t1 = hmmMotionCorrectionThread(1, "firstHalf", firstHalf, outputDir, transformPrefix)
+        # t2 = hmmMotionCorrectionThread(2, "secondHalf", secondHalf, outputDir, transformPrefix)
 
         # # start the threads
         # t1.start()
@@ -432,11 +510,69 @@ def main(baseDir):
         if not os.path.exists(outputDir):
             os.mkdir(outputDir)
 
-        # make the compartments
-        numCompartments = 4
-        imgsPerCompartment = np.ceil(len(timepointFns)/float(numCompartments))
-        print(imgsPerCompartment)
+        # Step 1: Divide the time series into compartments
+        numCompartments = 8
+        imgsPerCompartment = int(np.ceil(len(timepointFns)/float(numCompartments)))
+        # make the list of lists
+        compartments = [timepointFns[i*imgsPerCompartment:(i+1)*imgsPerCompartment] for i in xrange(numCompartments-1)]
+        compartments.append(timepointFns[imgsPerCompartment*(numCompartments-1):])
+        # check the compartments
+        print("Number of compartments:",len(compartments))
+        for i in xrange(len(compartments)):
+            print("Number of images in compartment",i,":", len(compartments[i]))
+        for i in xrange(len(compartments)):
+            print("First image in compartment", i, ":", compartments[i][0])
+            print("Last image in compartment",i,":", compartments[i][-1])
 
+        # Step 2: calculate the transform between the last image of each compartment 
+        #         and the first image of the next compartment
+        # first check that the linking transform directory exists
+        if not os.path.exists(tmpDir+"linkingTransforms/"):
+            os.mkdir(tmpDir+"linkingTransforms/")
+        threads = []
+        # iterate over all compartments
+        for i in xrange(len(compartments)-1):
+            # set up variables
+            img1 = compartments[i][-1]
+            img2 = compartments[i+1][0]
+            transFn = tmpDir+"linkingTransforms/compartment"+str(i)+"_compartment"+str(i+1)
+            threadName = "linking-"+str(i)+"-and-"+str(i+1)
+            # make the thread
+            t = linkingTransformThread(i, threadName, img1, img2, transFn)
+            threads.append(t)
+
+        # # could comment next 5 lines out if you decide that steps 2 and 3 are not time dependent
+        # for t in threads:
+        #     t.start()
+
+        # for t in threads:
+        #     t.join()
+
+        threads = []
+
+        # Step 3: perform regular HMM motion correction in each compartment
+        # set up the variable to indicate the location of the transform prefix
+        if not os.path.exists(tmpDir+"prealignTransforms/"):
+            os.mkdir(tmpDir+"prealignTransforms/")
+        transformPrefix = tmpDir+"prealignTransforms/stacking-hmm_"
+        print(transformPrefix)
+        # iterate over all compartments
+        for i in xrange(len(compartments)):
+            # make a new HMM motion correction thread
+            t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
+            # add the thread to the list of threads
+            threads.append(t)
+
+        # # start the threads
+        # for t in threads:
+        #     t.start()
+
+        # # join on the threads
+        # for t in threads:
+        #     t.join()
+
+        # Step 4: apply linking transform to each compartment
+        
     else:
         print("Error: the type of motion correction entered is not currently supported.")
         print("       Entered:", args.correctionType)
