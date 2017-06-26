@@ -12,7 +12,7 @@ from nipy.core.api import Image
 from nipy import load_image, save_image
 
 # for the registration
-from nipype.interfaces.ants import Registration
+from nipype.interfaces.ants import Registration, ApplyTransforms
 
 # for saving the registered file
 from nipype.interfaces import dcmstack
@@ -21,7 +21,16 @@ from nipype.interfaces import dcmstack
 import threading
 
 """
-The functions in this file can be used to perform different types of movement correction on a time series of 3D images.
+Perform different types of movement correction on a time series of 3D images. Current
+options are
+  * bi-hmm: split the time series in half and HMM each half, with the template as 
+            the middle image
+  * hmm: follows the HMM movement correction algorithm outlined in "Temporal 
+         registration in in-utero volumetric MRI time series" by Liao et al.
+  * stacking-hmm: divide the time series into subcompartments, HMM each compartment,
+                  and link the compartments together
+  * sequential: basic, sequential alignment of each image to the previous one in the
+                time series
 """
 
 #---------------------------------------------------------------------------------
@@ -248,10 +257,42 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
 
     # print(reg.cmdline)
     print("Calculating linking transform for",transformFn)
-    # reg.run()
-    # print(reg.cmdline)
-    # print(reg.inputs.output_transform_prefix)
+    reg.run()
     print("Finished calculating linking transform for", transformFn)
+
+
+def alignCompartments(fixedImg, movingImgs, linkingTransformFn, compositeHmmTransformFn):
+    """
+    Given a precalculated linking transform and a fixed image (required by ANTS, not 
+    sure why), align each image in the movingImgs list to the fixed image.
+
+    Inputs:
+    - fixedImg: the path to the fixed image
+    - movingImgs: a list of paths to the moving images
+    - linkingTransformFn: the path to the transform function associated with that 
+                          fixed image
+    - compositeHmmTransformFn: the path to the transform function associated with
+                               the compartment (list of movingImgs)
+
+    Returns:
+    - ???
+
+    Effects:
+    - Overwrites the specified images with a more aligned version of the same images
+
+    *** Note: this version assumes the same fixed image. Could also be implemented 
+              so that the fixed image is the previous moving image.
+    """
+    # for each image
+    for m in movingImgs:
+        # set up the transform application
+        at = ApplyTransforms()
+        at.inputs.input_image = m
+        at.inputs.reference_image = fixedImg
+        at.inputs.output_image = m
+        at.inputs.transforms = [compositeHmmTransformFn, linkingTransformFn]
+        # run the transform application
+        at.run()
 
 
 def stackNiftis(origFn, registeredFns, outFn):
@@ -485,6 +526,7 @@ def main(baseDir):
         if not os.path.exists(tmpDir+"prealignTransforms/"):
             os.mkdir(tmpDir+"prealignTransforms/")
         transformPrefix = tmpDir+"prealignTransforms/bi-hmm_"
+        print(transformPrefix)
 
         # # make the threads
         # t1 = hmmMotionCorrectionThread(1, "firstHalf", firstHalf, outputDir, transformPrefix)
@@ -511,7 +553,7 @@ def main(baseDir):
             os.mkdir(outputDir)
 
         # Step 1: Divide the time series into compartments
-        numCompartments = 8
+        numCompartments = 2
         imgsPerCompartment = int(np.ceil(len(timepointFns)/float(numCompartments)))
         # make the list of lists
         compartments = [timepointFns[i*imgsPerCompartment:(i+1)*imgsPerCompartment] for i in xrange(numCompartments-1)]
@@ -530,23 +572,26 @@ def main(baseDir):
         if not os.path.exists(tmpDir+"linkingTransforms/"):
             os.mkdir(tmpDir+"linkingTransforms/")
         threads = []
+        linkingTransFns = []
         # iterate over all compartments
         for i in xrange(len(compartments)-1):
             # set up variables
             img1 = compartments[i][-1]
             img2 = compartments[i+1][0]
-            transFn = tmpDir+"linkingTransforms/compartment"+str(i)+"_compartment"+str(i+1)
+            transFn = tmpDir+"linkingTransforms/compartment"+str(i)+"_compartment"+str(i+1)+"_"
+            linkingTransFns.append(transFn)
             threadName = "linking-"+str(i)+"-and-"+str(i+1)
             # make the thread
             t = linkingTransformThread(i, threadName, img1, img2, transFn)
             threads.append(t)
 
-        # # could comment next 5 lines out if you decide that steps 2 and 3 are not time dependent
-        # for t in threads:
-        #     t.start()
+        print("Number of linking transform threads:", len(threads))
+        # could comment next 5 lines out if steps 2 and 3 are not time dependent
+        for t in threads:
+            t.start()
 
-        # for t in threads:
-        #     t.join()
+        for t in threads:
+            t.join()
 
         threads = []
 
@@ -572,6 +617,10 @@ def main(baseDir):
         #     t.join()
 
         # Step 4: apply linking transform to each compartment
+
+
+        # alignCompartments(fixedImg, movingImgs, transformFn)
+
         
     else:
         print("Error: the type of motion correction entered is not currently supported.")
