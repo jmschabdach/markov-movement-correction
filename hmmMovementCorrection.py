@@ -328,7 +328,7 @@ def stackNiftis(origFn, registeredFns, outFn):
     print(coords)
     
     registeredImg = Image(imgs, coords)
-    save_image(registeredImg, outfn)
+    save_image(registeredImg, outFn)
     print('Registered files merged to',outFn)
 
 #---------------------------------------------------------------------------------
@@ -552,7 +552,7 @@ def main(baseDir):
         origTimepoints = timepointFns
         timepointFns = reverse(timepointFns)
         # make compartments
-        numCompartments = 2
+        numCompartments = 4
         imgsPerCompartment = int(np.ceil(len(timepointFns)/float(numCompartments)))
         # make the list of lists
         compartments = [timepointFns[i*imgsPerCompartment:(i+1)*imgsPerCompartment] for i in xrange(numCompartments-1)]
