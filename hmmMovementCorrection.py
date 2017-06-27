@@ -261,7 +261,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
     print("Finished calculating linking transform for", transformFn)
 
 
-def alignCompartments(fixedImg, movingImgs, linkingTransformFn, compositeHmmTransformFn):
+def alignCompartments(fixedImg, movingImgs, transform):
     """
     Given a precalculated linking transform and a fixed image (required by ANTS, not 
     sure why), align each image in the movingImgs list to the fixed image.
@@ -269,10 +269,7 @@ def alignCompartments(fixedImg, movingImgs, linkingTransformFn, compositeHmmTran
     Inputs:
     - fixedImg: the path to the fixed image
     - movingImgs: a list of paths to the moving images
-    - linkingTransformFn: the path to the transform function associated with that 
-                          fixed image
-    - compositeHmmTransformFn: the path to the transform function associated with
-                               the compartment (list of movingImgs)
+    - transform: either a list of paths or a single path to a transform file
 
     Returns:
     - ???
@@ -290,7 +287,7 @@ def alignCompartments(fixedImg, movingImgs, linkingTransformFn, compositeHmmTran
         at.inputs.input_image = m
         at.inputs.reference_image = fixedImg
         at.inputs.output_image = m
-        at.inputs.transforms = [compositeHmmTransformFn, linkingTransformFn]
+        at.inputs.transforms = transform
         # run the transform application
         at.run()
 
@@ -363,7 +360,6 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     myThreads = []
     # for each subsequent image
     for i in xrange(1, len(timepointFns), 1):
-    # for i in xrange(1, 4, 1):
         # set the output filename
         outFn = outputDir+'registered/'+ str(i).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
@@ -403,8 +399,8 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     # copy the template file to the registered directory
     shutil.copy(templateFn, outputDir)
 
-    # # set up list
-    # registeredFns = [outputDir+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
+    # set up list
+    registeredFns = [outputDir+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
 
     # location of the transform file:
     transformFn = transformPrefix+'_InverseComposite.h5'
@@ -413,17 +409,17 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
 
     print("Transform function location:", transformFn)
 
-    # # register the first timepoint to the template
-    # registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, corrId=corrId)
+    # register the first timepoint to the template
+    registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, corrId=corrId)
 
-    # # for each subsequent image
-    # print("Number of timepoints:",len(timepoints))
-    # for i in xrange(2, len(timepoints)):
-    #     print("Time", i, "outfn:", registeredFns[i])
-    #     # register the new timepoint to the template, using initialized transform
-    #     registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, transformFn, corrId=corrId)
+    # for each subsequent image
+    print("Number of timepoints:",len(timepoints))
+    for i in xrange(2, len(timepoints)):
+        print("Time", i, "outfn:", registeredFns[i])
+        # register the new timepoint to the template, using initialized transform
+        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, transformFn, corrId=corrId)
 
-    # return registeredFns
+    return registeredFns
 
 
 #---------------------------------------------------------------------------------
@@ -528,31 +524,34 @@ def main(baseDir):
         transformPrefix = tmpDir+"prealignTransforms/bi-hmm_"
         print(transformPrefix)
 
-        # # make the threads
-        # t1 = hmmMotionCorrectionThread(1, "firstHalf", firstHalf, outputDir, transformPrefix)
-        # t2 = hmmMotionCorrectionThread(2, "secondHalf", secondHalf, outputDir, transformPrefix)
+        # make the threads
+        t1 = hmmMotionCorrectionThread(1, "firstHalf", firstHalf, outputDir, transformPrefix)
+        t2 = hmmMotionCorrectionThread(2, "secondHalf", secondHalf, outputDir, transformPrefix)
 
-        # # start the threads
-        # t1.start()
-        # t2.start()
+        # start the threads
+        t1.start()
+        t2.start()
 
-        # # join on the threads
-        # out1 = t1.join()
-        # #t2.start()
-        # out2 = t2.join()
+        # join on the threads
+        out1 = t1.join()
+        #t2.start()
+        out2 = t2.join()
 
-        # # format the filenames
-        # registeredFns = list(set(out1+out2))
-        # registeredFns.sort()
+        # format the filenames
+        registeredFns = list(set(out1+out2))
+        registeredFns.sort()
 
     elif args.correctionType == 'stacking-hmm':
-        print("Currently under construction")
         # make the output directory
         outputDir = baseDir + 'stacking-hmm/'
         if not os.path.exists(outputDir):
             os.mkdir(outputDir)
 
         # Step 1: Divide the time series into compartments
+        # flip the timepoints (goal: align with original timepoint 0)
+        origTimepoints = timepointFns
+        timepointFns = reverse(timepointFns)
+        # make compartments
         numCompartments = 2
         imgsPerCompartment = int(np.ceil(len(timepointFns)/float(numCompartments)))
         # make the list of lists
@@ -600,43 +599,60 @@ def main(baseDir):
         if not os.path.exists(tmpDir+"prealignTransforms/"):
             os.mkdir(tmpDir+"prealignTransforms/")
         transformPrefix = tmpDir+"prealignTransforms/stacking-hmm_"
+        compartmentTransformFns = []
         print(transformPrefix)
         # iterate over all compartments
         for i in xrange(len(compartments)):
             # make a new HMM motion correction thread
             t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
+            # add the name of the transform file to the appropriate list
+            compartmentTransformFns.append(transformPrefix+str(i)+'_InverseComposite.h5')
             # add the thread to the list of threads
             threads.append(t)
 
-        # # start the threads
-        # for t in threads:
-        #     t.start()
+        # start the threads
+        for t in threads:
+            t.start()
 
-        # # join on the threads
-        # for t in threads:
-        #     t.join()
+        # join on the threads
+        hmmCompartments = []
+        for t in threads:
+            hmmCompartments.append(t.join())
+
+        print("Number of compartment transform filenames:",len(compartmentTransformFns))
+        # sort the hmmCompartments
+        hmmCompartments = list(reversed(sorted(hmmCompartments)))
 
         # Step 4: apply linking transform to each compartment
+        # store composite compartments here
+        alignedFns = []
+        # for all linking transforms
+        for i in xrange(len(linkingTransFns)):
+            alignedFns.extend(hmmCompartments[i])
+            alignCompartments(hmmCompartments[i+1][0], alignedFns, 
+                              [compartmentTransformFns[i], linkingTransFns[i]])
+        # apply the final transform
+        alignedFns.extend(hmmCompartments[-1])
+        alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
 
-
-        # alignCompartments(fixedImg, movingImgs, transformFn)
-
+        # now reverse the filenames to get them back in the correct order
+        registeredFns = list(reversed(alignedFns))
         
     else:
         print("Error: the type of motion correction entered is not currently supported.")
         print("       Entered:", args.correctionType)
 
-    # # combine the registered timepoints into 1 file
-    # comboFn = baseDir+args.outputFn
-    # stackNiftis(origFn, registeredFns, comboFn)
+    # combine the registered timepoints into 1 file
+    comboFn = baseDir+args.outputFn
+    stackNiftis(origFn, registeredFns, comboFn)
 
 
 if __name__ == "__main__":
     # set the base directory
     # baseDir = '/home/pirc/Desktop/Jenna_dev/markov-movement-correction/'
-    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
     #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
-    baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+    # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
     npVer = np.__version__
