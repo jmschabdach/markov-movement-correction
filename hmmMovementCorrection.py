@@ -550,7 +550,7 @@ def main(baseDir):
         # Step 1: Divide the time series into compartments
         # flip the timepoints (goal: align with original timepoint 0)
         origTimepoints = timepointFns
-        timepointFns = reverse(timepointFns)
+        timepointFns = list(reversed(timepointFns))
         # make compartments
         numCompartments = 4
         imgsPerCompartment = int(np.ceil(len(timepointFns)/float(numCompartments)))
