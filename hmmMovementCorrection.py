@@ -640,14 +640,15 @@ def main(baseDir):
         # for all linking transforms
         # for i in xrange(len(linkingTransFns)):
         #     alignedFns.extend(hmmCompartments[i])
-        #     alignCompartments(hmmCompartments[i+1][0], alignedFns, linkingTransFns[i])
-        #                       # [compartmentTransformFns[i], linkingTransFns[i]])
+        #     alignCompartments(hmmCompartments[i+1][0], alignedFns, compartmentTransformFns[i])
+        #     alignCompartments(hmmCompartments[i+1][0], alignedFns, linkingTransFns[i]])
         for i, xform in reversed(list(enumerate(linkingTransFns))):
             alignedFns = hmmCompartments[i+1] + alignedFns
             idx = len(alignedFns)
-            print("INDEX OF FIXED IMAGE:", idx)
-            # alignCompartments(hmmCompartments[i][-1], alignedFns, [compartmentTransformFns[i+1], xform])
-            alignCompartments(origTimepoints[idx], alignedFns, [compartmentTransformFns[i+1], xform])
+            # print("INDEX OF FIXED IMAGE:", idx)
+            print("CURRENT LIST INDEX:", i)
+            alignCompartments(hmmCompartments[i][-1], alignedFns, compartmentTransformFns[i+1])
+            alignCompartments(hmmCompartments[i][-1], alignedFns, xform)
 
         # apply the final transform
         # alignedFns.extend(hmmCompartments[-1])
