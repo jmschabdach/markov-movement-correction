@@ -647,8 +647,8 @@ def main(baseDir):
             idx = len(alignedFns)
             # print("INDEX OF FIXED IMAGE:", idx)
             print("CURRENT LIST INDEX:", i)
-            alignCompartments(hmmCompartments[i][-1], alignedFns, compartmentTransformFns[i+1])
-            alignCompartments(hmmCompartments[i][-1], alignedFns, xform)
+            alignCompartments(hmmCompartments[i+1][0], alignedFns, compartmentTransformFns[i+1])
+            alignCompartments(compartments[i][-1], alignedFns, xform)
 
         # apply the final transform
         # alignedFns.extend(hmmCompartments[-1])
