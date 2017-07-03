@@ -636,19 +636,18 @@ def main(baseDir):
 
         # Step 4: apply linking transform to each compartment
         # store composite compartments here
-        alignedFns = []
+        alignedFns = hmmCompartments[-1]
         # for all linking transforms
         # for i in xrange(len(linkingTransFns)):
         #     alignedFns.extend(hmmCompartments[i])
         #     alignCompartments(hmmCompartments[i+1][0], alignedFns, compartmentTransformFns[i])
         #     alignCompartments(hmmCompartments[i+1][0], alignedFns, linkingTransFns[i]])
-        for i, xform in reversed(list(enumerate(linkingTransFns))):
-            alignedFns = hmmCompartments[i+1] + alignedFns
-            idx = len(alignedFns)
-            # print("INDEX OF FIXED IMAGE:", idx)
+        alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
+        for i in xrange(len(linkingTransFns)-1, 1, -1):
+            alignedFns = hmmCompartments[i] + alignedFns
             print("CURRENT LIST INDEX:", i)
-            alignCompartments(hmmCompartments[i+1][0], alignedFns, compartmentTransformFns[i+1])
-            alignCompartments(compartments[i][-1], alignedFns, xform)
+            alignCompartments(alignedFns[0], alignedFns, compartmentTransformFns[i])
+            alignCompartments(compartments[i-1][-1], alignedFns, linkingTransFns[i])
 
         # apply the final transform
         # alignedFns.extend(hmmCompartments[-1])
