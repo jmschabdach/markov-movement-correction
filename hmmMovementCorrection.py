@@ -643,12 +643,12 @@ def main(baseDir):
         #     alignCompartments(hmmCompartments[i+1][0], alignedFns, linkingTransFns[i])
         #                       # [compartmentTransformFns[i], linkingTransFns[i]])
         for i, xform in reversed(list(enumerate(linkingTransFns))):
-            alignedFns.insert(0, hmmCompartments[i+1])
+            alignedFns = hmmCompartments[i+1] + alignedFns
             alignCompartments(hmmCompartments[i][-1], alignedFns, xform)
 
         # apply the final transform
         # alignedFns.extend(hmmCompartments[-1])
-        alignedFns.insert(0, hmmCompartments[0])
+        alignedFns = hmmCompartments[0] + alignedFns
         # alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
 
         print(compartmentTransformFns)
