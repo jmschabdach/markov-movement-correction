@@ -638,21 +638,25 @@ def main(baseDir):
         # store composite compartments here
         alignedFns = []
         # for all linking transforms
-        for i in xrange(len(linkingTransFns)):
-            alignedFns.extend(hmmCompartments[i])
-            alignCompartments(hmmCompartments[i+1][0], alignedFns, linkingTransFns[i])
-                              # [compartmentTransformFns[i], linkingTransFns[i]])
+        # for i in xrange(len(linkingTransFns)):
+        #     alignedFns.extend(hmmCompartments[i])
+        #     alignCompartments(hmmCompartments[i+1][0], alignedFns, linkingTransFns[i])
+        #                       # [compartmentTransformFns[i], linkingTransFns[i]])
+        for i, xform in reversed(list(enumerate(linkingTransFns))):
+            alignedFns.insert(0, hmmCompartments[i+1])
+            alignCompartments(hmmCompartments[i][-1], alignedFns, xform)
 
         # apply the final transform
-        alignedFns.extend(hmmCompartments[-1])
+        # alignedFns.extend(hmmCompartments[-1])
+        alignedFns.insert(0, hmmCompartments[0])
         # alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
 
         print(compartmentTransformFns)
         print(linkingTransFns)
 
         # now reverse the filenames to get them back in the correct order
-        registeredFns = list(reversed(alignedFns))
-        # registeredFns = alignedFns # want it backwards on purpose for a moment
+        # registeredFns = list(reversed(alignedFns))
+        registeredFns = alignedFns # want it backwards on purpose for a moment
         
     else:
         print("Error: the type of motion correction entered is not currently supported.")
