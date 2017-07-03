@@ -640,12 +640,12 @@ def main(baseDir):
         # for all linking transforms
         for i in xrange(len(linkingTransFns)):
             alignedFns.extend(hmmCompartments[i])
-            alignCompartments(hmmCompartments[i+1][0], alignedFns, compartmentTransformFns[i])
+            # alignCompartments(hmmCompartments[i+1][0], alignedFns, compartmentTransformFns[i])
                               # [compartmentTransformFns[i], linkingTransFns[i]])
 
         # apply the final transform
         alignedFns.extend(hmmCompartments[-1])
-        alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
+        # alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
 
         print(compartmentTransformFns)
         print(linkingTransFns)
