@@ -642,10 +642,13 @@ def main(baseDir):
             alignedFns.extend(hmmCompartments[i])
             alignCompartments(hmmCompartments[i+1][0], alignedFns, 
                               [compartmentTransformFns[i], linkingTransFns[i]])
-            print(compartmentTransformFns[i], linkingTransFns[i])
+
         # apply the final transform
         alignedFns.extend(hmmCompartments[-1])
         alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
+
+        print(compartmentTransformFns)
+        print(linkingTransFns)
 
         # now reverse the filenames to get them back in the correct order
         registeredFns = list(reversed(alignedFns))
