@@ -640,7 +640,7 @@ def main(baseDir):
         # for all linking transforms
         for i in xrange(len(linkingTransFns)):
             alignedFns.extend(hmmCompartments[i])
-            # alignCompartments(hmmCompartments[i+1][0], alignedFns, compartmentTransformFns[i])
+            alignCompartments(hmmCompartments[i+1][0], alignedFns, linkingTransFns[i])
                               # [compartmentTransformFns[i], linkingTransFns[i]])
 
         # apply the final transform
