@@ -6,6 +6,7 @@ import argparse
 import time
 import shutil
 import sys
+import time
 
 # for loading/saving the images
 from nipy.core.api import Image
@@ -173,44 +174,49 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     - Saves the registered image
     """
     #print("Output filename:", outFn)
+    if not os.path.isfile(outFn):
+        print("The file to be registered does not exist. Registering now.")
 
-    reg = Registration()
-    reg.inputs.fixed_image = fixedImgFn
-    reg.inputs.moving_image = movingImgFn
-    reg.inputs.output_transform_prefix = transformPrefix
-    reg.inputs.transforms = ['SyN']
-    reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-    reg.inputs.number_of_iterations = [[100, 50, 30]]
-    reg.inputs.dimension = 3
-    reg.inputs.write_composite_transform = True
-    reg.inputs.collapse_output_transforms = False
-    reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC']
-    reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
-    reg.inputs.radius_or_number_of_bins = [32]
-    reg.inputs.sampling_strategy = [None]
-    reg.inputs.sampling_percentage = [None]
-    reg.inputs.convergence_threshold = [1.e-9]
-    reg.inputs.convergence_window_size = [20]
-    reg.inputs.smoothing_sigmas = [[2,1,0]]  # probably should fine-tune these?
-    reg.inputs.sigma_units = ['vox'] * 2
-    reg.inputs.shrink_factors = [[3,2,1]]  # probably should fine-tune these?
-    reg.inputs.use_estimate_learning_rate_once = [True]
-    reg.inputs.use_histogram_matching = [True] # This is the default
-    reg.inputs.output_warped_image = outFn
+        reg = Registration()
+        reg.inputs.fixed_image = fixedImgFn
+        reg.inputs.moving_image = movingImgFn
+        reg.inputs.output_transform_prefix = transformPrefix
+        reg.inputs.transforms = ['SyN']
+        reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+        reg.inputs.number_of_iterations = [[100, 50, 30]]
+        reg.inputs.dimension = 3
+        reg.inputs.write_composite_transform = True
+        reg.inputs.collapse_output_transforms = False
+        reg.inputs.initialize_transforms_per_stage = False
+        reg.inputs.metric = ['CC']
+        reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
+        reg.inputs.radius_or_number_of_bins = [32]
+        reg.inputs.sampling_strategy = [None]
+        reg.inputs.sampling_percentage = [None]
+        reg.inputs.convergence_threshold = [1.e-9]
+        reg.inputs.convergence_window_size = [20]
+        reg.inputs.smoothing_sigmas = [[2,1,0]]  # probably should fine-tune these?
+        reg.inputs.sigma_units = ['vox'] * 2
+        reg.inputs.shrink_factors = [[3,2,1]]  # probably should fine-tune these?
+        reg.inputs.use_estimate_learning_rate_once = [True]
+        reg.inputs.use_histogram_matching = [True] # This is the default
+        reg.inputs.output_warped_image = outFn
 
-    if initialize is not None:
-        reg.inputs.initial_moving_transform = initialize
-        reg.inputs.invert_initial_moving_transform = False
+        if initialize is not None:
+            reg.inputs.initial_moving_transform = initialize
+            reg.inputs.invert_initial_moving_transform = False
 
-    if corrId is not None:
-        reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
+        if corrId is not None:
+            reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
 
-    # print(reg.cmdline)
-    print("Starting registration for",outFn)
-    reg.run()
-    # print(reg.inputs.output_transform_prefix)
-    print("Finished running registration for", outFn)
+        # print(reg.cmdline)
+        print("Starting registration for",outFn)
+        # reg.run()
+        # print(reg.inputs.output_transform_prefix)
+        print("Finished running registration for", outFn)
+
+    else:
+        print("WARNING: existing registered image found, image registration skipped.")
 
 
 def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
@@ -228,37 +234,42 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
     Effects:
     - Saves the registered image
     """
-    #print("Output filename:", outFn)
+    # check if the transform file exists:
+    if not os.path.isfile(transformFn+"Composite.h5") and not os.path.isfile(transformFn+"InverseComposite.h5"):
+        print("Transform files don't exist!")
 
-    reg = Registration()
-    reg.inputs.fixed_image = prevCompImg
-    reg.inputs.moving_image = nextCompImg
-    reg.inputs.output_transform_prefix = transformFn
-    reg.inputs.transforms = ['SyN']
-    reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-    reg.inputs.number_of_iterations = [[100, 50, 30]]
-    reg.inputs.dimension = 3
-    reg.inputs.write_composite_transform = True
-    reg.inputs.collapse_output_transforms = False
-    reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC']
-    reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
-    reg.inputs.radius_or_number_of_bins = [32]
-    reg.inputs.sampling_strategy = [None]
-    reg.inputs.sampling_percentage = [None]
-    reg.inputs.convergence_threshold = [1.e-9]
-    reg.inputs.convergence_window_size = [20]
-    reg.inputs.smoothing_sigmas = [[2,1,0]]  # probably should fine-tune these?
-    reg.inputs.sigma_units = ['vox'] * 2
-    reg.inputs.shrink_factors = [[3,2,1]]  # probably should fine-tune these?
-    reg.inputs.use_estimate_learning_rate_once = [True]
-    reg.inputs.use_histogram_matching = [True] # This is the default
-    reg.inputs.output_warped_image = False
+        reg = Registration()
+        reg.inputs.fixed_image = prevCompImg
+        reg.inputs.moving_image = nextCompImg
+        reg.inputs.output_transform_prefix = transformFn
+        reg.inputs.transforms = ['SyN']
+        reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+        reg.inputs.number_of_iterations = [[100, 50, 30]]
+        reg.inputs.dimension = 3
+        reg.inputs.write_composite_transform = True
+        reg.inputs.collapse_output_transforms = False
+        reg.inputs.initialize_transforms_per_stage = False
+        reg.inputs.metric = ['CC']
+        reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
+        reg.inputs.radius_or_number_of_bins = [32]
+        reg.inputs.sampling_strategy = [None]
+        reg.inputs.sampling_percentage = [None]
+        reg.inputs.convergence_threshold = [1.e-9]
+        reg.inputs.convergence_window_size = [20]
+        reg.inputs.smoothing_sigmas = [[2,1,0]]  # probably should fine-tune these?
+        reg.inputs.sigma_units = ['vox'] * 2
+        reg.inputs.shrink_factors = [[3,2,1]]  # probably should fine-tune these?
+        reg.inputs.use_estimate_learning_rate_once = [True]
+        reg.inputs.use_histogram_matching = [True] # This is the default
+        reg.inputs.output_warped_image = False
 
-    # print(reg.cmdline)
-    print("Calculating linking transform for",transformFn)
-    reg.run()
-    print("Finished calculating linking transform for", transformFn)
+        # print(reg.cmdline)
+        print("Calculating linking transform for",transformFn)
+        reg.run()
+        print("Finished calculating linking transform for", transformFn)
+
+    else:
+        print("WARNING: existing transform files found, linking transform calculation skipped.")
 
 
 def alignCompartments(fixedImg, movingImgs, transform):
@@ -578,7 +589,7 @@ def main(baseDir):
             img1 = compartments[i][-1]
             img2 = compartments[i+1][0]
             transFn = tmpDir+"linkingTransforms/compartment"+str(i)+"_compartment"+str(i+1)+"_"
-            linkingTransFns.append(transFn)
+            linkingTransFns.append(transFn+"InverseComposite.h5")
             threadName = "linking-"+str(i)+"-and-"+str(i+1)
             # make the thread
             t = linkingTransformThread(i, threadName, img1, img2, transFn)
@@ -586,11 +597,11 @@ def main(baseDir):
 
         print("Number of linking transform threads:", len(threads))
         # could comment next 5 lines out if steps 2 and 3 are not time dependent
-        for t in threads:
-            t.start()
+        # for t in threads:
+        #     t.start()
 
-        for t in threads:
-            t.join()
+        # for t in threads:
+        #     t.join()
 
         threads = []
 
@@ -659,4 +670,16 @@ if __name__ == "__main__":
     npVerList = [int(i) for i in npVer.split('.')]
     if npVerList[1] < 12:
         sys.exit("Warning: the version for numpy is "+np.__version__+".\nPlease update to at least version 1.12.1 to use this pipeline.")
+        
+    startTime = time.time()
     main(baseDir)
+    endTime = time.time() - startTime
+
+    # turn this into a function
+    totalDays = np.floor(endTime/24.0/60.0/60.0)
+    endTime = endTime%(24.0*60.0*60.0)
+    totalHours = np.floor(endTime/60.0/60.0)
+    endTime = endTime%(60.0*60.0)
+    totalMins = np.floor(endTime/60.0)
+    totalSecs = endTime%60.0
+    print("Total run time:",totalDays,"days,",totalHours,"hours,",totalMins,"minutes,",totalSecs)
