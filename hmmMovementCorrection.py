@@ -651,7 +651,8 @@ def main(baseDir):
         print(linkingTransFns)
 
         # now reverse the filenames to get them back in the correct order
-        registeredFns = list(reversed(alignedFns))
+        # registeredFns = list(reversed(alignedFns))
+        registeredFns = alignedFns # want it backwards on purpose for a moment
         
     else:
         print("Error: the type of motion correction entered is not currently supported.")
