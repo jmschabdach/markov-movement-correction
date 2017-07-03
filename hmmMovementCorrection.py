@@ -589,7 +589,7 @@ def main(baseDir):
             img1 = compartments[i][-1]
             img2 = compartments[i+1][0]
             transFn = tmpDir+"linkingTransforms/compartment"+str(i)+"_compartment"+str(i+1)+"_"
-            linkingTransFns.append(transFn+"Composite.h5")
+            linkingTransFns.append(transFn+"InverseComposite.h5")
             threadName = "linking-"+str(i)+"-and-"+str(i+1)
             # make the thread
             t = linkingTransformThread(i, threadName, img1, img2, transFn)
@@ -617,7 +617,7 @@ def main(baseDir):
             # make a new HMM motion correction thread
             t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
             # add the name of the transform file to the appropriate list
-            compartmentTransformFns.append(transformPrefix+str(i)+'_InverseComposite.h5')
+            compartmentTransformFns.append(transformPrefix+str(i)+'_Composite.h5')
             # add the thread to the list of threads
             threads.append(t)
 
