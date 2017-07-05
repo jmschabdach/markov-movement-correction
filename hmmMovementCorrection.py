@@ -189,6 +189,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.sampling_strategy = [None]
         reg.inputs.sampling_percentage = [None]
         reg.inputs.convergence_threshold = [1.e-9]
+        reg.inputs.interpolation = 'NearestNeighbor'
         reg.inputs.convergence_window_size = [20]
         reg.inputs.smoothing_sigmas = [[2,1,0]]  # probably should fine-tune these?
         reg.inputs.sigma_units = ['vox'] * 2
@@ -206,7 +207,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
 
         # print(reg.cmdline)
         print("Starting registration for",outFn)
-        reg.run()
+        # reg.run()
         # print(reg.inputs.output_transform_prefix)
         print("Finished running registration for", outFn)
 
@@ -237,9 +238,9 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.fixed_image = prevCompImg
         reg.inputs.moving_image = nextCompImg
         reg.inputs.output_transform_prefix = transformFn
-        reg.inputs.transforms = ['SyN']
-        reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-        reg.inputs.number_of_iterations = [[100, 50, 30]]
+        reg.inputs.transforms = ['Affine']
+        reg.inputs.transform_parameters = [(2.0,)]
+        reg.inputs.number_of_iterations = [[1500, 200]]
         reg.inputs.dimension = 3
         reg.inputs.write_composite_transform = True
         reg.inputs.collapse_output_transforms = False
@@ -247,20 +248,21 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.metric = ['CC']
         reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
         reg.inputs.radius_or_number_of_bins = [32]
-        reg.inputs.sampling_strategy = [None]
-        reg.inputs.sampling_percentage = [None]
-        reg.inputs.convergence_threshold = [1.e-9]
+        reg.inputs.sampling_strategy = ['Random']
+        reg.inputs.sampling_percentage = [0.05]
+        reg.inputs.convergence_threshold = [1.e-8]
         reg.inputs.convergence_window_size = [20]
-        reg.inputs.smoothing_sigmas = [[2,1,0]]  # probably should fine-tune these?
+        reg.inputs.smoothing_sigmas = [[0,0]]  # probably should fine-tune these?
         reg.inputs.sigma_units = ['vox'] * 2
-        reg.inputs.shrink_factors = [[3,2,1]]  # probably should fine-tune these?
+        reg.inputs.shrink_factors = [[2,1]]  # probably should fine-tune these?
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the default
         reg.inputs.output_warped_image = False
+        reg.inputs.interpolation = 'NearestNeighbor'
 
         # print(reg.cmdline)
         print("Calculating linking transform for",transformFn)
-        reg.run()
+        # reg.run()
         print("Finished calculating linking transform for", transformFn)
 
     else:
@@ -278,7 +280,7 @@ def alignCompartments(fixedImg, movingImgs, transform):
     - transform: either a list of paths or a single path to a transform file
 
     Returns:
-    - ???
+    - None
 
     Effects:
     - Overwrites the specified images with a more aligned version of the same images
@@ -294,6 +296,7 @@ def alignCompartments(fixedImg, movingImgs, transform):
         at.inputs.reference_image = fixedImg
         at.inputs.output_image = m
         at.inputs.transforms = transform
+        at.inputs.interpolation = 'NearestNeighbor'
         # run the transform application
         at.run()
 
@@ -357,8 +360,8 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     - Writes each registered file to /path/markov-movement-correction/tmp/registered/
     """
 
-    if not os.path.exists(outputDir+'registered/'):
-        os.mkdir(outputDir+'registered/')
+    if not os.path.exists(outputDir+'sequential/'):
+        os.mkdir(outputDir+'sequential/')
     # get the template image filename
     templateFn = timepointFns[0]
     # set up lists
@@ -367,7 +370,7 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     # for each subsequent image
     for i in xrange(1, len(timepointFns), 1):
         # set the output filename
-        outFn = outputDir+'registered/'+ str(i).zfill(3)+'.nii.gz'
+        outFn = outputDir+'sequential/'+ str(i).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
         # start a thread to register the new timepoint to the template
         t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, prealign=prealign)
@@ -471,7 +474,7 @@ def main(baseDir):
 
         print(outputDir)
         # register the images sequentially
-        # registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+        registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
 
     elif args.correctionType == 'hmm':
         # make the output directory
@@ -558,7 +561,7 @@ def main(baseDir):
         origTimepoints = timepointFns
         timepointFns = list(reversed(timepointFns))
         # make compartments
-        numCompartments = 8
+        numCompartments = 4
         imgsPerCompartment = int(np.ceil(len(timepointFns)/float(numCompartments)))
         # make the list of lists
         compartments = [timepointFns[i*imgsPerCompartment:(i+1)*imgsPerCompartment] for i in xrange(numCompartments-1)]
@@ -584,7 +587,7 @@ def main(baseDir):
             img1 = compartments[i][-1]
             img2 = compartments[i+1][0]
             transFn = tmpDir+"linkingTransforms/compartment"+str(i)+"_compartment"+str(i+1)+"_"
-            linkingTransFns.append(transFn+"InverseComposite.h5")
+            linkingTransFns.append(transFn+"Composite.h5")
             threadName = "linking-"+str(i)+"-and-"+str(i+1)
             # make the thread
             t = linkingTransformThread(i, threadName, img1, img2, transFn)
@@ -640,26 +643,28 @@ def main(baseDir):
 
         # Step 4: apply linking transform to each compartment
         # store composite compartments here
-        alignedFns = hmmCompartments[-1]
+        # alignedFns = hmmCompartments[-1]
+        alignedFns = []
         # for all linking transforms
-        # for i in xrange(len(linkingTransFns)):
-        #     alignedFns.extend(hmmCompartments[i])
-        #     alignCompartments(hmmCompartments[i+1][0], alignedFns, compartmentTransformFns[i])
-        #     alignCompartments(hmmCompartments[i+1][0], alignedFns, linkingTransFns[i]])
-        alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
-        for i in xrange(len(linkingTransFns)-1, 1, -1):
-            alignedFns = hmmCompartments[i] + alignedFns
-            print("CURRENT LIST INDEX:", i)
-            alignCompartments(alignedFns[0], alignedFns, compartmentTransformFns[i])
-            alignCompartments(compartments[i-1][-1], alignedFns, linkingTransFns[i])
+        for i in xrange(len(linkingTransFns)):
+            alignedFns.extend(hmmCompartments[i])
+            alignCompartments(compartments[i][-1], alignedFns, compartmentTransformFns[i])
+            alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
+        # alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
+        # for i in xrange(len(linkingTransFns)-1, 0, -1):
+        #     alignedFns = hmmCompartments[i] + alignedFns
+        #     print("CURRENT LIST INDEX:", i)
+        #     alignCompartments(alignedFns[0], alignedFns, compartmentTransformFns[i])
+        #     alignCompartments(compartments[i-1][-1], alignedFns, linkingTransFns[i])
 
         # apply the final transform
-        # alignedFns.extend(hmmCompartments[-1])
-        alignedFns = hmmCompartments[0] + alignedFns
-        alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[0])
+        alignedFns.extend(hmmCompartments[-1])
+        # alignedFns = hmmCompartments[0] + alignedFns
+        alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
 
         print(compartmentTransformFns)
         print(linkingTransFns)
+        print("Number of aligned files:", len(alignedFns))
 
         # now reverse the filenames to get them back in the correct order
         # registeredFns = list(reversed(alignedFns))
@@ -677,8 +682,8 @@ def main(baseDir):
 if __name__ == "__main__":
     # set the base directory
     # baseDir = '/home/pirc/Desktop/Jenna_dev/markov-movement-correction/'
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
-    #baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
