@@ -77,13 +77,8 @@ class hmmMotionCorrectionThread(threading.Thread):
         self._return = None
 
     def run(self):
-        # if self._Thread__target is not None:
         print("Starting the HMM motion correction for", self.name)
-        #print("Input files:")
-	    #print(self.fns)
         outfiles = markovCorrection(self.fns, self.outputDir, self.transformPrefix, corrId=self.threadId)
-        # outfiles = ["ohai", self.name]
-        # time.sleep(20/self.threadId)
         print("Finished the HMM motion correction for", self.name)
         self._return = outfiles
 
@@ -211,7 +206,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
 
         # print(reg.cmdline)
         print("Starting registration for",outFn)
-        # reg.run()
+        reg.run()
         # print(reg.inputs.output_transform_prefix)
         print("Finished running registration for", outFn)
 
@@ -589,7 +584,7 @@ def main(baseDir):
             img1 = compartments[i][-1]
             img2 = compartments[i+1][0]
             transFn = tmpDir+"linkingTransforms/compartment"+str(i)+"_compartment"+str(i+1)+"_"
-            linkingTransFns.append(transFn+"Composite.h5")
+            linkingTransFns.append(transFn+"InverseComposite.h5")
             threadName = "linking-"+str(i)+"-and-"+str(i+1)
             # make the thread
             t = linkingTransformThread(i, threadName, img1, img2, transFn)
@@ -597,11 +592,11 @@ def main(baseDir):
 
         print("Number of linking transform threads:", len(threads))
         # could comment next 5 lines out if steps 2 and 3 are not time dependent
-        # for t in threads:
-        #     t.start()
+        for t in threads:
+            t.start()
 
-        # for t in threads:
-        #     t.join()
+        for t in threads:
+            t.join()
 
         threads = []
 
@@ -617,7 +612,7 @@ def main(baseDir):
             # make a new HMM motion correction thread
             t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
             # add the name of the transform file to the appropriate list
-            compartmentTransformFns.append(transformPrefix+str(i)+'_InverseComposite.h5')
+            compartmentTransformFns.append(transformPrefix+str(i)+'_Composite.h5')
             # add the thread to the list of threads
             threads.append(t)
 
@@ -633,6 +628,15 @@ def main(baseDir):
         print("Number of compartment transform filenames:",len(compartmentTransformFns))
         # sort the hmmCompartments
         hmmCompartments = list(reversed(sorted(hmmCompartments)))
+
+        # **** IMPORTANT: when perfected, remove this step
+        # copy over the hmm registered images to a new directory
+        spareDir = tmpDir+"hmmCopies/"
+        if not os.path.exists(spareDir):
+            os.mkdir(spareDir)
+        for compartment in hmmCompartments:
+            for image in compartment:
+                shutil.copy2(image, spareDir)
 
         # Step 4: apply linking transform to each compartment
         # store composite compartments here
