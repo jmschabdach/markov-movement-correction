@@ -207,7 +207,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
 
         # print(reg.cmdline)
         print("Starting registration for",outFn)
-        # reg.run()
+        reg.run()
         # print(reg.inputs.output_transform_prefix)
         print("Finished running registration for", outFn)
 
