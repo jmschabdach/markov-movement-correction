@@ -359,9 +359,6 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     Effects:
     - Writes each registered file to /path/markov-movement-correction/tmp/registered/
     """
-
-    if not os.path.exists(outputDir+'sequential/'):
-        os.mkdir(outputDir+'sequential/')
     # get the template image filename
     templateFn = timepointFns[0]
     # set up lists
@@ -370,9 +367,9 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     # for each subsequent image
     for i in xrange(1, len(timepointFns), 1):
         # set the output filename
-        outFn = outputDir+'sequential/'+ str(i).zfill(3)+'.nii.gz'
+        outFn = outputDir+str(i).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
-        templatePrefix = outputDir+'tmp/output_'
+        templatePrefix = baseDir+'tmp/output_'
         # start a thread to register the new timepoint to the template
         t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, templatePrefix, prealign=prealign)
         myThreads.append(t)
