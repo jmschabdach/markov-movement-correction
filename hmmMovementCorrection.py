@@ -377,6 +377,8 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
         # do I need to limit the number of threads?
         # or will they automatically limit themselves to the number of cores?
 
+    print(timepointFns)
+
     for t in myThreads:
         t.join()
 
