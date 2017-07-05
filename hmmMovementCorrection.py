@@ -372,8 +372,9 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
         # set the output filename
         outFn = outputDir+'sequential/'+ str(i).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
+        templatePrefix = outputDir+'tmp/output_'
         # start a thread to register the new timepoint to the template
-        t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, prealign=prealign)
+        t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, templatePrefix, prealign=prealign)
         myThreads.append(t)
         t.start()
         # do I need to limit the number of threads?
