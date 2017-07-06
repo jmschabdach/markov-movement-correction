@@ -272,14 +272,13 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         print("The file to be registered does not exist. Registering now.")
 
         reg = Registration()
-        reg.inputs.fixed_image = fixedImgFn
-        reg.inputs.moving_image = movingImgFn
-        reg.inputs.output_transform_prefix = transformPrefix
+        reg.inputs.fixed_image = prevCompImg
+        reg.inputs.moving_image = nextCompImg
+        reg.inputs.output_transform_prefix = transformFn
         reg.inputs.dimension = 3
         reg.inputs.write_composite_transform = True
         reg.inputs.collapse_output_transforms = False
         reg.inputs.initialize_transforms_per_stage = False
-        reg.inputs.metric = ['CC']
         reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
         reg.inputs.radius_or_number_of_bins = [32]
         reg.inputs.sampling_strategy = [None]
@@ -289,9 +288,11 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.sigma_units = ['vox'] * 2
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the default
-        reg.inputs.output_warped_image = outFn
+        reg.inputs.output_warped_image = False
+        reg.inputs.terminal_output = 'none'
 
         # # Nonlinear transform
+        # reg.inputs.metric = ['CC']
         # reg.inputs.transforms = ['SyN']
         # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
         # reg.inputs.number_of_iterations = [[100, 50, 30]]
@@ -300,13 +301,16 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         # reg.inputs.shrink_factors = [[4,2,0]]  # probably should fine-tune these?
 
         # Affine transform
+        reg.inputs.metric = ['MI']
+        reg.inputs.use_histogram_matching = 1
+        reg.inputs.sampling_strategy = ['Random']
+        reg.inputs.sampling_percentage = [0.05]
         reg.inputs.transforms = ['Affine']
         reg.inputs.transform_parameters = [(2.0,)]
         reg.inputs.number_of_iterations = [[800, 200]]
         reg.inputs.convergence_threshold = [1.e-8]
         reg.inputs.smoothing_sigmas = [[0,0]]  # probably should fine-tune these?
-        reg.inputs.shrink_factors = [[2,0]]  # probably should fine-tune these?
-
+        reg.inputs.shrink_factors = [[2,0]]
 
         if initialize is not None:
             reg.inputs.initial_moving_transform = initialize
@@ -352,7 +356,6 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.write_composite_transform = True
         reg.inputs.collapse_output_transforms = False
         reg.inputs.initialize_transforms_per_stage = False
-        reg.inputs.metric = ['CC']
         reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
         reg.inputs.radius_or_number_of_bins = [32]
         reg.inputs.sampling_strategy = [None]
@@ -366,6 +369,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.terminal_output = 'none'
 
         # # Nonlinear transform
+        # reg.inputs.metric = ['CC']
         # reg.inputs.transforms = ['SyN']
         # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
         # reg.inputs.number_of_iterations = [[100, 50, 30]]
@@ -374,6 +378,10 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         # reg.inputs.shrink_factors = [[4,2,0]]  # probably should fine-tune these?
 
         # Affine transform
+        reg.inputs.metric = ['MI']
+        reg.inputs.use_histogram_matching = 1
+        reg.inputs.sampling_strategy = ['Random']
+        reg.inputs.sampling_percentage = [0.05]
         reg.inputs.transforms = ['Affine']
         reg.inputs.transform_parameters = [(2.0,)]
         reg.inputs.number_of_iterations = [[800, 200]]
