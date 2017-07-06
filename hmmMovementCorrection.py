@@ -272,9 +272,9 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         print("The file to be registered does not exist. Registering now.")
 
         reg = Registration()
-        reg.inputs.fixed_image = prevCompImg
-        reg.inputs.moving_image = nextCompImg
-        reg.inputs.output_transform_prefix = transformFn
+        reg.inputs.fixed_image = fixedImgFn
+        reg.inputs.moving_image = movingImgFn
+        reg.inputs.output_transform_prefix = transformPrefix
         reg.inputs.dimension = 3
         reg.inputs.write_composite_transform = True
         reg.inputs.collapse_output_transforms = False
@@ -285,11 +285,10 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.sampling_percentage = [None]
         reg.inputs.interpolation = 'NearestNeighbor'
         reg.inputs.convergence_window_size = [20]
-        reg.inputs.sigma_units = ['vox'] * 2
+        # reg.inputs.sigma_units = ['vox'] * 2
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the default
-        reg.inputs.output_warped_image = False
-        reg.inputs.terminal_output = 'none'
+        reg.inputs.output_warped_image = outFn
 
         # # Nonlinear transform
         # reg.inputs.metric = ['CC']
@@ -362,7 +361,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.sampling_percentage = [None]
         reg.inputs.interpolation = 'NearestNeighbor'
         reg.inputs.convergence_window_size = [20]
-        reg.inputs.sigma_units = ['vox'] * 2
+        # reg.inputs.sigma_units = ['vox'] * 2
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the default
         reg.inputs.output_warped_image = False
