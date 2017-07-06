@@ -683,7 +683,7 @@ def main(baseDir):
         origTimepoints = timepointFns
         timepointFns = list(reversed(timepointFns))
         # make compartments
-        numCompartments = 4
+        numCompartments = 6
         imgsPerCompartment = int(np.ceil(len(timepointFns)/float(numCompartments)))
         # make the list of lists
         compartments = [timepointFns[i*imgsPerCompartment:(i+1)*imgsPerCompartment] for i in xrange(numCompartments-1)]
