@@ -289,7 +289,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
 
         # print(reg.cmdline)
         print("Calculating linking transform for",transformFn)
-        # reg.run()
+        reg.run()
         print("Finished calculating linking transform for", transformFn)
 
     else:
