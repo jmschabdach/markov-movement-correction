@@ -708,9 +708,8 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    # baseDir = '/home/pirc/Desktop/Jenna_dev/markov-movement-correction/'
-    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
-    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
