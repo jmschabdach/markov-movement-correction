@@ -105,6 +105,30 @@ class linkingTransformThread(threading.Thread):
         calculateLinkingTransform(self.prevImg, self.nextImg, self.transformFn)
         print("Finished thread", self.name)
 
+class prealignmentThread(threading.Thread):
+    """
+    Implementation of the threading class in order to streamline
+    prealignment of the images
+    """
+    def __init__(self, threadId, baseDir, expandedImgs, transformPrefix):
+        threading.Thread.__init__(self)
+        self.threadId = threadId
+        self.baseDir = baseDir
+        self.expandedImgs = expandedImgs
+        self.transformPrefix = transformPrefix
+        self._return = None
+
+    def run(self):
+        # set up the registration
+        imgFns = prealignImageAffine(self.baseDir, self.expandedImgs, self.transformPrefix)
+        # print that finished running the registration
+        print("Prealignment thread", self.threadId,"finished.")
+        self._return = imgFns
+
+    def join(self):
+        threading.Thread.join(self)
+        return self._return
+
 #---------------------------------------------------------------------------------
 # Motion Correction: Helper Functions
 #---------------------------------------------------------------------------------
@@ -149,10 +173,80 @@ def expandTimepoints(imgFn, baseDir):
     return filenames
 
 
-def prealignImage(imgDir):
+def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
     """
-    Apply a rigid transform to every 
+    Prealign the expanded image using an affine transformation
+
+    Inputs:
+    - baseDir: the base directory, used to create the new directory
+               for the prealigned images
+    - expandedImgs: a list of paths to the expanded images
+    - transformPrefix: the prefix for the prealignment transform 
+
+    Returns:
+    - preprocImgs: a list of paths to the preprocessed images
+
+    Effects:
+    - Create a new directory, ./baseDir/preprocessed/
+    - Save the prealigned images to the new directory
     """
+
+    # if the directory doesn't exist, create it
+    outDir = baseDir+"prealigned/"
+    if not os.path.exists(outDir):
+        os.mkdir(outDir)
+
+    # set up the expandedImgs list
+    preprocImgs = [fn.replace('timepoints', 'prealigned') for fn in expandedImgs]
+
+    counter = 0
+    templateFn = expandedImgs[0]
+    # copy the template image into the new directory
+    shutil.copy(templateFn, outDir)
+    # for each file
+    for origImg, newImg in zip(expandedImgs[1:], preprocImgs[1:]):
+        # if the file exists in the new directory, skip it
+        if not os.path.isfile(newImg):
+            # set up the thread
+            reg = Registration()
+            reg.inputs.fixed_image = templateFn
+            reg.inputs.moving_image = origImg
+            reg.inputs.output_transform_prefix = transformPrefix
+            reg.inputs.dimension = 3
+            reg.inputs.write_composite_transform = True
+            reg.inputs.collapse_output_transforms = False
+            reg.inputs.initialize_transforms_per_stage = False
+            reg.inputs.metric = ['CC']
+            reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
+            reg.inputs.radius_or_number_of_bins = [32]
+            reg.inputs.sampling_strategy = [None]
+            reg.inputs.sampling_percentage = [None]
+            reg.inputs.interpolation = 'NearestNeighbor'
+            reg.inputs.convergence_window_size = [20]
+            reg.inputs.sigma_units = ['vox'] * 2
+            reg.inputs.use_estimate_learning_rate_once = [True]
+            reg.inputs.use_histogram_matching = [True] # This is the default
+            reg.inputs.output_warped_image = newImg
+
+            reg.inputs.transforms = ['Affine']
+            reg.inputs.transform_parameters = [(2.0,)]
+            reg.inputs.number_of_iterations = [[500, 100]]
+            reg.inputs.convergence_threshold = [1.e-6]
+            reg.inputs.smoothing_sigmas = [[0,0]]  # probably should fine-tune these?
+            reg.inputs.shrink_factors = [[2,0]]  # probably should fine-tune these?
+
+            if counter != 0:
+                reg.inputs.initial_moving_transform = transformPrefix+'InverseComposite.h5'
+                reg.inputs.invert_initial_moving_transform = False
+            
+            counter += 1
+
+            # run the registration
+            reg.run()
+
+    # return the list of aligned images
+    return preprocImgs
+
 
 def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=None, corrId=None):
     """
@@ -493,6 +587,7 @@ def main(baseDir):
 
     # Select the specified motion correction algorithm
     registeredFns = []
+
     if args.correctionType == 'sequential':
         # make the output directory
         outputDir = baseDir+'sequential/'
@@ -696,6 +791,45 @@ def main(baseDir):
         # now reverse the filenames to get them back in the correct order
         # registeredFns = list(reversed(alignedFns))
         registeredFns = alignedFns # want it backwards on purpose for a moment
+
+    elif args.correctionType == 'testing':
+        # get a subset of images
+        subset = timepointFns[:10]
+        # make a testing dir
+        testDir = baseDir+'testing/'
+        if not os.path.exists(testDir):
+            os.mkdir(testDir)
+        # copy the subset to a timepoints dir in testing dir
+        spareDir = testDir+"timepoints/"
+        if not os.path.exists(spareDir):
+            os.mkdir(spareDir)
+        for img in subset:
+            shutil.copy2(img, spareDir)
+        subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
+        # start the prealign thread
+        prealignThread = prealignmentThread(0, testDir, subset, testDir+'prealignTransform_')
+        prealignThread.start()
+        # make a hmm dir in testing
+        if not os.path.exists(testDir+'hmm/'):
+            os.mkdir(testDir+'hmm/')
+        # start hmm thread
+        hmmThreads = []
+        t = hmmMotionCorrectionThread(1, "hmm-corr", subset, testDir+'hmm/', testDir+'hmmTransform_')
+        t.start()
+        hmmThreads.append(t)
+        # join on prealign thread - must finish before running prealignHmm
+        prealignedImgs = prealignThread.join()
+        # make a prealign and hmm dir in testing
+        if not os.path.exists(testDir+'prealignHmm/'):
+            os.mkdir(testDir+'prealignHmm/')
+        # run hmm on prealigned images
+        t = hmmMotionCorrectionThread(2, 'hmm-prealign-corr', prealignedImgs, testDir+'prealignHmm/', testDir+'prealignHmmTransform')
+        t.start()
+        hmmThreads.append(t)
+
+        for t in hmmThreads:
+            t.join()
+
         
     else:
         print("Error: the type of motion correction entered is not currently supported.")
@@ -708,9 +842,9 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
     # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
-    # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+    baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
     npVer = np.__version__
