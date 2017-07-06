@@ -216,7 +216,6 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
             reg.inputs.write_composite_transform = True
             reg.inputs.collapse_output_transforms = False
             reg.inputs.initialize_transforms_per_stage = False
-            reg.inputs.metric = ['CC']
             reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
             reg.inputs.radius_or_number_of_bins = [32]
             reg.inputs.sampling_strategy = [None]
@@ -229,6 +228,9 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
             reg.inputs.output_warped_image = newImg
 
             reg.inputs.transforms = ['Affine']
+            reg.inputs.metric = ['MI']
+            reg.inputs.sampling_strategy = ['Random']
+            reg.inputs.sampling_percentage = [0.05]
             reg.inputs.transform_parameters = [(2.0,)]
             reg.inputs.number_of_iterations = [[500, 100]]
             reg.inputs.convergence_threshold = [1.e-6]
@@ -301,7 +303,6 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
 
         # Affine transform
         reg.inputs.metric = ['MI']
-        reg.inputs.use_histogram_matching = 1
         reg.inputs.sampling_strategy = ['Random']
         reg.inputs.sampling_percentage = [0.05]
         reg.inputs.transforms = ['Affine']
@@ -378,7 +379,6 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
 
         # Affine transform
         reg.inputs.metric = ['MI']
-        reg.inputs.use_histogram_matching = 1
         reg.inputs.sampling_strategy = ['Random']
         reg.inputs.sampling_percentage = [0.05]
         reg.inputs.transforms = ['Affine']
