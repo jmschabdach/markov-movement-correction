@@ -367,7 +367,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.sampling_percentage = [None]
         reg.inputs.interpolation = 'NearestNeighbor'
         reg.inputs.convergence_window_size = [20]
-        # reg.inputs.sigma_units = ['vox'] * 2
+        reg.inputs.sigma_units = ['vox']
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the default
         reg.inputs.output_warped_image = False
@@ -383,14 +383,14 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         # reg.inputs.shrink_factors = [[4,2,0]]  # probably should fine-tune these?
 
         # Affine transform
-        reg.inputs.metric = ['MI']
+        reg.inputs.metric = ['Mattes'] #'Mattes' in example
         reg.inputs.sampling_strategy = ['Random']
         reg.inputs.sampling_percentage = [0.05]
         reg.inputs.transforms = ['Affine']
         reg.inputs.transform_parameters = [(2.0,)]
-        reg.inputs.number_of_iterations = [[800, 200]]
+        reg.inputs.number_of_iterations = [[1500, 200]]
         reg.inputs.convergence_threshold = [1.e-8]
-        reg.inputs.smoothing_sigmas = [[2,1]]  # probably should fine-tune these?
+        reg.inputs.smoothing_sigmas = [[1,0]]  # probably should fine-tune these?
         reg.inputs.shrink_factors = [[2,0]]  # probably should fine-tune these?
 
         # print(reg.cmdline)
