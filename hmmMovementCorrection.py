@@ -357,66 +357,46 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.fixed_image = prevCompImg
         reg.inputs.moving_image = nextCompImg
         reg.inputs.output_transform_prefix = transformFn
-        reg.inputs.transforms = ['Affine']
-        reg.inputs.transform_parameters = [(2.0,)]
-        reg.inputs.number_of_iterations = [[1500, 200]]
-        reg.inputs.dimension = 3
-        reg.inputs.write_composite_transform = True
-        reg.inputs.collapse_output_transforms = False
-        reg.inputs.initialize_transforms_per_stage = False
-        reg.inputs.metric = ['MI']
-        reg.inputs.metric_weight = [1]
-        reg.inputs.radius_or_number_of_bins = [32]
-        reg.inputs.sampling_strategy = ['Random']
-        reg.inputs.sampling_percentage = [0.05]
-        reg.inputs.convergence_threshold = [1.e-8]
-        reg.inputs.convergence_window_size = [20]
-        reg.inputs.smoothing_sigmas = [[1,0]]
-        reg.inputs.sigma_units = ['vox']
-        reg.inputs.shrink_factors = [[2,1]]
-        reg.inputs.use_estimate_learning_rate_once = [True]
-        reg.inputs.use_histogram_matching = [True] # This is the ult
-        reg.inputs.output_warped_image = False
 
-        # reg = Registration()
-        # reg.inputs.fixed_image = prevCompImg
-        # reg.inputs.moving_image = nextCompImg
-        # reg.inputs.output_transform_prefix = transformFn
+        # # affine transform
+        # reg.inputs.transforms = ['Affine']
+        # reg.inputs.transform_parameters = [(2.0,)]
+        # reg.inputs.number_of_iterations = [[1500, 200]]
         # reg.inputs.dimension = 3
         # reg.inputs.write_composite_transform = True
         # reg.inputs.collapse_output_transforms = False
         # reg.inputs.initialize_transforms_per_stage = False
-        # reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
+        # reg.inputs.metric = ['MI']
+        # reg.inputs.metric_weight = [1]
         # reg.inputs.radius_or_number_of_bins = [32]
-        # reg.inputs.sampling_strategy = [None]
-        # reg.inputs.sampling_percentage = [None]
-        # reg.inputs.interpolation = 'NearestNeighbor'
-        # reg.inputs.convergence_window_size = [20]
-        # reg.inputs.sigma_units = ['vox']
-        # reg.inputs.use_estimate_learning_rate_once = [True]
-        # reg.inputs.use_histogram_matching = [True] # This is the default
-        # reg.inputs.output_warped_image = False
-        # # reg.inputs.terminal_output = 'none'
-
-        # # # Nonlinear transform
-        # reg.inputs.metric = ['CC']
-        # reg.inputs.transforms = ['SyN']
-        # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-        # reg.inputs.number_of_iterations = [[100, 50, 30]]
+        # reg.inputs.sampling_strategy = ['Random']
+        # reg.inputs.sampling_percentage = [0.05]
         # reg.inputs.convergence_threshold = [1.e-8]
-        # reg.inputs.smoothing_sigmas = [[0,0,0]]  # probably should fine-tune these?
-        # reg.inputs.shrink_factors = [[4,2,0]]  # probably should fine-tune these?
+        # reg.inputs.convergence_window_size = [20]
+        # reg.inputs.smoothing_sigmas = [[1,0]]
+        # reg.inputs.sigma_units = ['vox']
+        # reg.inputs.shrink_factors = [[2,1]]
 
-        # # Affine transform
-        # # reg.inputs.metric = ['MI'] #'Mattes' in example
-        # # reg.inputs.sampling_strategy = ['Random']
-        # # reg.inputs.sampling_percentage = [0.05]
-        # # reg.inputs.transforms = ['Affine']
-        # # reg.inputs.transform_parameters = [(2.0,)]
-        # # reg.inputs.number_of_iterations = [[1500, 200]]
-        # # reg.inputs.convergence_threshold = [1.e-8]
-        # # reg.inputs.smoothing_sigmas = [[1,0]]  # probably should fine-tune these?
-        # # reg.inputs.shrink_factors = [[2,0]]  # probably should fine-tune these?
+        # Nonlinear transform
+        reg.inputs.transforms = ['SyN']
+        reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+        reg.inputs.number_of_iterations = [[100, 50, 30]]
+        reg.inputs.dimension = 3
+        reg.inputs.write_composite_transform = True
+        reg.inputs.collapse_output_transforms = False
+        reg.inputs.initialize_transforms_per_stage = False
+        reg.inputs.metric = ['CC']
+        reg.inputs.metric_weight = [1]
+        reg.inputs.radius_or_number_of_bins = [32]
+        reg.inputs.convergence_threshold = [1.e-8]
+        reg.inputs.convergence_window_size = [20]
+        reg.inputs.smoothing_sigmas = [[2,1,0]]
+        reg.inputs.sigma_units = ['vox']
+        reg.inputs.shrink_factors = [[2,1,0]]
+
+        reg.inputs.use_estimate_learning_rate_once = [True]
+        reg.inputs.use_histogram_matching = [True] # This is the ult
+        reg.inputs.output_warped_image = False
 
         # print(reg.cmdline)
         print("Calculating linking transform for",transformFn)
