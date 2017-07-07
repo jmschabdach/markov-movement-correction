@@ -312,9 +312,9 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.smoothing_sigmas = [[0,0]]  # probably should fine-tune these?
         reg.inputs.shrink_factors = [[2,0]]
 
-        if initialize is not None:
-            reg.inputs.initial_moving_transform = initialize
-            reg.inputs.invert_initial_moving_transform = False
+        # if initialize is not None:
+        #     reg.inputs.initial_moving_transform = initialize
+        #     reg.inputs.invert_initial_moving_transform = False
 
         if corrId is not None:
             reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
