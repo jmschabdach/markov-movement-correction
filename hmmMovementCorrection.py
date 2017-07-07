@@ -741,32 +741,32 @@ def main(baseDir):
         for t in threads:
             t.join()
 
-        # threads = []
+        threads = []
 
-        # # Step 3: perform regular HMM motion correction in each compartment
-        # # set up the variable to indicate the location of the transform prefix
-        # if not os.path.exists(tmpDir+"prealignTransforms/"):
-        #     os.mkdir(tmpDir+"prealignTransforms/")
-        # transformPrefix = tmpDir+"prealignTransforms/stacking-hmm_"
-        # compartmentTransformFns = []
-        # print(transformPrefix)
-        # # iterate over all compartments
-        # for i in xrange(len(compartments)):
-        #     # make a new HMM motion correction thread
-        #     t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
-        #     # add the name of the transform file to the appropriate list
-        #     compartmentTransformFns.append(transformPrefix+str(i)+'_Composite.h5')
-        #     # add the thread to the list of threads
-        #     threads.append(t)
+        # Step 3: perform regular HMM motion correction in each compartment
+        # set up the variable to indicate the location of the transform prefix
+        if not os.path.exists(tmpDir+"prealignTransforms/"):
+            os.mkdir(tmpDir+"prealignTransforms/")
+        transformPrefix = tmpDir+"prealignTransforms/stacking-hmm_"
+        compartmentTransformFns = []
+        print(transformPrefix)
+        # iterate over all compartments
+        for i in xrange(len(compartments)):
+            # make a new HMM motion correction thread
+            t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
+            # add the name of the transform file to the appropriate list
+            compartmentTransformFns.append(transformPrefix+str(i)+'_Composite.h5')
+            # add the thread to the list of threads
+            threads.append(t)
 
-        # # start the threads
-        # for t in threads:
-        #     t.start()
+        # start the threads
+        for t in threads:
+            t.start()
 
-        # # join on the threads
-        # hmmCompartments = []
-        # for t in threads:
-        #     hmmCompartments.append(t.join())
+        # join on the threads
+        hmmCompartments = []
+        for t in threads:
+            hmmCompartments.append(t.join())
 
         # print("Number of compartment transform filenames:",len(compartmentTransformFns))
         # # sort the hmmCompartments
