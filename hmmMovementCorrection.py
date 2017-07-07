@@ -392,7 +392,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.convergence_window_size = [20]
         reg.inputs.smoothing_sigmas = [[2,1,0]]
         reg.inputs.sigma_units = ['vox']
-        reg.inputs.shrink_factors = [[2,1,0]]
+        reg.inputs.shrink_factors = [[3,2,1]]
 
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the ult
