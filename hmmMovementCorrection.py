@@ -763,12 +763,13 @@ def main(baseDir):
 
         # # **** IMPORTANT: when perfected, remove this step
         # # copy over the hmm registered images to a new directory
-        # spareDir = tmpDir+"hmmCopies/"
-        # if not os.path.exists(spareDir):
-        #     os.mkdir(spareDir)
-        # for compartment in hmmCompartments:
-        #     for image in compartment:
-        #         shutil.copy2(image, spareDir)
+        spareDir = tmpDir+"hmmCopies/"
+        if not os.path.exists(spareDir):
+            os.mkdir(spareDir)
+        for compartment in hmmCompartments:
+            for image in compartment:
+                # shutil.copy2(image, spareDir)
+                print(image)
 
         # # Step 4: apply linking transform to each compartment
         # # store composite compartments here
