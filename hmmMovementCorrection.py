@@ -351,30 +351,6 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     if not os.path.isfile(outFn):
         print("The file to be registered does not exist. Registering now.")
 
-        def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
-    """
-    Register 2 images taken at different timepoints.
-
-    Inputs:
-    - prevCompImg: filename of the last image from the previous compartment
-    - nextCompImg: filename of the first image from the next compartment
-    - transformFn: name of the file to save the transform to
-
-    Outputs:
-    - None
-
-    Effects:
-    - Saves the registered image
-    """
-
-    # for debugging
-    print(prevCompImg)
-    print(nextCompImg)
-
-    # check if the transform file exists:
-    if not os.path.isfile(transformFn+"Composite.h5") and not os.path.isfile(transformFn+"InverseComposite.h5"):
-        print("Transform files don't exist!")
-
         reg = Registration()
         reg.inputs.fixed_image = prevCompImg
         reg.inputs.moving_image = nextCompImg
