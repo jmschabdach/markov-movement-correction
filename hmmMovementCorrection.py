@@ -250,85 +250,6 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
     return preprocImgs
 
 
-def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=None, corrId=None):
-    """
-    Register 2 images taken at different timepoints.
-
-    Inputs:
-    - fixedImgFn: filename of the fixed image (should be the template image)
-    - movingImgFn: filename of the moving image (should be the Jn image)
-    - outFn: name of the file to write the transformed image to.
-    - outDir: path to the tmp directory
-    - transformPrefix: prefix for the transform function
-    - initialize: optional parameter to specify the location of the
-                  transformation matrix from the previous registration
-
-    Outputs:
-    - Currently, nothing. Should return or save the transformation
-
-    Effects:
-    - Saves the registered image
-    """
-    #print("Output filename:", outFn)
-    if not os.path.isfile(outFn):
-        print("The file to be registered does not exist. Registering now.")
-
-        reg = Registration()
-        reg.inputs.fixed_image = fixedImgFn
-        reg.inputs.moving_image = movingImgFn
-        reg.inputs.output_transform_prefix = transformPrefix
-        reg.inputs.dimension = 3
-        reg.inputs.write_composite_transform = True
-        reg.inputs.collapse_output_transforms = False
-        reg.inputs.initialize_transforms_per_stage = False
-        reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
-        reg.inputs.radius_or_number_of_bins = [32]
-        reg.inputs.sampling_strategy = [None]
-        reg.inputs.sampling_percentage = [None]
-        reg.inputs.interpolation = 'NearestNeighbor'
-        reg.inputs.convergence_window_size = [20]
-        # reg.inputs.sigma_units = ['vox'] * 2
-        reg.inputs.use_estimate_learning_rate_once = [True]
-        reg.inputs.use_histogram_matching = [True] # This is the default
-        reg.inputs.output_warped_image = outFn
-
-        # # Nonlinear transform
-        # reg.inputs.metric = ['CC']
-        # reg.inputs.transforms = ['SyN']
-        # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-        # reg.inputs.number_of_iterations = [[100, 50, 30]]
-        # reg.inputs.convergence_threshold = [1.e-8]
-        # reg.inputs.smoothing_sigmas = [[0,0,0]]  # probably should fine-tune these?
-        # reg.inputs.shrink_factors = [[4,2,0]]  # probably should fine-tune these?
-
-        # Affine transform
-        reg.inputs.metric = ['MI']
-        reg.inputs.sampling_strategy = ['Random']
-        reg.inputs.sampling_percentage = [0.05]
-        reg.inputs.transforms = ['Affine']
-        reg.inputs.transform_parameters = [(2.0,)]
-        reg.inputs.number_of_iterations = [[800, 200]]
-        reg.inputs.convergence_threshold = [1.e-8]
-        reg.inputs.smoothing_sigmas = [[0,0]]  # probably should fine-tune these?
-        reg.inputs.shrink_factors = [[2,0]]
-
-        if initialize is not None:
-            reg.inputs.initial_moving_transform = initialize
-            reg.inputs.invert_initial_moving_transform = False
-
-        if corrId is not None:
-            reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
-
-        # print(reg.cmdline)
-        print("Starting registration for",outFn)
-        reg.run()
-        # print(reg.inputs.output_transform_prefix)
-        print("Finished running registration for", outFn)
-
-    else:
-        print("WARNING: existing registered image found, image registration skipped.")
-
-
 def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
     """
     Register 2 images taken at different timepoints.
@@ -405,6 +326,114 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
 
     else:
         print("WARNING: existing transform files found, linking transform calculation skipped.")
+
+
+def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=None, corrId=None):
+    """
+    Register 2 images taken at different timepoints.
+
+    Inputs:
+    - fixedImgFn: filename of the fixed image (should be the template image)
+    - movingImgFn: filename of the moving image (should be the Jn image)
+    - outFn: name of the file to write the transformed image to.
+    - outDir: path to the tmp directory
+    - transformPrefix: prefix for the transform function
+    - initialize: optional parameter to specify the location of the
+                  transformation matrix from the previous registration
+
+    Outputs:
+    - Currently, nothing. Should return or save the transformation
+
+    Effects:
+    - Saves the registered image
+    """
+    #print("Output filename:", outFn)
+    if not os.path.isfile(outFn):
+        print("The file to be registered does not exist. Registering now.")
+
+        def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
+    """
+    Register 2 images taken at different timepoints.
+
+    Inputs:
+    - prevCompImg: filename of the last image from the previous compartment
+    - nextCompImg: filename of the first image from the next compartment
+    - transformFn: name of the file to save the transform to
+
+    Outputs:
+    - None
+
+    Effects:
+    - Saves the registered image
+    """
+
+    # for debugging
+    print(prevCompImg)
+    print(nextCompImg)
+
+    # check if the transform file exists:
+    if not os.path.isfile(transformFn+"Composite.h5") and not os.path.isfile(transformFn+"InverseComposite.h5"):
+        print("Transform files don't exist!")
+
+        reg = Registration()
+        reg.inputs.fixed_image = prevCompImg
+        reg.inputs.moving_image = nextCompImg
+        reg.inputs.output_transform_prefix = transformFn
+
+        # Affine transform
+        reg.inputs.transforms = ['Affine']
+        reg.inputs.transform_parameters = [(2.0,)]
+        reg.inputs.number_of_iterations = [[1500, 200]]
+        reg.inputs.dimension = 3
+        reg.inputs.write_composite_transform = True
+        reg.inputs.collapse_output_transforms = False
+        reg.inputs.initialize_transforms_per_stage = False
+        reg.inputs.metric = ['MI']
+        reg.inputs.metric_weight = [1]
+        reg.inputs.radius_or_number_of_bins = [32]
+        reg.inputs.sampling_strategy = ['Random']
+        reg.inputs.sampling_percentage = [0.05]
+        reg.inputs.convergence_threshold = [1.e-8]
+        reg.inputs.convergence_window_size = [20]
+        reg.inputs.smoothing_sigmas = [[1,0]]
+        reg.inputs.sigma_units = ['vox']
+        reg.inputs.shrink_factors = [[2,1]]
+
+        # # Nonlinear transform
+        # reg.inputs.transforms = ['SyN']
+        # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+        # reg.inputs.number_of_iterations = [[100, 50, 30]]
+        # reg.inputs.dimension = 3
+        # reg.inputs.write_composite_transform = True
+        # reg.inputs.collapse_output_transforms = False
+        # reg.inputs.initialize_transforms_per_stage = False
+        # reg.inputs.metric = ['CC']
+        # reg.inputs.metric_weight = [1]
+        # reg.inputs.radius_or_number_of_bins = [32]
+        # reg.inputs.convergence_threshold = [1.e-8]
+        # reg.inputs.convergence_window_size = [20]
+        # reg.inputs.smoothing_sigmas = [[2,1,0]]
+        # reg.inputs.sigma_units = ['vox']
+        # reg.inputs.shrink_factors = [[3,2,1]]
+
+        reg.inputs.use_estimate_learning_rate_once = [True]
+        reg.inputs.use_histogram_matching = [True] # This is the ult
+        reg.inputs.output_warped_image = False
+
+        if initialize is not None:
+            reg.inputs.initial_moving_transform = initialize
+            reg.inputs.invert_initial_moving_transform = False
+
+        if corrId is not None:
+            reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
+
+        # print(reg.cmdline)
+        print("Starting registration for",outFn)
+        reg.run()
+        print("Finished running registration for", outFn)
+
+    else:
+        print("WARNING: existing registered image found, image registration skipped.")
 
 
 def alignCompartments(fixedImg, movingImgs, transform):
