@@ -394,7 +394,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
 
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the ult
-        reg.inputs.output_warped_image = False
+        reg.inputs.output_warped_image = outFn
 
         if initialize is not None:
             reg.inputs.initial_moving_transform = initialize
