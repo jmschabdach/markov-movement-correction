@@ -212,30 +212,26 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
             reg.inputs.fixed_image = templateFn
             reg.inputs.moving_image = origImg
             reg.inputs.output_transform_prefix = transformPrefix
+            reg.inputs.interpolation = 'NearestNeighbor'
+
+            # # affine transform
+            reg.inputs.transforms = ['Affine']
+            reg.inputs.transform_parameters = [(2.0,)]
+            reg.inputs.number_of_iterations = [[1500, 200]]
             reg.inputs.dimension = 3
             reg.inputs.write_composite_transform = True
             reg.inputs.collapse_output_transforms = False
             reg.inputs.initialize_transforms_per_stage = False
-            reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
-            reg.inputs.radius_or_number_of_bins = [32]
-            reg.inputs.sampling_strategy = [None]
-            reg.inputs.sampling_percentage = [None]
-            reg.inputs.interpolation = 'NearestNeighbor'
-            reg.inputs.convergence_window_size = [20]
-            reg.inputs.sigma_units = ['vox'] * 2
-            reg.inputs.use_estimate_learning_rate_once = [True]
-            reg.inputs.use_histogram_matching = [True] # This is the default
-            reg.inputs.output_warped_image = newImg
-
-            reg.inputs.transforms = ['Affine']
             reg.inputs.metric = ['MI']
+            reg.inputs.metric_weight = [1]
+            reg.inputs.radius_or_number_of_bins = [32]
             reg.inputs.sampling_strategy = ['Random']
             reg.inputs.sampling_percentage = [0.05]
-            reg.inputs.transform_parameters = [(2.0,)]
-            reg.inputs.number_of_iterations = [[500, 100]]
-            reg.inputs.convergence_threshold = [1.e-6]
-            reg.inputs.smoothing_sigmas = [[0,0]]  # probably should fine-tune these?
-            reg.inputs.shrink_factors = [[2,0]]  # probably should fine-tune these?
+            reg.inputs.convergence_threshold = [1.e-8]
+            reg.inputs.convergence_window_size = [20]
+            reg.inputs.smoothing_sigmas = [[1,0]]
+            reg.inputs.sigma_units = ['vox']
+            reg.inputs.shrink_factors = [[2,1]]
 
             if counter != 0:
                 reg.inputs.initial_moving_transform = transformPrefix+'InverseComposite.h5'
@@ -278,6 +274,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.fixed_image = prevCompImg
         reg.inputs.moving_image = nextCompImg
         reg.inputs.output_transform_prefix = transformFn
+        reg.inputs.interpolation = 'NearestNeighbor'
 
         # Affine transform
         reg.inputs.transforms = ['Affine']
@@ -355,6 +352,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.fixed_image = fixedImgFn
         reg.inputs.moving_image = movingImgFn
         reg.inputs.output_transform_prefix = transformPrefix
+        reg.inputs.interpolation = 'NearestNeighbor'
 
         # Affine transform
         reg.inputs.transforms = ['Affine']
