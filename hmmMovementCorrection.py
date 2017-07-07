@@ -390,12 +390,12 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.transform_parameters = [(2.0,)]
         reg.inputs.number_of_iterations = [[800, 200]]
         reg.inputs.convergence_threshold = [1.e-8]
-        reg.inputs.smoothing_sigmas = [[0,0]]  # probably should fine-tune these?
+        reg.inputs.smoothing_sigmas = [[2,1]]  # probably should fine-tune these?
         reg.inputs.shrink_factors = [[2,0]]  # probably should fine-tune these?
 
         # print(reg.cmdline)
         print("Calculating linking transform for",transformFn)
-        # reg.run()
+        reg.run()
         print("Finished calculating linking transform for", transformFn)
 
     else:
