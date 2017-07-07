@@ -731,6 +731,7 @@ def main(baseDir):
         # could comment next 5 lines out if steps 2 and 3 are not time dependent
         for t in threads:
             t.start()
+            time.sleep(1)
 
         for t in threads:
             t.join()
