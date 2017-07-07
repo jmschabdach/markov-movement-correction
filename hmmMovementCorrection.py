@@ -357,7 +357,6 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.fixed_image = prevCompImg
         reg.inputs.moving_image = nextCompImg
         reg.inputs.output_transform_prefix = transformFn
-        reg.inputs.invert_initial_moving_transform = True
         reg.inputs.transforms = ['Affine']
         reg.inputs.transform_parameters = [(2.0,)]
         reg.inputs.number_of_iterations = [[1500, 200]]
