@@ -344,6 +344,11 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
     Effects:
     - Saves the registered image
     """
+
+    # for debugging
+    print(prevCompImg)
+    print(nextCompImg)
+
     # check if the transform file exists:
     if not os.path.isfile(transformFn+"Composite.h5") and not os.path.isfile(transformFn+"InverseComposite.h5"):
         print("Transform files don't exist!")
