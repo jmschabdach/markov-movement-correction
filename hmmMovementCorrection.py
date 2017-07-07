@@ -312,16 +312,16 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.smoothing_sigmas = [[0,0]]  # probably should fine-tune these?
         reg.inputs.shrink_factors = [[2,0]]
 
-        # if initialize is not None:
-        #     reg.inputs.initial_moving_transform = initialize
-        #     reg.inputs.invert_initial_moving_transform = False
+        if initialize is not None:
+            reg.inputs.initial_moving_transform = initialize
+            reg.inputs.invert_initial_moving_transform = False
 
         if corrId is not None:
             reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
 
         # print(reg.cmdline)
         print("Starting registration for",outFn)
-        # reg.run()
+        reg.run()
         # print(reg.inputs.output_transform_prefix)
         print("Finished running registration for", outFn)
 
@@ -722,13 +722,13 @@ def main(baseDir):
             t = linkingTransformThread(i, threadName, img1, img2, transFn)
             threads.append(t)
 
-        # print("Number of linking transform threads:", len(threads))
-        # # could comment next 5 lines out if steps 2 and 3 are not time dependent
-        # for t in threads:
-        #     t.start()
+        print("Number of linking transform threads:", len(threads))
+        # could comment next 5 lines out if steps 2 and 3 are not time dependent
+        for t in threads:
+            t.start()
 
-        # for t in threads:
-        #     t.join()
+        for t in threads:
+            t.join()
 
         threads = []
 
@@ -768,37 +768,37 @@ def main(baseDir):
             os.mkdir(spareDir)
         for compartment in hmmCompartments:
             for image in compartment:
-                # shutil.copy2(image, spareDir)
+                shutil.copy2(image, spareDir)
                 print(image)
 
-        # # Step 4: apply linking transform to each compartment
-        # # store composite compartments here
-        # # alignedFns = hmmCompartments[-1]
-        # alignedFns = []
-        # # for all linking transforms
-        # for i in xrange(len(linkingTransFns)):
-        #     alignedFns.extend(hmmCompartments[i])
-        #     alignCompartments(compartments[i][-1], alignedFns, compartmentTransformFns[i])
-        #     alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
-        # # alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
-        # # for i in xrange(len(linkingTransFns)-1, 0, -1):
-        # #     alignedFns = hmmCompartments[i] + alignedFns
-        # #     print("CURRENT LIST INDEX:", i)
-        # #     alignCompartments(alignedFns[0], alignedFns, compartmentTransformFns[i])
-        # #     alignCompartments(compartments[i-1][-1], alignedFns, linkingTransFns[i])
+        # Step 4: apply linking transform to each compartment
+        # store composite compartments here
+        # alignedFns = hmmCompartments[-1]
+        alignedFns = []
+        # for all linking transforms
+        for i in xrange(len(linkingTransFns)):
+            alignedFns.extend(hmmCompartments[i])
+            alignCompartments(compartments[i][-1], alignedFns, compartmentTransformFns[i])
+            alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
+        # alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
+        # for i in xrange(len(linkingTransFns)-1, 0, -1):
+        #     alignedFns = hmmCompartments[i] + alignedFns
+        #     print("CURRENT LIST INDEX:", i)
+        #     alignCompartments(alignedFns[0], alignedFns, compartmentTransformFns[i])
+        #     alignCompartments(compartments[i-1][-1], alignedFns, linkingTransFns[i])
 
-        # # apply the final transform
-        # alignedFns.extend(hmmCompartments[-1])
-        # # alignedFns = hmmCompartments[0] + alignedFns
-        # alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
+        # apply the final transform
+        alignedFns.extend(hmmCompartments[-1])
+        # alignedFns = hmmCompartments[0] + alignedFns
+        alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
 
-        # print(compartmentTransformFns)
-        # print(linkingTransFns)
-        # print("Number of aligned files:", len(alignedFns))
+        print(compartmentTransformFns)
+        print(linkingTransFns)
+        print("Number of aligned files:", len(alignedFns))
 
-        # # now reverse the filenames to get them back in the correct order
-        # # registeredFns = list(reversed(alignedFns))
-        # registeredFns = alignedFns # want it backwards on purpose for a moment
+        # now reverse the filenames to get them back in the correct order
+        # registeredFns = list(reversed(alignedFns))
+        registeredFns = alignedFns # want it backwards on purpose for a moment
 
     elif args.correctionType == 'testing':
         # get a subset of images
