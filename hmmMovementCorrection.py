@@ -233,6 +233,8 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
             reg.inputs.sigma_units = ['vox']
             reg.inputs.shrink_factors = [[2,1]]
 
+            reg.inputs.output_warped_image = newImg
+
             if counter != 0:
                 reg.inputs.initial_moving_transform = transformPrefix+'InverseComposite.h5'
                 reg.inputs.invert_initial_moving_transform = False
