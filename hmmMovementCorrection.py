@@ -352,9 +352,9 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         print("The file to be registered does not exist. Registering now.")
 
         reg = Registration()
-        reg.inputs.fixed_image = prevCompImg
-        reg.inputs.moving_image = nextCompImg
-        reg.inputs.output_transform_prefix = transformFn
+        reg.inputs.fixed_image = fixedImgFn
+        reg.inputs.moving_image = movingImgFn
+        reg.inputs.output_transform_prefix = transformPrefix
 
         # Affine transform
         reg.inputs.transforms = ['Affine']
