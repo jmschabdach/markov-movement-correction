@@ -374,24 +374,24 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.terminal_output = 'none'
 
         # # Nonlinear transform
-        # reg.inputs.metric = ['CC']
-        # reg.inputs.transforms = ['SyN']
-        # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-        # reg.inputs.number_of_iterations = [[100, 50, 30]]
-        # reg.inputs.convergence_threshold = [1.e-8]
-        # reg.inputs.smoothing_sigmas = [[0,0,0]]  # probably should fine-tune these?
-        # reg.inputs.shrink_factors = [[4,2,0]]  # probably should fine-tune these?
+        reg.inputs.metric = ['CC']
+        reg.inputs.transforms = ['SyN']
+        reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+        reg.inputs.number_of_iterations = [[100, 50, 30]]
+        reg.inputs.convergence_threshold = [1.e-8]
+        reg.inputs.smoothing_sigmas = [[0,0,0]]  # probably should fine-tune these?
+        reg.inputs.shrink_factors = [[4,2,0]]  # probably should fine-tune these?
 
         # Affine transform
-        reg.inputs.metric = ['Mattes'] #'Mattes' in example
-        reg.inputs.sampling_strategy = ['Random']
-        reg.inputs.sampling_percentage = [0.05]
-        reg.inputs.transforms = ['Affine']
-        reg.inputs.transform_parameters = [(2.0,)]
-        reg.inputs.number_of_iterations = [[1500, 200]]
-        reg.inputs.convergence_threshold = [1.e-8]
-        reg.inputs.smoothing_sigmas = [[1,0]]  # probably should fine-tune these?
-        reg.inputs.shrink_factors = [[2,0]]  # probably should fine-tune these?
+        # reg.inputs.metric = ['CC'] #'Mattes' in example
+        # reg.inputs.sampling_strategy = ['Random']
+        # reg.inputs.sampling_percentage = [0.05]
+        # reg.inputs.transforms = ['Affine']
+        # reg.inputs.transform_parameters = [(2.0,)]
+        # reg.inputs.number_of_iterations = [[1500, 200]]
+        # reg.inputs.convergence_threshold = [1.e-8]
+        # reg.inputs.smoothing_sigmas = [[1,0]]  # probably should fine-tune these?
+        # reg.inputs.shrink_factors = [[2,0]]  # probably should fine-tune these?
 
         # print(reg.cmdline)
         print("Calculating linking transform for",transformFn)
