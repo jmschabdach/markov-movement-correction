@@ -377,7 +377,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
         reg.inputs.shrink_factors = [[2,1]]
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the ult
-        reg.inputs.output_warped_image = None
+        reg.inputs.output_warped_image = False
 
         # reg = Registration()
         # reg.inputs.fixed_image = prevCompImg
