@@ -834,27 +834,27 @@ def main(baseDir):
         # start the prealign thread
         prealignThread = prealignmentThread(0, testDir, subset, testDir+'prealignTransform_')
         prealignThread.start()
-        # # make a hmm dir in testing
-        # if not os.path.exists(testDir+'hmm/'):
-        #     os.mkdir(testDir+'hmm/')
-        # # start hmm thread
-        # hmmThreads = []
-        # t = hmmMotionCorrectionThread(1, "hmm-corr", subset, testDir+'hmm/', testDir+'hmmTransform_')
-        # t.start()
-        # hmmThreads.append(t)
+        # make a hmm dir in testing
+        if not os.path.exists(testDir+'hmm/'):
+            os.mkdir(testDir+'hmm/')
+        # start hmm thread
+        hmmThreads = []
+        t = hmmMotionCorrectionThread(1, "hmm-corr", subset, testDir+'hmm/', testDir+'hmmTransform_')
+        t.start()
+        hmmThreads.append(t)
         # join on prealign thread - must finish before running prealignHmm
         prealignedImgs = prealignThread.join()
         print(prealignedImgs)
-        # # make a prealign and hmm dir in testing
-        # if not os.path.exists(testDir+'prealignHmm/'):
-        #     os.mkdir(testDir+'prealignHmm/')
-        # # run hmm on prealigned images
-        # t = hmmMotionCorrectionThread(2, 'hmm-prealign-corr', prealignedImgs, testDir+'prealignHmm/', testDir+'prealignHmmTransform')
-        # t.start()
-        # hmmThreads.append(t)
+        # make a prealign and hmm dir in testing
+        if not os.path.exists(testDir+'prealignHmm/'):
+            os.mkdir(testDir+'prealignHmm/')
+        # run hmm on prealigned images
+        t = hmmMotionCorrectionThread(2, 'hmm-prealign-corr', prealignedImgs, testDir+'prealignHmm/', testDir+'prealignHmmTransform')
+        t.start()
+        hmmThreads.append(t)
 
-        # for t in hmmThreads:
-        #     t.join()
+        for t in hmmThreads:
+            t.join()
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")
