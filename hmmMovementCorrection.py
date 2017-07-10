@@ -806,7 +806,7 @@ def main(baseDir):
         # apply the final transform
         alignedFns.extend(hmmCompartments[-1])
         # alignedFns = hmmCompartments[0] + alignedFns
-        alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
+        # alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
 
         print(compartmentTransformFns)
         print(linkingTransFns)
