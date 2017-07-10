@@ -215,7 +215,7 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
             reg.inputs.interpolation = 'NearestNeighbor'
 
             # # affine transform
-            reg.inputs.transforms = ['Affine']
+            reg.inputs.transforms = ['Rigid']
             reg.inputs.transform_parameters = [(2.0,)]
             reg.inputs.number_of_iterations = [[1500, 200]]
             reg.inputs.dimension = 3
