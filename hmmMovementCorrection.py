@@ -207,7 +207,7 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
     for origImg, newImg in zip(expandedImgs[1:], preprocImgs[1:]):
         # if the file exists in the new directory, skip it
         # if not os.path.isfile(newImg):
-        
+
         # set up the thread
         reg = Registration()
         reg.inputs.fixed_image = templateFn
@@ -279,41 +279,41 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
     reg.inputs.output_transform_prefix = transformFn
     reg.inputs.interpolation = 'NearestNeighbor'
 
-    # Affine transform
-    reg.inputs.transforms = ['Affine']
-    reg.inputs.transform_parameters = [(2.0,)]
-    reg.inputs.number_of_iterations = [[1500, 200]]
-    reg.inputs.dimension = 3
-    reg.inputs.write_composite_transform = True
-    reg.inputs.collapse_output_transforms = False
-    reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['MI']
-    reg.inputs.metric_weight = [1]
-    reg.inputs.radius_or_number_of_bins = [32]
-    reg.inputs.sampling_strategy = ['Random']
-    reg.inputs.sampling_percentage = [0.05]
-    reg.inputs.convergence_threshold = [1.e-8]
-    reg.inputs.convergence_window_size = [20]
-    reg.inputs.smoothing_sigmas = [[1,0]]
-    reg.inputs.sigma_units = ['vox']
-    reg.inputs.shrink_factors = [[2,1]]
-
-    # # Nonlinear transform
-    # reg.inputs.transforms = ['SyN']
-    # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-    # reg.inputs.number_of_iterations = [[100, 50, 30]]
+    # # Affine transform
+    # reg.inputs.transforms = ['Affine']
+    # reg.inputs.transform_parameters = [(2.0,)]
+    # reg.inputs.number_of_iterations = [[1500, 200]]
     # reg.inputs.dimension = 3
     # reg.inputs.write_composite_transform = True
     # reg.inputs.collapse_output_transforms = False
     # reg.inputs.initialize_transforms_per_stage = False
-    # reg.inputs.metric = ['CC']
+    # reg.inputs.metric = ['MI']
     # reg.inputs.metric_weight = [1]
     # reg.inputs.radius_or_number_of_bins = [32]
+    # reg.inputs.sampling_strategy = ['Random']
+    # reg.inputs.sampling_percentage = [0.05]
     # reg.inputs.convergence_threshold = [1.e-8]
     # reg.inputs.convergence_window_size = [20]
-    # reg.inputs.smoothing_sigmas = [[2,1,0]]
+    # reg.inputs.smoothing_sigmas = [[2,1]]
     # reg.inputs.sigma_units = ['vox']
-    # reg.inputs.shrink_factors = [[3,2,1]]
+    # reg.inputs.shrink_factors = [[2,1]]
+
+    # Nonlinear transform
+    reg.inputs.transforms = ['SyN']
+    reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+    reg.inputs.number_of_iterations = [[100, 50, 30]]
+    reg.inputs.dimension = 3
+    reg.inputs.write_composite_transform = True
+    reg.inputs.collapse_output_transforms = False
+    reg.inputs.initialize_transforms_per_stage = False
+    reg.inputs.metric = ['CC']
+    reg.inputs.metric_weight = [1]
+    reg.inputs.radius_or_number_of_bins = [32]
+    reg.inputs.convergence_threshold = [1.e-8]
+    reg.inputs.convergence_window_size = [20]
+    reg.inputs.smoothing_sigmas = [[2,1,0]]
+    reg.inputs.sigma_units = ['vox']
+    reg.inputs.shrink_factors = [[3,2,1]]
 
     reg.inputs.use_estimate_learning_rate_once = [True]
     reg.inputs.use_histogram_matching = [True] # This is the ult
@@ -749,73 +749,73 @@ def main(baseDir):
 
         threads = []
 
-        # Step 3: perform regular HMM motion correction in each compartment
-        # set up the variable to indicate the location of the transform prefix
-        if not os.path.exists(tmpDir+"prealignTransforms/"):
-            os.mkdir(tmpDir+"prealignTransforms/")
-        transformPrefix = tmpDir+"prealignTransforms/stacking-hmm_"
-        compartmentTransformFns = []
-        print(transformPrefix)
-        # iterate over all compartments
-        for i in xrange(len(compartments)):
-            # make a new HMM motion correction thread
-            t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
-            # add the name of the transform file to the appropriate list
-            compartmentTransformFns.append(transformPrefix+str(i)+'_InverseComposite.h5')
-            # add the thread to the list of threads
-            threads.append(t)
+        # # Step 3: perform regular HMM motion correction in each compartment
+        # # set up the variable to indicate the location of the transform prefix
+        # if not os.path.exists(tmpDir+"prealignTransforms/"):
+        #     os.mkdir(tmpDir+"prealignTransforms/")
+        # transformPrefix = tmpDir+"prealignTransforms/stacking-hmm_"
+        # compartmentTransformFns = []
+        # print(transformPrefix)
+        # # iterate over all compartments
+        # for i in xrange(len(compartments)):
+        #     # make a new HMM motion correction thread
+        #     t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
+        #     # add the name of the transform file to the appropriate list
+        #     compartmentTransformFns.append(transformPrefix+str(i)+'_InverseComposite.h5')
+        #     # add the thread to the list of threads
+        #     threads.append(t)
 
-        # start the threads
-        for t in threads:
-            t.start()
+        # # start the threads
+        # for t in threads:
+        #     t.start()
 
-        # join on the threads
-        hmmCompartments = []
-        for t in threads:
-            hmmCompartments.append(t.join())
+        # # join on the threads
+        # hmmCompartments = []
+        # for t in threads:
+        #     hmmCompartments.append(t.join())
 
-        print("Number of compartment transform filenames:",len(compartmentTransformFns))
-        # sort the hmmCompartments
-        hmmCompartments = list(reversed(sorted(hmmCompartments)))
+        # print("Number of compartment transform filenames:",len(compartmentTransformFns))
+        # # sort the hmmCompartments
+        # hmmCompartments = list(reversed(sorted(hmmCompartments)))
 
-        # # **** IMPORTANT: when perfected, remove this step
-        # # copy over the hmm registered images to a new directory
-        spareDir = baseDir+"stackingHmmNotLinked/"
-        if not os.path.exists(spareDir):
-            os.mkdir(spareDir)
-        for compartment in hmmCompartments:
-            for image in compartment:
-                shutil.copy2(image, spareDir)
-                print(image)
+        # # # **** IMPORTANT: when perfected, remove this step
+        # # # copy over the hmm registered images to a new directory
+        # spareDir = baseDir+"stackingHmmNotLinked/"
+        # if not os.path.exists(spareDir):
+        #     os.mkdir(spareDir)
+        # for compartment in hmmCompartments:
+        #     for image in compartment:
+        #         shutil.copy2(image, spareDir)
+        #         print(image)
 
-        # Step 4: apply linking transform to each compartment
-        # store composite compartments here
-        # alignedFns = hmmCompartments[-1]
-        alignedFns = []
-        # for all linking transforms
-        for i in xrange(len(linkingTransFns)):
-            alignedFns.extend(hmmCompartments[i])
-            # alignCompartments(compartments[i][-1], alignedFns, compartmentTransformFns[i])
-            # alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
-        # alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
-        # for i in xrange(len(linkingTransFns)-1, 0, -1):
-        #     alignedFns = hmmCompartments[i] + alignedFns
-        #     print("CURRENT LIST INDEX:", i)
-        #     alignCompartments(alignedFns[0], alignedFns, compartmentTransformFns[i])
-        #     alignCompartments(compartments[i-1][-1], alignedFns, linkingTransFns[i])
+        # # Step 4: apply linking transform to each compartment
+        # # store composite compartments here
+        # # alignedFns = hmmCompartments[-1]
+        # alignedFns = []
+        # # for all linking transforms
+        # for i in xrange(len(linkingTransFns)):
+        #     alignedFns.extend(hmmCompartments[i])
+        #     # alignCompartments(compartments[i][-1], alignedFns, compartmentTransformFns[i])
+        #     # alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
+        # # alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
+        # # for i in xrange(len(linkingTransFns)-1, 0, -1):
+        # #     alignedFns = hmmCompartments[i] + alignedFns
+        # #     print("CURRENT LIST INDEX:", i)
+        # #     alignCompartments(alignedFns[0], alignedFns, compartmentTransformFns[i])
+        # #     alignCompartments(compartments[i-1][-1], alignedFns, linkingTransFns[i])
 
-        # apply the final transform
-        alignedFns.extend(hmmCompartments[-1])
-        # alignedFns = hmmCompartments[0] + alignedFns
-        # alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
+        # # apply the final transform
+        # alignedFns.extend(hmmCompartments[-1])
+        # # alignedFns = hmmCompartments[0] + alignedFns
+        # # alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
 
-        print(compartmentTransformFns)
-        print(linkingTransFns)
-        print("Number of aligned files:", len(alignedFns))
+        # print(compartmentTransformFns)
+        # print(linkingTransFns)
+        # print("Number of aligned files:", len(alignedFns))
 
-        # now reverse the filenames to get them back in the correct order
-        # registeredFns = list(reversed(alignedFns))
-        registeredFns = alignedFns # want it backwards on purpose for a moment
+        # # now reverse the filenames to get them back in the correct order
+        # # registeredFns = list(reversed(alignedFns))
+        # registeredFns = alignedFns # want it backwards on purpose for a moment
 
     elif args.correctionType == 'testing':
         # get a subset of images
