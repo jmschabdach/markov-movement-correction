@@ -760,7 +760,7 @@ def main(baseDir):
             # make a new HMM motion correction thread
             t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
             # add the name of the transform file to the appropriate list
-            compartmentTransformFns.append(transformPrefix+str(i)+'_Composite.h5')
+            compartmentTransformFns.append(transformPrefix+str(i)+'_InverseComposite.h5')
             # add the thread to the list of threads
             threads.append(t)
 
