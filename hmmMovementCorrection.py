@@ -629,7 +629,7 @@ def main(baseDir):
 
         # make the transform prefix
         transformPrefix = baseDir+'tmp/sequential_'
-        if not os.path.exists(baseDir+'tmp/')
+        if not os.path.exists(baseDir+'tmp/'):
             os.mkdir(baseDir+'tmp/')
 
         outFn = outputDir+str(i).zfill(3)+'.nii.gz'
