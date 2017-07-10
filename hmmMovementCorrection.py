@@ -795,7 +795,7 @@ def main(baseDir):
         for i in xrange(len(linkingTransFns)):
             alignedFns.extend(hmmCompartments[i])
             # alignCompartments(compartments[i][-1], alignedFns, compartmentTransformFns[i])
-            alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
+            # alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
         # alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
         # for i in xrange(len(linkingTransFns)-1, 0, -1):
         #     alignedFns = hmmCompartments[i] + alignedFns
