@@ -638,7 +638,7 @@ def main(baseDir):
 
         # register the second image to the first
         outFn = outputDir+'001.nii.gz'
-        registerToTemplate(timepointFns[0], timepointFns[1], outFn, outDir, transformPrefix)
+        registerToTemplate(timepointFns[0], timepointFns[1], outFn, outputDir, transformPrefix)
         registeredFns.append(outFn)
 
         # for every image
@@ -646,9 +646,8 @@ def main(baseDir):
             # set the output filename
             outFn = outputDir+str(i).zfill(3)+'.nii.gz'
             # register the image to the previous image
-            registerToTemplate(registeredFns[-1], timepointFns[i], outFn, outDir, transformPrefix)
+            registerToTemplate(registeredFns[-1], timepointFns[i], outFn, outputDir, transformPrefix)
             registeredFns.append(outFn)
-
 
     elif args.correctionType == 'hmm':
         # make the output directory
