@@ -632,11 +632,17 @@ def main(baseDir):
         if not os.path.exists(baseDir+'tmp/'):
             os.mkdir(baseDir+'tmp/')
 
-        outFn = outputDir+str(i).zfill(3)+'.nii.gz'
+        # copy the first image to the output directory
+        shutil.copy(timepointFns, outputDir)
+        registeredFns.append(outputDir+'000.nii.gz')
+
+        # register the second image to the first
+        outFn = outputDir+'001.nii.gz'
         registerToTemplate(timepointFns[0], timepointFns[1], outFn, outDir, transformPrefix)
+        registeredFns.append(outFn)
 
         # for every image
-        for i in xrange(1, len(timepointFns), 1):
+        for i in xrange(2, len(timepointFns), 1):
             # set the output filename
             outFn = outputDir+str(i).zfill(3)+'.nii.gz'
             # register the image to the previous image
