@@ -611,15 +611,38 @@ def main(baseDir):
     # Select the specified motion correction algorithm
     registeredFns = []
 
-    if args.correctionType == 'sequential':
+    if args.correctionType == 'template-matching':
         # make the output directory
-        outputDir = baseDir+'sequential/'
+        outputDir = baseDir+'templateMatching/'
         if not os.path.exists(outputDir):
             os.mkdir(outputDir)
 
         print(outputDir)
         # register the images sequentially
         registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+
+    elif args.correctionType == 'sequential':
+        # make the output directory
+        outputDir = baseDir+'sequential/'
+        if not os.path.exists(outputDir):
+            os.mkdir(outputDir)
+
+        # make the transform prefix
+        transformPrefix = baseDir+'tmp/sequential_'
+        if not os.path.exists(baseDir+'tmp/')
+            os.mkdir(baseDir+'tmp/')
+
+        outFn = outputDir+str(i).zfill(3)+'.nii.gz'
+        registerToTemplate(timepointFns[0], timepointFns[1], outFn, outDir, transformPrefix)
+
+        # for every image
+        for i in xrange(1, len(timepointFns), 1):
+            # set the output filename
+            outFn = outputDir+str(i).zfill(3)+'.nii.gz'
+            # register the image to the previous image
+            registerToTemplate(registeredFns[-1], timepointFns[i], outFn, outDir, transformPrefix)
+            registeredFns.append(outFn)
+
 
     elif args.correctionType == 'hmm':
         # make the output directory
@@ -868,8 +891,8 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
-    # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
