@@ -633,7 +633,7 @@ def main(baseDir):
             os.mkdir(baseDir+'tmp/')
 
         # copy the first image to the output directory
-        shutil.copy(timepointFns, outputDir)
+        shutil.copy(timepointFns[0], outputDir)
         registeredFns.append(outputDir+'000.nii.gz')
 
         # register the second image to the first
