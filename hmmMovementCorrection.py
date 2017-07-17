@@ -237,7 +237,7 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
         reg.inputs.output_warped_image = newImg
 
         if counter != 0:
-            reg.inputs.initial_moving_transform = transformPrefix+'InverseComposite.h5'
+            reg.inputs.initial_moving_transform = transformPrefix+'_0GenericAffine.mat'
             reg.inputs.invert_initial_moving_transform = False
         
         counter += 1
@@ -320,9 +320,9 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
     reg.inputs.output_warped_image = False
     # reg.inputs.output_warped_image = 'testing.nii.gz'
 
-    print(reg.cmdline)
+    # print(reg.cmdline)
     # print("Calculating linking transform for",transformFn)
-    # reg.run()
+    reg.run()
     # print("Finished calculating linking transform for", transformFn)
 
     # else:
@@ -558,9 +558,9 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     registeredFns = [outputDir+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
 
     # location of the transform file:
-    transformFn = transformPrefix+'_Composite.nii.gz'
+    transformFn = transformPrefix+'_0InverseWarp.nii.gz'
     if corrId is not None:
-        transformFn = transformPrefix+str(corrId)+'_Composite.nii.gz'
+        transformFn = transformPrefix+str(corrId)+'_0InverseWarp.nii.gz'
 
     print("Transform function location:", transformFn)
 
@@ -791,7 +791,7 @@ def main(baseDir):
             # make a new HMM motion correction thread
             t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
             # add the name of the transform file to the appropriate list
-            compartmentTransformFns.append(transformPrefix+str(i)+'_InverseComposite.nii.gz')
+            compartmentTransformFns.append(transformPrefix+str(i)+'_0InverseWarp.nii.gz')
             # add the thread to the list of threads
             threads.append(t)
 
@@ -827,7 +827,7 @@ def main(baseDir):
             alignedFns.extend(hmmCompartments[i])
             alignCompartments(compartments[i][-1], alignedFns, compartmentTransformFns[i])
             alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
-            
+
         # alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
         # for i in xrange(len(linkingTransFns)-1, 0, -1):
         #     alignedFns = hmmCompartments[i] + alignedFns
@@ -899,9 +899,9 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
     # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
-    baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+    # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
     npVer = np.__version__
