@@ -577,6 +577,137 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     return registeredFns
 
 
+def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
+    """
+    Perform stacking-hmm correction on the filenames passed to the function.
+
+    Inputs:
+    - origTimepoints: the names of the original files
+    - baseDir: the base directory
+    - numCompartments: the number of compartments to use
+
+    Returns:
+    - registeredFns: a list of registered filenames
+
+    Effects:
+    - 
+    """
+
+    # make the output directory
+    outputDir = baseDir + 'stacking-hmm/'
+    if not os.path.exists(outputDir):
+        os.mkdir(outputDir)
+
+    # tmpDir is not a global variable
+    tmpDir = baseDir + 'tmp/'
+
+    # Step 1: Divide the time series into compartments
+    # flip the timepoints (goal: align with original timepoint 0)
+    timepointFns = list(reversed(origTimepoints))
+    imgsPerCompartment = int(np.ceil(len(timepointFns)/float(numCompartments)))
+    # make the list of lists
+    compartments = [timepointFns[i*imgsPerCompartment:(i+1)*imgsPerCompartment] for i in xrange(numCompartments-1)]
+    compartments.append(timepointFns[imgsPerCompartment*(numCompartments-1):])
+
+    # Step 2: calculate the transform between the last image of each compartment 
+    #         and the first image of the next compartment
+    # first check that the linking transform directory exists
+    if not os.path.exists(tmpDir+"linkingTransforms/"):
+        os.mkdir(tmpDir+"linkingTransforms/")
+    threads = []
+    linkingTransFns = []
+    # iterate over all compartments
+    for i in xrange(len(compartments)-1):
+        # set up variables
+        img1 = compartments[i][-1]
+        img2 = compartments[i+1][0]
+        transFn = tmpDir+"linkingTransforms/compartment"+str(i)+"_compartment"+str(i+1)+"_"
+        linkingTransFns.append(transFn+"0GenericAffine.mat")
+        threadName = "linking-"+str(i)+"-and-"+str(i+1)
+        # make the thread
+        t = linkingTransformThread(i, threadName, img1, img2, transFn)
+        threads.append(t)
+
+    print("Number of linking transform threads:", len(threads))
+    # could comment next 5 lines out if steps 2 and 3 are not time dependent
+    for t in threads:
+        t.start()
+        time.sleep(1)
+
+    for t in threads:
+        t.join()
+
+    threads = []
+
+    # Step 3: perform regular HMM motion correction in each compartment
+    # set up the variable to indicate the location of the transform prefix
+    if not os.path.exists(tmpDir+"prealignTransforms/"):
+        os.mkdir(tmpDir+"prealignTransforms/")
+    transformPrefix = tmpDir+"prealignTransforms/stacking-hmm_"
+    compartmentTransformFns = []
+    # iterate over all compartments
+    for i in xrange(len(compartments)):
+        # make a new HMM motion correction thread
+        t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i))
+        # add the name of the transform file to the appropriate list
+        compartmentTransformFns.append(transformPrefix+str(i)+'_0InverseWarp.nii.gz')
+        # add the thread to the list of threads
+        threads.append(t)
+
+    # start the threads
+    for t in threads:
+        t.start()
+
+    # join on the threads
+    hmmCompartments = []
+    for t in threads:
+        hmmCompartments.append(t.join())
+
+    # print("Number of compartment transform filenames:",len(compartmentTransformFns))
+    # sort the hmmCompartments
+    hmmCompartments = list(reversed(sorted(hmmCompartments)))
+
+    # # **** IMPORTANT: when perfected, remove this step
+    # # copy over the hmm registered images to a new directory
+    spareDir = baseDir+"stackingHmmNotLinked/"
+    if not os.path.exists(spareDir):
+        os.mkdir(spareDir)
+    for compartment in hmmCompartments:
+        for image in compartment:
+            shutil.copy2(image, spareDir)
+            print(image)
+
+    # Step 4: apply linking transform to each compartment
+    # store composite compartments here
+    # alignedFns = hmmCompartments[-1]
+    alignedFns = []
+    # for all linking transforms
+    for i in xrange(len(linkingTransFns)):
+        alignedFns.extend(hmmCompartments[i])
+        alignCompartments(compartments[i][-1], alignedFns, compartmentTransformFns[i])
+        alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
+
+    # alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
+    # for i in xrange(len(linkingTransFns)-1, 0, -1):
+    #     alignedFns = hmmCompartments[i] + alignedFns
+    #     print("CURRENT LIST INDEX:", i)
+    #     alignCompartments(alignedFns[0], alignedFns, compartmentTransformFns[i])
+    #     alignCompartments(compartments[i-1][-1], alignedFns, linkingTransFns[i])
+
+    # apply the final transform
+    alignedFns.extend(hmmCompartments[-1])
+    alignedFns = hmmCompartments[0] + alignedFns
+    alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
+
+    print(compartmentTransformFns)
+    print(linkingTransFns)
+    print("Number of aligned files:", len(alignedFns))
+
+    # now reverse the filenames to get them back in the correct order
+    registeredFns = list(reversed(alignedFns))
+    # registeredFns = alignedFns # want it backwards on purpose for a moment
+    return registeredFns
+
 #---------------------------------------------------------------------------------
 # Main
 #---------------------------------------------------------------------------------
@@ -726,128 +857,10 @@ def main(baseDir):
         registeredFns.sort()
 
     elif args.correctionType == 'stacking-hmm':
-        # make the output directory
-        outputDir = baseDir + 'stacking-hmm/'
-        if not os.path.exists(outputDir):
-            os.mkdir(outputDir)
-
-        # Step 1: Divide the time series into compartments
-        # flip the timepoints (goal: align with original timepoint 0)
-        origTimepoints = timepointFns
-        timepointFns = list(reversed(timepointFns))
         # make compartments
         numCompartments = 6
-        imgsPerCompartment = int(np.ceil(len(timepointFns)/float(numCompartments)))
-        # make the list of lists
-        compartments = [timepointFns[i*imgsPerCompartment:(i+1)*imgsPerCompartment] for i in xrange(numCompartments-1)]
-        compartments.append(timepointFns[imgsPerCompartment*(numCompartments-1):])
-        # check the compartments
-        print("Number of compartments:",len(compartments))
-        for i in xrange(len(compartments)):
-            print("Number of images in compartment",i,":", len(compartments[i]))
-        for i in xrange(len(compartments)):
-            print("First image in compartment", i, ":", compartments[i][0])
-            print("Last image in compartment",i,":", compartments[i][-1])
-
-        # Step 2: calculate the transform between the last image of each compartment 
-        #         and the first image of the next compartment
-        # first check that the linking transform directory exists
-        if not os.path.exists(tmpDir+"linkingTransforms/"):
-            os.mkdir(tmpDir+"linkingTransforms/")
-        threads = []
-        linkingTransFns = []
-        # iterate over all compartments
-        for i in xrange(len(compartments)-1):
-            # set up variables
-            img1 = compartments[i][-1]
-            img2 = compartments[i+1][0]
-            transFn = tmpDir+"linkingTransforms/compartment"+str(i)+"_compartment"+str(i+1)+"_"
-            linkingTransFns.append(transFn+"0GenericAffine.mat")
-            threadName = "linking-"+str(i)+"-and-"+str(i+1)
-            # make the thread
-            t = linkingTransformThread(i, threadName, img1, img2, transFn)
-            threads.append(t)
-
-        print("Number of linking transform threads:", len(threads))
-        # could comment next 5 lines out if steps 2 and 3 are not time dependent
-        for t in threads:
-            t.start()
-            time.sleep(1)
-
-        for t in threads:
-            t.join()
-
-        threads = []
-
-        # Step 3: perform regular HMM motion correction in each compartment
-        # set up the variable to indicate the location of the transform prefix
-        if not os.path.exists(tmpDir+"prealignTransforms/"):
-            os.mkdir(tmpDir+"prealignTransforms/")
-        transformPrefix = tmpDir+"prealignTransforms/stacking-hmm_"
-        compartmentTransformFns = []
-        print(transformPrefix)
-        # iterate over all compartments
-        for i in xrange(len(compartments)):
-            # make a new HMM motion correction thread
-            t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i))
-            # add the name of the transform file to the appropriate list
-            compartmentTransformFns.append(transformPrefix+str(i)+'_0InverseWarp.nii.gz')
-            # add the thread to the list of threads
-            threads.append(t)
-
-        # start the threads
-        for t in threads:
-            t.start()
-
-        # join on the threads
-        hmmCompartments = []
-        for t in threads:
-            hmmCompartments.append(t.join())
-
-        print("Number of compartment transform filenames:",len(compartmentTransformFns))
-        # sort the hmmCompartments
-        hmmCompartments = list(reversed(sorted(hmmCompartments)))
-
-        # # **** IMPORTANT: when perfected, remove this step
-        # # copy over the hmm registered images to a new directory
-        spareDir = baseDir+"stackingHmmNotLinked/"
-        if not os.path.exists(spareDir):
-            os.mkdir(spareDir)
-        for compartment in hmmCompartments:
-            for image in compartment:
-                shutil.copy2(image, spareDir)
-                print(image)
-
-        # Step 4: apply linking transform to each compartment
-        # store composite compartments here
-        # alignedFns = hmmCompartments[-1]
-        alignedFns = []
-        # for all linking transforms
-        for i in xrange(len(linkingTransFns)):
-            alignedFns.extend(hmmCompartments[i])
-            alignCompartments(compartments[i][-1], alignedFns, compartmentTransformFns[i])
-            alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
-
-        # alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
-        # for i in xrange(len(linkingTransFns)-1, 0, -1):
-        #     alignedFns = hmmCompartments[i] + alignedFns
-        #     print("CURRENT LIST INDEX:", i)
-        #     alignCompartments(alignedFns[0], alignedFns, compartmentTransformFns[i])
-        #     alignCompartments(compartments[i-1][-1], alignedFns, linkingTransFns[i])
-
-        # apply the final transform
-        alignedFns.extend(hmmCompartments[-1])
-        alignedFns = hmmCompartments[0] + alignedFns
-        alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
-
-        print(compartmentTransformFns)
-        print(linkingTransFns)
-        print("Number of aligned files:", len(alignedFns))
-
-        # now reverse the filenames to get them back in the correct order
-        # registeredFns = list(reversed(alignedFns))
-        registeredFns = alignedFns # want it backwards on purpose for a moment
-
+        registeredFns = stackingHmmCorrection(timepointFns, baseDir, numCompartments)
+        
     elif args.correctionType == 'testing':
         # get a subset of images
         subset = timepointFns[:25]
@@ -862,31 +875,10 @@ def main(baseDir):
         for img in subset:
             shutil.copy2(img, spareDir)
         subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
-        print(subset)
-        # start the prealign thread
-        prealignThread = prealignmentThread(0, testDir, subset, testDir+'prealignTransform_')
-        prealignThread.start()
-        # make a hmm dir in testing
-        if not os.path.exists(testDir+'hmm/'):
-            os.mkdir(testDir+'hmm/')
-        # start hmm thread
-        hmmThreads = []
-        t = hmmMotionCorrectionThread(1, "hmm-corr", subset, testDir+'hmm/', testDir+'hmmTransform_')
-        t.start()
-        hmmThreads.append(t)
-        # join on prealign thread - must finish before running prealignHmm
-        prealignedImgs = prealignThread.join()
-        print(prealignedImgs)
-        # make a prealign and hmm dir in testing
-        if not os.path.exists(testDir+'prealignHmm/'):
-            os.mkdir(testDir+'prealignHmm/')
-        # run hmm on prealigned images
-        t = hmmMotionCorrectionThread(2, 'hmm-prealign-corr', prealignedImgs, testDir+'prealignHmm/', testDir+'prealignHmmTransform')
-        t.start()
-        hmmThreads.append(t)
-
-        for t in hmmThreads:
-            t.join()
+        
+        # now use the stacking-hmm function
+        numCompartments = 5
+        registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")
