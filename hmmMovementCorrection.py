@@ -791,7 +791,7 @@ def main(baseDir):
             # make a new HMM motion correction thread
             t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
             # add the name of the transform file to the appropriate list
-            compartmentTransformFns.append(transformPrefix+str(i)+'_0InverseWarp.nii.gz')
+            compartmentTransformFns.append(transformPrefix+str(i)+'0InverseWarp.nii.gz')
             # add the thread to the list of threads
             threads.append(t)
 
