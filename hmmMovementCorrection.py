@@ -789,7 +789,7 @@ def main(baseDir):
         # iterate over all compartments
         for i in xrange(len(compartments)):
             # make a new HMM motion correction thread
-            t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix)
+            t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i))
             # add the name of the transform file to the appropriate list
             compartmentTransformFns.append(transformPrefix+str(i)+'_0InverseWarp.nii.gz')
             # add the thread to the list of threads
