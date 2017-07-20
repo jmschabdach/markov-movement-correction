@@ -402,8 +402,8 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.initial_moving_transform = initialize
         reg.inputs.invert_initial_moving_transform = False
 
-    if corrId is not None:
-        reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
+    # if corrId is not None:
+    #     reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
 
     # print(reg.cmdline)
     print("Starting registration for",outFn)
