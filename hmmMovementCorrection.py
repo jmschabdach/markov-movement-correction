@@ -237,7 +237,7 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
         reg.inputs.output_warped_image = newImg
 
         if counter != 0:
-            reg.inputs.initial_moving_transform = transformPrefix+'_0GenericAffine.mat'
+            reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
             reg.inputs.invert_initial_moving_transform = False
         
         counter += 1
@@ -249,14 +249,14 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
     return preprocImgs
 
 
-def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
+def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     """
     Register 2 images taken at different timepoints.
 
     Inputs:
     - prevCompImg: filename of the last image from the previous compartment
     - nextCompImg: filename of the first image from the next compartment
-    - transformFn: name of the file to save the transform to
+    - transformPrefix: name of the file to save the transform to
 
     Outputs:
     - None
@@ -276,7 +276,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
     reg = Registration()
     reg.inputs.fixed_image = prevCompImg
     reg.inputs.moving_image = nextCompImg
-    reg.inputs.output_transform_prefix = transformFn
+    reg.inputs.output_transform_prefix = transformPrefix
     reg.inputs.interpolation = 'NearestNeighbor'
 
     # Affine transform
@@ -401,7 +401,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     if initialize is True:
         reg.inputs.initial_moving_transform = transformPrefix+'0InverseWarp.nii.gz'
         reg.inputs.invert_initial_moving_transform = False
-        print(transformPrefix+'_0InverseWarp.nii.gz')
+        print(transformPrefix+'0InverseWarp.nii.gz')
 
     # if corrId is not None:
     #     reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
@@ -889,8 +889,8 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
-    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
