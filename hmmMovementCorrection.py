@@ -399,7 +399,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.output_warped_image = outFn
 
     if initialize is True:
-        reg.inputs.initial_moving_transform = transformPrefix+'_0InverseWarp.nii.gz'
+        reg.inputs.initial_moving_transform = transformPrefix+'0InverseWarp.nii.gz'
         reg.inputs.invert_initial_moving_transform = False
         print(transformPrefix+'_0InverseWarp.nii.gz')
 
@@ -559,11 +559,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     registeredFns = [outputDir+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
 
     # location of the transform file:
-    transformFn = transformPrefix+'_0InverseWarp.nii.gz'
-    print("In markovCorrection:", transformFn)
     print("In markovCorrection (prefix):", transformPrefix)
-    # if corrId is not None:
-    #     transformFn = transformPrefix+str(corrId)+'_0InverseWarp.nii.gz'
 
     # register the first timepoint to the template
     registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, corrId=corrId)
