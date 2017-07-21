@@ -243,7 +243,7 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
         counter += 1
 
         # run the registration
-        reg.run()
+        # reg.run()
 
     # return the list of aligned images
     return preprocImgs
@@ -322,7 +322,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
 
     # print(reg.cmdline)
     # print("Calculating linking transform for",transformFn)
-    reg.run()
+    # reg.run()
     # print("Finished calculating linking transform for", transformFn)
 
     # else:
@@ -401,13 +401,14 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     if initialize is not None:
         reg.inputs.initial_moving_transform = initialize
         reg.inputs.invert_initial_moving_transform = False
+        print(initialize)
 
     # if corrId is not None:
     #     reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
 
     # print(reg.cmdline)
     print("Starting registration for",outFn)
-    reg.run()
+    # reg.run()
     print("Finished running registration for", outFn)
 
     # else:
@@ -651,6 +652,7 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
         t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i))
         # add the name of the transform file to the appropriate list
         compartmentTransformFns.append(transformPrefix+str(i)+'_0InverseWarp.nii.gz')
+        print("In stackingHmmCorrection:", transformPrefix+str(i)+'_0InverseWarp.nii.gz')
         # add the thread to the list of threads
         threads.append(t)
 
@@ -891,8 +893,8 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
-    # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
