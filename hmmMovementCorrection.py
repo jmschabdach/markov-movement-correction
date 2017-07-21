@@ -561,6 +561,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     # location of the transform file:
     transformFn = transformPrefix+'_0InverseWarp.nii.gz'
     print("In markovCorrection:", transformFn)
+    print("In markovCorrection (prefix):", transformPrefix)
     # if corrId is not None:
     #     transformFn = transformPrefix+str(corrId)+'_0InverseWarp.nii.gz'
 
@@ -574,7 +575,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     for i in xrange(2, len(timepoints)):
         print("Time", i, "outfn:", registeredFns[i])
         # register the new timepoint to the template, using initialized transform
-        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, transformFn, corrId=corrId)
+        # registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, transformFn, corrId=corrId)
 
     return registeredFns
 
