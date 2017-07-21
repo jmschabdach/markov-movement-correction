@@ -573,7 +573,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     for i in xrange(2, len(timepoints)):
         print("Time", i, "outfn:", registeredFns[i])
         # register the new timepoint to the template, using initialized transform
-        # registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, corrId=corrId)
+        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, corrId=corrId)
 
     return registeredFns
 
