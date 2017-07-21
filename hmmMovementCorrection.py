@@ -243,7 +243,7 @@ def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
         counter += 1
 
         # run the registration
-        # reg.run()
+        reg.run()
 
     # return the list of aligned images
     return preprocImgs
@@ -322,7 +322,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
 
     # print(reg.cmdline)
     # print("Calculating linking transform for",transformFn)
-    # reg.run()
+    reg.run()
     # print("Finished calculating linking transform for", transformFn)
 
     # else:
@@ -408,7 +408,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
 
     # print(reg.cmdline)
     print("Starting registration for",outFn)
-    # reg.run()
+    reg.run()
     print("Finished running registration for", outFn)
 
     # else:
