@@ -915,3 +915,4 @@ if __name__ == "__main__":
     totalMins = np.floor(endTime/60.0)
     totalSecs = endTime%60.0
     print("Total run time:",totalDays,"days,",totalHours,"hours,",totalMins,"minutes,",totalSecs)
+
