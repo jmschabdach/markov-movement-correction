@@ -329,7 +329,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformFn):
     #     print("WARNING: existing transform files found, linking transform calculation skipped.")
 
 
-def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=None, corrId=None):
+def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=False, corrId=None):
     """
     Register 2 images taken at different timepoints.
 
@@ -398,10 +398,10 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.use_histogram_matching = [True] # This is the ult
     reg.inputs.output_warped_image = outFn
 
-    if initialize is not None:
-        reg.inputs.initial_moving_transform = initialize
+    if initialize is True:
+        reg.inputs.initial_moving_transform = transformPrefix+'_0InverseWarp.nii.gz'
         reg.inputs.invert_initial_moving_transform = False
-        print(initialize)
+        print(transformPrefix+'_0InverseWarp.nii.gz')
 
     # if corrId is not None:
     #     reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
@@ -565,8 +565,6 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     # if corrId is not None:
     #     transformFn = transformPrefix+str(corrId)+'_0InverseWarp.nii.gz'
 
-    print("Transform function location:", transformFn)
-
     # register the first timepoint to the template
     registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, corrId=corrId)
 
@@ -575,7 +573,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     for i in xrange(2, len(timepoints)):
         print("Time", i, "outfn:", registeredFns[i])
         # register the new timepoint to the template, using initialized transform
-        # registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, transformFn, corrId=corrId)
+        # registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, corrId=corrId)
 
     return registeredFns
 
@@ -651,7 +649,7 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
     # iterate over all compartments
     for i in xrange(len(compartments)):
         # make a new HMM motion correction thread
-        t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i))
+        t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i)+'_')
         # add the name of the transform file to the appropriate list
         compartmentTransformFns.append(transformPrefix+str(i)+'_0InverseWarp.nii.gz')
         print("In stackingHmmCorrection:", transformPrefix+str(i)+'_0InverseWarp.nii.gz')
