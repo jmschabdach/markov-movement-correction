@@ -560,6 +560,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
 
     # location of the transform file:
     transformFn = transformPrefix+'_0InverseWarp.nii.gz'
+    print("In markovCorrection:", transformFn)
     # if corrId is not None:
     #     transformFn = transformPrefix+str(corrId)+'_0InverseWarp.nii.gz'
 
