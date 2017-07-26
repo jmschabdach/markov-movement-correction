@@ -416,7 +416,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.output_warped_image = outFn
 
     if initialize is True:
-        reg.inputs.initial_moving_transform = [transformPrefix+'0GenericAffine.mat', transformPrefix+'1InverseWarp.nii.gz'
+        reg.inputs.initial_moving_transform = [transformPrefix+'0GenericAffine.mat', transformPrefix+'1InverseWarp.nii.gz']
         reg.inputs.invert_initial_moving_transform = False
         # print(transformPrefix+'0InverseWarp.nii.gz')
 
