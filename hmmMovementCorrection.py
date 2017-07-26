@@ -377,31 +377,48 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     # reg.inputs.sigma_units = ['vox']
     # reg.inputs.shrink_factors = [[2,1]]
 
-    # Nonlinear transform
-    reg.inputs.transforms = ['SyN']
-    reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-    reg.inputs.number_of_iterations = [[100, 50, 30]]
+    # Affine and Nonlinear transforms
+    reg.inputs.transforms = ['Affine', 'SyN']
+    reg.inputs.transform_parameters = [(2.0,)(0.25, 3.0, 0.0)]
+    reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]]
     reg.inputs.dimension = 3
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC']
-    reg.inputs.metric_weight = [1]
-    reg.inputs.radius_or_number_of_bins = [32]
-    reg.inputs.convergence_threshold = [1.e-8]
-    reg.inputs.convergence_window_size = [20]
-    reg.inputs.smoothing_sigmas = [[2,1,0]]
-    reg.inputs.sigma_units = ['vox']
-    reg.inputs.shrink_factors = [[3,2,1]]
+    reg.inputs.metric = ['CC'] * 2
+    reg.inputs.metric_weight = [1] * 2
+    reg.inputs.radius_or_number_of_bins = [32] * 2
+    reg.inputs.convergence_threshold = [1.e-8] * 2
+    reg.inputs.convergence_window_size = [20] * 2
+    reg.inputs.smoothing_sigmas = [[1,0],[2,1,0]]
+    reg.inputs.sigma_units = ['vox'] * 2
+    reg.inputs.shrink_factors = [[2,1],[3,2,1]]
+
+    # # Nonlinear transform
+    # reg.inputs.transforms = ['SyN']
+    # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+    # reg.inputs.number_of_iterations = [[100, 50, 30]]
+    # reg.inputs.dimension = 3
+    # reg.inputs.write_composite_transform = False
+    # reg.inputs.collapse_output_transforms = True
+    # reg.inputs.initialize_transforms_per_stage = False
+    # reg.inputs.metric = ['CC']
+    # reg.inputs.metric_weight = [1]
+    # reg.inputs.radius_or_number_of_bins = [32]
+    # reg.inputs.convergence_threshold = [1.e-8]
+    # reg.inputs.convergence_window_size = [20]
+    # reg.inputs.smoothing_sigmas = [[2,1,0]]
+    # reg.inputs.sigma_units = ['vox']
+    # reg.inputs.shrink_factors = [[3,2,1]]
 
     reg.inputs.use_estimate_learning_rate_once = [True]
     reg.inputs.use_histogram_matching = [True] # This is the ult
     reg.inputs.output_warped_image = outFn
 
     if initialize is True:
-        reg.inputs.initial_moving_transform = transformPrefix+'0InverseWarp.nii.gz'
+        reg.inputs.initial_moving_transform = [transformPrefix+'0GenericAffine.mat', transformPrefix+'1InverseWarp.nii.gz'
         reg.inputs.invert_initial_moving_transform = False
-        print(transformPrefix+'0InverseWarp.nii.gz')
+        # print(transformPrefix+'0InverseWarp.nii.gz')
 
     # if corrId is not None:
     #     reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
@@ -866,17 +883,18 @@ def main(baseDir):
         testDir = baseDir+'testing/'
         if not os.path.exists(testDir):
             os.mkdir(testDir)
-        # copy the subset to a timepoints dir in testing dir
-        spareDir = testDir+"timepoints/"
-        if not os.path.exists(spareDir):
-            os.mkdir(spareDir)
-        for img in subset:
-            shutil.copy2(img, spareDir)
-        subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
+        markovCorrection(subset, testDir, testDir+'testing_transform_')
+        # # copy the subset to a timepoints dir in testing dir
+        # spareDir = testDir+"timepoints/"
+        # if not os.path.exists(spareDir):
+        #     os.mkdir(spareDir)
+        # for img in subset:
+        #     shutil.copy2(img, spareDir)
+        # subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
         
-        # now use the stacking-hmm function
-        numCompartments = 5
-        registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
+        # # now use the stacking-hmm function
+        # numCompartments = 5
+        # registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")
@@ -889,8 +907,8 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
-    # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
