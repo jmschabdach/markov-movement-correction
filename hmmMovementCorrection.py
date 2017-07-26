@@ -388,11 +388,13 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.metric = ['CC'] * 2
     reg.inputs.metric_weight = [1] * 2
     reg.inputs.radius_or_number_of_bins = [32] * 2
-    reg.inputs.convergence_threshold = [1.e-8] * 2
+    reg.inputs.convergence_threshold = [1.e-8, 1.e-8]
     reg.inputs.convergence_window_size = [20] * 2
     reg.inputs.smoothing_sigmas = [[1,0],[2,1,0]]
     reg.inputs.sigma_units = ['vox'] * 2
     reg.inputs.shrink_factors = [[2,1],[3,2,1]]
+    reg.inputs.use_estimate_learning_rate_once = [True, True]
+    reg.inputs.use_histogram_matching = [True, True]
 
     # # Nonlinear transform
     # reg.inputs.transforms = ['SyN']
@@ -411,8 +413,8 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     # reg.inputs.sigma_units = ['vox']
     # reg.inputs.shrink_factors = [[3,2,1]]
 
-    reg.inputs.use_estimate_learning_rate_once = [True]
-    reg.inputs.use_histogram_matching = [True] # This is the ult
+    # reg.inputs.use_estimate_learning_rate_once = [True]
+    # reg.inputs.use_histogram_matching = [True] # This is the ult
     reg.inputs.output_warped_image = outFn
 
     if initialize is True:
@@ -576,8 +578,6 @@ def markovCorrection(timepoints, outputDir, transformPrefix):
     print("In markovCorrection (prefix):", transformPrefix)
 
     # register the first timepoint to the template
-    print(len(timepoints))
-    print(len(registeredFns))
     registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, initialize=False)
 
     # for each subsequent image
