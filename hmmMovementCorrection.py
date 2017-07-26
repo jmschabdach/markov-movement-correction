@@ -577,6 +577,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix):
 
     # register the first timepoint to the template
     print(len(timepoints))
+    print(len(registeredFns))
     registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, initialize=False)
 
     # for each subsequent image
