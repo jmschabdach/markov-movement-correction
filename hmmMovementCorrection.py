@@ -379,7 +379,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
 
     # Affine and Nonlinear transforms
     reg.inputs.transforms = ['Affine', 'SyN']
-    reg.inputs.transform_parameters = [(2.0,)(0.25, 3.0, 0.0)]
+    reg.inputs.transform_parameters = [(2.0,),(0.25, 3.0, 0.0)]
     reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]]
     reg.inputs.dimension = 3
     reg.inputs.write_composite_transform = False
