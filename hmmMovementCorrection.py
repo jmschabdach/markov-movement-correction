@@ -820,7 +820,7 @@ def main(baseDir):
         print(outputDir)
         print(transformPrefix)
         # register the images using HMM correction
-        # registeredFns = markovCorrection(timepointFns, outputDir, transformPrefix)
+        registeredFns = markovCorrection(timepointFns, outputDir, transformPrefix)
 
     elif args.correctionType == 'bi-hmm':
         # make the output directory 
@@ -883,7 +883,7 @@ def main(baseDir):
         testDir = baseDir+'testing/'
         if not os.path.exists(testDir):
             os.mkdir(testDir)
-        markovCorrection(subset, testDir, testDir+'testing_transform_')
+        registeredFns = markovCorrection(subset, testDir, testDir+'testing_transform_')
         # # copy the subset to a timepoints dir in testing dir
         # spareDir = testDir+"timepoints/"
         # if not os.path.exists(spareDir):
