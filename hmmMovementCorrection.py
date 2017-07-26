@@ -78,7 +78,7 @@ class hmmMotionCorrectionThread(threading.Thread):
 
     def run(self):
         print("Starting the HMM motion correction for", self.name)
-        outfiles = markovCorrection(self.fns, self.outputDir, self.transformPrefix, corrId=self.threadId)
+        outfiles = markovCorrection(self.fns, self.outputDir, self.transformPrefix)
         print("Finished the HMM motion correction for", self.name)
         self._return = outfiles
 
@@ -329,7 +329,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     #     print("WARNING: existing transform files found, linking transform calculation skipped.")
 
 
-def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=False, corrId=None):
+def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=False):
     """
     Register 2 images taken at different timepoints.
 
@@ -419,9 +419,6 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.initial_moving_transform = [transformPrefix+'0GenericAffine.mat', transformPrefix+'1InverseWarp.nii.gz']
         reg.inputs.invert_initial_moving_transform = False
         # print(transformPrefix+'0InverseWarp.nii.gz')
-
-    # if corrId is not None:
-    #     reg.inputs.output_transform_prefix = transformPrefix+str(corrId)+"_"
 
     # print(reg.cmdline)
     print("Starting registration for",outFn)
@@ -549,7 +546,7 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     return registeredFns
 
 
-def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
+def markovCorrection(timepoints, outputDir, transformPrefix):
     """
     Apply the markov motion correction algorithm to a timeseries image.
     Assumes that the first filename in the timepoints list specifies the
@@ -579,14 +576,15 @@ def markovCorrection(timepoints, outputDir, transformPrefix, corrId=None):
     print("In markovCorrection (prefix):", transformPrefix)
 
     # register the first timepoint to the template
-    registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, corrId=corrId)
+    print(len(timepoints))
+    registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, initialize=False)
 
     # for each subsequent image
     print("Number of timepoints:",len(timepoints))
     for i in xrange(2, len(timepoints)):
         print("Time", i, "outfn:", registeredFns[i])
         # register the new timepoint to the template, using initialized transform
-        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, corrId=corrId)
+        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True)
 
     return registeredFns
 
