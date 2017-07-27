@@ -352,80 +352,78 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     # if not os.path.isfile(outFn):
     #     print("The file to be registered does not exist. Registering now.")
 
+    # Affine transform
     reg = Registration()
     reg.inputs.fixed_image = fixedImgFn
     reg.inputs.moving_image = movingImgFn
     reg.inputs.output_transform_prefix = transformPrefix
     reg.inputs.interpolation = 'NearestNeighbor'
-
-    # Affine transform
-    # reg.inputs.transforms = ['Affine']
-    # reg.inputs.transform_parameters = [(2.0,)]
-    # reg.inputs.number_of_iterations = [[1500, 200]]
-    # reg.inputs.dimension = 3
-    # reg.inputs.write_composite_transform = False
-    # reg.inputs.collapse_output_transforms = True
-    # reg.inputs.initialize_transforms_per_stage = False
-    # reg.inputs.metric = ['MI']
-    # reg.inputs.metric_weight = [1]
-    # reg.inputs.radius_or_number_of_bins = [32]
-    # reg.inputs.sampling_strategy = ['Random']
-    # reg.inputs.sampling_percentage = [0.05]
-    # reg.inputs.convergence_threshold = [1.e-8]
-    # reg.inputs.convergence_window_size = [20]
-    # reg.inputs.smoothing_sigmas = [[1,0]]
-    # reg.inputs.sigma_units = ['vox']
-    # reg.inputs.shrink_factors = [[2,1]]
-
-    # Affine and Nonlinear transforms
-    reg.inputs.transforms = ['Affine', 'SyN']
-    reg.inputs.transform_parameters = [(2.0,),(0.25, 3.0, 0.0)]
-    reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]]
+    reg.inputs.transforms = ['Affine']
+    reg.inputs.transform_parameters = [(2.0,)]
+    reg.inputs.number_of_iterations = [[1500, 200]]
     reg.inputs.dimension = 3
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC'] * 2
-    reg.inputs.metric_weight = [1] * 2
-    reg.inputs.radius_or_number_of_bins = [32] * 2
-    reg.inputs.convergence_threshold = [1.e-8, 1.e-8]
-    reg.inputs.convergence_window_size = [20] * 2
-    reg.inputs.smoothing_sigmas = [[1,0],[2,1,0]]
-    reg.inputs.sigma_units = ['vox'] * 2
-    reg.inputs.shrink_factors = [[2,1],[3,2,1]]
-    reg.inputs.use_estimate_learning_rate_once = [True, True]
-    reg.inputs.use_histogram_matching = [True, True]
-
-    # # Nonlinear transform
-    # reg.inputs.transforms = ['SyN']
-    # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-    # reg.inputs.number_of_iterations = [[100, 50, 30]]
-    # reg.inputs.dimension = 3
-    # reg.inputs.write_composite_transform = False
-    # reg.inputs.collapse_output_transforms = True
-    # reg.inputs.initialize_transforms_per_stage = False
-    # reg.inputs.metric = ['CC']
-    # reg.inputs.metric_weight = [1]
-    # reg.inputs.radius_or_number_of_bins = [32]
-    # reg.inputs.convergence_threshold = [1.e-8]
-    # reg.inputs.convergence_window_size = [20]
-    # reg.inputs.smoothing_sigmas = [[2,1,0]]
-    # reg.inputs.sigma_units = ['vox']
-    # reg.inputs.shrink_factors = [[3,2,1]]
-
-    # reg.inputs.use_estimate_learning_rate_once = [True]
-    # reg.inputs.use_histogram_matching = [True] # This is the ult
+    reg.inputs.metric = ['MI']
+    reg.inputs.metric_weight = [1]
+    reg.inputs.radius_or_number_of_bins = [32]
+    reg.inputs.sampling_strategy = ['Random']
+    reg.inputs.sampling_percentage = [0.05]
+    reg.inputs.convergence_threshold = [1.e-8]
+    reg.inputs.convergence_window_size = [20]
+    reg.inputs.smoothing_sigmas = [[1,0]]
+    reg.inputs.sigma_units = ['vox']
+    reg.inputs.shrink_factors = [[2,1]]
+    reg.inputs.use_estimate_learning_rate_once = [True]
+    reg.inputs.use_histogram_matching = [True] # This is the ult
     reg.inputs.output_warped_image = outFn
 
     if initialize is True:
-        reg.inputs.initial_moving_transform = [transformPrefix+'0GenericAffine.mat', transformPrefix+'1InverseWarp.nii.gz']
+        reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
         reg.inputs.invert_initial_moving_transform = False
-        # print(transformPrefix+'0InverseWarp.nii.gz')
 
     # print(reg.cmdline)
-    print("Starting registration for",outFn)
+    print("Starting affine registration for",outFn)
     reg.run()
-    print("Finished running registration for", outFn)
+    print("Finished running affine registration for", outFn)
+
+    # Nonlinear transform
+    reg = Registration()
+    reg.inputs.fixed_image = fixedImgFn
+    reg.inputs.moving_image = outFn
+    reg.inputs.output_transform_prefix = transformPrefix
+    reg.inputs.interpolation = 'NearestNeighbor'
+    reg.inputs.transforms = ['SyN']
+    reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+    reg.inputs.number_of_iterations = [[100, 50, 30]]
+    reg.inputs.dimension = 3
+    reg.inputs.write_composite_transform = False
+    reg.inputs.collapse_output_transforms = True
+    reg.inputs.initialize_transforms_per_stage = False
+    reg.inputs.metric = ['CC']
+    reg.inputs.metric_weight = [1]
+    reg.inputs.radius_or_number_of_bins = [32]
+    reg.inputs.convergence_threshold = [1.e-8]
+    reg.inputs.convergence_window_size = [20]
+    reg.inputs.smoothing_sigmas = [[2,1,0]]
+    reg.inputs.sigma_units = ['vox']
+    reg.inputs.shrink_factors = [[3,2,1]]
+    reg.inputs.use_estimate_learning_rate_once = [True]
+    reg.inputs.use_histogram_matching = [True] # This is the ult
+    reg.inputs.output_warped_image = outFn
+
+    if initialize is True:
+        reg.inputs.initial_moving_transform = [transformPrefix+'0InverseWarp.nii.gz', transformPrefix+'0GenericAffine.mat']
+        reg.inputs.invert_initial_moving_transform = False
+    else:
+        reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
+        reg.inputs.invert_initial_moving_transform = False
+
+    # print(reg.cmdline)
+    print("Starting nonlinear registration for",outFn)
+    reg.run()
+    print("Finished running nonlinear registration for", outFn)
 
     # else:
     #     print("WARNING: existing registered image found, image registration skipped.")
