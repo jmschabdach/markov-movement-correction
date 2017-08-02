@@ -417,7 +417,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         if not os.path.isfile(transformPrefix+'1InverseWarp.nii.gz') :
             reg.inputs.initial_moving_transform = transformPrefix+'0InverseWarp.nii.gz'
             reg.inputs.invert_initial_moving_transform = False
-        else 
+        else :
             reg.inputs.initial_moving_transform = transformPrefix+'1InverseWarp.nii.gz'
             reg.inputs.invert_initial_moving_transform = False
 
