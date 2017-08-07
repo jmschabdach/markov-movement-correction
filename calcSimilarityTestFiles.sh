@@ -3,7 +3,9 @@
 # use the similarity.sh script to calculate the similarity 
 # metric for 2 images
 
-BASE='/home/jms565/Research/CHP-PIRC/markov-movement-correction/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001'
+BASE='/home/jenna/Research/CHP-PIRC/markov-movement-correction/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001'
+#BASE='/home/jms565/Research/CHP-PIRC/markov-movement-correction/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001'
+
 TEMPLATE="$BASE/timepoints/000.nii.gz"
 
 echo $BASE
@@ -22,27 +24,27 @@ for img in $DIR ; do
     count=$((count+1))
 done
 
-#DIR="$BASE/testing/*"
+DIR="$BASE/testing/*"
 # for all the images in the non-registered version
-#count=0
-#echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_1.csv"
-#for img in $DIR ; do
+count=0
+echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_1.csv"
+for img in $DIR ; do
     # make sure $img != 'template.nii.gz'
     # compare each image to the template
-#    sims=$(./utils/similarity.sh $TEMPLATE $img)
-#    echo $count, $sims >> "$BASE/testing_similarities_1.csv"
-#    count=$((count+1))
-#done
+    sims=$(./utils/similarity.sh $TEMPLATE $img)
+    echo $count, $sims >> "$BASE/testing_similarities_1.csv"
+    count=$((count+1))
+done
 
-#DIR="$BASE/testing-08012017/*"
+DIR="$BASE/testing-08012017/*"
 # for all the images in the non-registered version
-#count=0
-#echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_0.csv"
-#for img in $DIR ; do
+count=0
+echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_0.csv"
+for img in $DIR ; do
     # make sure $img != 'template.nii.gz'
     # compare each image to the template
-#    sims=$(./utils/similarity.sh $TEMPLATE $img)
-#    echo $count, $sims >> "$BASE/testing_similarities_0.csv"
-#    count=$((count+1))
-#done
+    sims=$(./utils/similarity.sh $TEMPLATE $img)
+    echo $count, $sims >> "$BASE/testing_similarities_0.csv"
+    count=$((count+1))
+done
 
