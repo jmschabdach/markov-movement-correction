@@ -3,7 +3,7 @@
 # use the similarity.sh script to calculate the similarity 
 # metric for 2 images
 
-BASE='/home/jms565/Research/CHP-PIRC/markov-movement-correction/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001_000'
+BASE='/home/jms565/Research/CHP-PIRC/markov-movement-correction/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001'
 TEMPLATE="$BASE/timepoints/000.nii.gz"
 
 echo $BASE
