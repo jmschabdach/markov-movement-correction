@@ -10,17 +10,17 @@ echo $BASE
 
 echo $TEMPLATE
 
-#DIR="$BASE/timepoints/*"
+DIR="$BASE/timepoints/*"
 # for all the images in the non-registered version
-#count=0
-#echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_preregistration.csv"
-#for img in $DIR ; do
+count=0
+echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_preregistration.csv"
+for img in $DIR ; do
     # make sure $img != 'template.nii.gz'
     # compare each image to the template
-#    sims=$(./utils/similarity.sh $TEMPLATE $img)
-#    echo $count, $sims >> "$BASE/testing_similarities_preregistration.csv"
-#    count=$((count+1))
-#done
+    sims=$(./utils/similarity.sh $TEMPLATE $img)
+    echo $count, $sims >> "$BASE/testing_similarities_preregistration.csv"
+    count=$((count+1))
+done
 
 #DIR="$BASE/testing/*"
 # for all the images in the non-registered version
@@ -37,9 +37,9 @@ echo $TEMPLATE
 #DIR="$BASE/testing-08012017/*"
 # for all the images in the non-registered version
 #count=0
-##echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_0.csv"
+#echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_0.csv"
 #for img in $DIR ; do
-#    # make sure $img != 'template.nii.gz'
+    # make sure $img != 'template.nii.gz'
     # compare each image to the template
 #    sims=$(./utils/similarity.sh $TEMPLATE $img)
 #    echo $count, $sims >> "$BASE/testing_similarities_0.csv"
