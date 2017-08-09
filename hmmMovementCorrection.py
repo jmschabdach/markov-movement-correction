@@ -415,7 +415,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
 
     if initialize is True:
 #        if not os.path.isfile(transformPrefix+'1Warp.nii.gz') :
-        reg.inputs.initial_moving_transform = transformPrefix+'0Warp.nii.gz'
+        reg.inputs.initial_moving_transform = transformPrefix+'0InverseWarp.nii.gz'
         reg.inputs.invert_initial_moving_transform = False
 #        else :
 #            reg.inputs.initial_moving_transform = transformPrefix+'1Warp.nii.gz'
@@ -878,7 +878,7 @@ def main(baseDir):
         # get a subset of images
         subset = timepointFns[:25]
         # make a testing dir
-        testDir = baseDir+'testing/'
+        testDir = baseDir+'testing-inverse/'
         if not os.path.exists(testDir):
             os.mkdir(testDir)
         registeredFns = markovCorrection(subset, testDir, testDir+'testing_transform_')
