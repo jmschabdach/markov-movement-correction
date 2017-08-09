@@ -414,12 +414,12 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.output_warped_image = outFn
 
     if initialize is True:
-        if not os.path.isfile(transformPrefix+'1Warp.nii.gz') :
-            reg.inputs.initial_moving_transform = transformPrefix+'0Warp.nii.gz'
-            reg.inputs.invert_initial_moving_transform = False
-        else :
-            reg.inputs.initial_moving_transform = transformPrefix+'1Warp.nii.gz'
-            reg.inputs.invert_initial_moving_transform = False
+#        if not os.path.isfile(transformPrefix+'1Warp.nii.gz') :
+        reg.inputs.initial_moving_transform = transformPrefix+'0Warp.nii.gz'
+        reg.inputs.invert_initial_moving_transform = False
+#        else :
+#            reg.inputs.initial_moving_transform = transformPrefix+'1Warp.nii.gz'
+#            reg.inputs.invert_initial_moving_transform = False
 
     # print(reg.cmdline)
     print("Starting nonlinear registration for",outFn)
