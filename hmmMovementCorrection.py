@@ -459,7 +459,7 @@ def alignCompartments(fixedImg, movingImgs, transform):
         at.inputs.output_image = m
         at.inputs.transforms = transform
         at.inputs.interpolation = 'NearestNeighbor'
-        at.inputs.invert_transform_flags =[True]
+        at.inputs.invert_transform_flags =[False]
         # run the transform application
         at.run()
 
@@ -663,8 +663,8 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
         # make a new HMM motion correction thread
         t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i)+'_')
         # add the name of the transform file to the appropriate list
-        compartmentTransformFns.append(transformPrefix+str(i)+'_0InverseWarp.nii.gz')
-        print("In stackingHmmCorrection:", transformPrefix+str(i)+'_0InverseWarp.nii.gz')
+        compartmentTransformFns.append(transformPrefix+str(i)+'_0GenericAffine.mat')
+        print("In stackingHmmCorrection:", transformPrefix+str(i)+'_0GenericAffine.mat')
         # add the thread to the list of threads
         threads.append(t)
 
