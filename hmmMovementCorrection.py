@@ -412,7 +412,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.use_estimate_learning_rate_once = [True]
     reg.inputs.use_histogram_matching = [True] # This is the ult
     reg.inputs.output_warped_image = outFn
-    reg.inputs.num_threads = 4
+    reg.inputs.num_threads = 100
 
     if initialize is True:
 #        if not os.path.isfile(transformPrefix+'1Warp.nii.gz') :
