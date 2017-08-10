@@ -877,7 +877,7 @@ def main(baseDir):
         
     elif args.correctionType == 'testing':
         # get a subset of images
-        subset = timepointFns[:25]
+        subset = timepointFns[:10]
         # make a testing dir
         testDir = baseDir+'testing-inverse/'
         if not os.path.exists(testDir):
