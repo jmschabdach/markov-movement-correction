@@ -692,34 +692,29 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
             print(image)
 
     # Step 4: apply linking transform to each compartment
-    # store composite compartments here
-    # alignedFns = hmmCompartments[-1]
     alignedFns = []
-    # for all linking transforms
-    for i in xrange(len(linkingTransFns)):
+    refImg = origTimepoints[0] # reference image required, only for metadata
+    for i in xrange(len(hmmCompartments)-1):    # 1 less linking transform
+        # add the current compartment to the list
         alignedFns.extend(hmmCompartments[i])
-        alignCompartments(compartments[i][-1], alignedFns, compartmentTransformFns[i])
-        alignCompartments(compartments[i+1][0], alignedFns, linkingTransFns[i])
+        # change the alignment from the first image in the newly added
+        #  compartment to the last image in the compartment
+        alignCompartments(refImg, alignedFns[:-1], compartmentTransformFns[i])
+        # now link all the images to the first image in the compartment
+        #  that hasn't been added yet (the next one)
+        alignCompartments(refImg, alignedFns, linkingTransFns[i])
 
-    # alignCompartments(alignedFns[0], alignedFns, linkingTransFns[-1])
-    # for i in xrange(len(linkingTransFns)-1, 0, -1):
-    #     alignedFns = hmmCompartments[i] + alignedFns
-    #     print("CURRENT LIST INDEX:", i)
-    #     alignCompartments(alignedFns[0], alignedFns, compartmentTransformFns[i])
-    #     alignCompartments(compartments[i-1][-1], alignedFns, linkingTransFns[i])
-
-    # apply the final transform
+    # now we're in the last compartment
     alignedFns.extend(hmmCompartments[-1])
-    alignedFns = hmmCompartments[0] + alignedFns
-    alignCompartments(origTimepoints[0], alignedFns, compartmentTransformFns[-1])
+    # need to apply the final compartment transform function (this needs a better name)
+    alignCompartments(refImg, alignedFns[:-1], compartmentTransformFunctions[-1])
 
-    print(compartmentTransformFns)
-    print(linkingTransFns)
+    # print(compartmentTransformFns)
+    # print(linkingTransFns)
     print("Number of aligned files:", len(alignedFns))
 
     # now reverse the filenames to get them back in the correct order
     registeredFns = list(reversed(alignedFns))
-    # registeredFns = alignedFns # want it backwards on purpose for a moment
     return registeredFns
 
 #---------------------------------------------------------------------------------
