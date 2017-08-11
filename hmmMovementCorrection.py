@@ -14,6 +14,7 @@ from nipy import load_image, save_image
 
 # for the registration
 from nipype.interfaces.ants import Registration, ApplyTransforms
+from nipype.algorithms.metrics import Similarity
 
 # for saving the registered file
 from nipype.interfaces import dcmstack
@@ -415,12 +416,8 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.num_threads = 100
 
     if initialize is True:
-#        if not os.path.isfile(transformPrefix+'1Warp.nii.gz') :
-        reg.inputs.initial_moving_transform = transformPrefix+'0InverseWarp.nii.gz'
+        reg.inputs.initial_moving_transform = transformPrefix+'0Warp.nii.gz'
         reg.inputs.invert_initial_moving_transform = False
-#        else :
-#            reg.inputs.initial_moving_transform = transformPrefix+'1Warp.nii.gz'
-#            reg.inputs.invert_initial_moving_transform = False
 
     # print(reg.cmdline)
     print("Starting nonlinear registration for",outFn)
@@ -729,7 +726,7 @@ def main(baseDir):
     parser.add_argument('-o', '--outputFn', type=str, help='The name of the file to save the correction to')
     # which type of motion correction
     parser.add_argument('-t', '--correctionType', type=str, help='Specify which type of correction to run. '
-                        +'Options include: hmm, sequential, bi-hmm, stacking-hmm')
+                        +'Options include: first-timepoint, template, sequential, hmm, bi-hmm, stacking-hmm, and testing (use at your own risk)')
 
     # now parse the arguments
     args = parser.parse_args()
@@ -753,9 +750,12 @@ def main(baseDir):
     # Select the specified motion correction algorithm
     registeredFns = []
 
-    if args.correctionType == 'template-matching':
+    if args.correctionType == 'first-timepoint':
+        """
+        First timepoint matching: align each image to the first timepoint
+        """
         # make the output directory
-        outputDir = baseDir+'templateMatching/'
+        outputDir = baseDir+'firstTimepointMatching/'
         if not os.path.exists(outputDir):
             os.mkdir(outputDir)
 
@@ -763,7 +763,40 @@ def main(baseDir):
         # register the images sequentially
         registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
 
+    elif args.correctionType == 'template':
+        """
+        Template matching: find the image that is the most similar to all other images,
+                           then align each image to it
+        """
+        # make the output directory
+        outputDir = baseDir + 'templateMatching/'
+        if not os.path.exists(outputDir):
+            os.mkdir(outputDir)
+
+        # find the template image
+        # calculate the total similarity of every image to every other image (excluding self)
+        similarities = [0.0] * len(timepointFns)
+        idx = 0
+        for template in timepointFns:
+            imgTotalSims = 0.0
+            for img in timepointFns:
+                if not img == template:
+                    sim = Similarity()
+                    sim.inputs.volume1 = template
+                    sim.inputs.volume2 = img
+                    sim.inputs.metric = 'cr'
+                    imgTotalSims += sim.run()
+            similarities[idx] = imgTotalSims
+            idx += 1
+        # find the minimum total similarity
+        minSim, minLoc = min((val, idx) for (idx, val) in enumerate(similarities))
+        print("Min similarity", minSim, "at", minLoc)
+
+
     elif args.correctionType == 'sequential':
+        """
+        Sequential: align each image to the previous image
+        """
         # make the output directory
         outputDir = baseDir+'sequential/'
         if not os.path.exists(outputDir):
@@ -792,6 +825,9 @@ def main(baseDir):
             registeredFns.append(outFn)
 
     elif args.correctionType == 'hmm':
+        """
+        HMM: as proposed in MIT's paper
+        """
         # make the output directory
         outputDir = baseDir+'hmm/'
         if not os.path.exists(outputDir):
@@ -817,6 +853,9 @@ def main(baseDir):
         registeredFns = markovCorrection(timepointFns, outputDir, transformPrefix)
 
     elif args.correctionType == 'bi-hmm':
+        """
+        Bifurcating HMM: use the middle image as the template and build out
+        """
         # make the output directory 
         outputDir = baseDir + "bi-hmm/"
         if not os.path.exists(outputDir):
@@ -866,29 +905,33 @@ def main(baseDir):
         registeredFns.sort()
 
     elif args.correctionType == 'stacking-hmm':
+        """
+        Stacking HMM: divide the timeseries into compartments, HMM each compartment, recombine
+        """
         # make compartments
         numCompartments = 6
         registeredFns = stackingHmmCorrection(timepointFns, baseDir, numCompartments)
         
     elif args.correctionType == 'testing':
         # get a subset of images
-        subset = timepointFns[:10]
-        # make a testing dir
-        testDir = baseDir+'testing-inverse/'
-        if not os.path.exists(testDir):
-            os.mkdir(testDir)
-        registeredFns = markovCorrection(subset, testDir, testDir+'testing_transform_')
-        # # copy the subset to a timepoints dir in testing dir
-        # spareDir = testDir+"timepoints/"
-        # if not os.path.exists(spareDir):
-        #     os.mkdir(spareDir)
-        # for img in subset:
-        #     shutil.copy2(img, spareDir)
-        # subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
+        subset = timepointFns[:20] # timepointFns[:20]
+        # # make a testing dir
+        # testDir = baseDir+'testing-inverse/'
+        # if not os.path.exists(testDir):
+        #     os.mkdir(testDir)
+        # registeredFns = markovCorrection(subset, testDir, testDir+'testing_transform_')
+
+        # copy the subset to a timepoints dir in testing dir
+        spareDir = testDir+"timepoints/"
+        if not os.path.exists(spareDir):
+            os.mkdir(spareDir)
+        for img in subset:
+            shutil.copy2(img, spareDir)
+        subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
         
-        # # now use the stacking-hmm function
-        # numCompartments = 5
-        # registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
+        # now use the stacking-hmm function
+        numCompartments = 4
+        registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")
