@@ -799,6 +799,10 @@ def main(baseDir):
         maxSim, maxLoc = max((val, idx) for (idx, val) in enumerate(similarities))
         print("Min similarity", minSim, "at", minLoc)
         print("Max similarity", maxSim, "at", maxLoc)
+        # save the location of the template to a file
+        fn = baseDir+'templateMatching-templateName.txt'
+        with open(fn, 'w') as f:
+            f.write(minLoc)
 
         # define the template image
         templateImg = timepointFns[minLoc]
