@@ -786,7 +786,7 @@ def main(baseDir):
                     sim.inputs.volume2 = img
                     sim.inputs.metric = 'cr'
                     res = sim.run()
-                    print(res)
+                    print(res.outputs)
         #     similarities[idx] = imgTotalSims
         #     idx += 1
         # # find the minimum total similarity
