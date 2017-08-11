@@ -785,12 +785,13 @@ def main(baseDir):
                     sim.inputs.volume1 = template
                     sim.inputs.volume2 = img
                     sim.inputs.metric = 'cr'
-                    imgTotalSims += sim.run()
-            similarities[idx] = imgTotalSims
-            idx += 1
-        # find the minimum total similarity
-        minSim, minLoc = min((val, idx) for (idx, val) in enumerate(similarities))
-        print("Min similarity", minSim, "at", minLoc)
+                    res = sim.run()
+                    print(res)
+        #     similarities[idx] = imgTotalSims
+        #     idx += 1
+        # # find the minimum total similarity
+        # minSim, minLoc = min((val, idx) for (idx, val) in enumerate(similarities))
+        # print("Min similarity", minSim, "at", minLoc)
 
 
     elif args.correctionType == 'sequential':
