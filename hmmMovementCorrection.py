@@ -503,11 +503,12 @@ def stackNiftis(origFn, registeredFns, outFn):
 #---------------------------------------------------------------------------------
 # Motion Correction: Big Functions
 #---------------------------------------------------------------------------------
-def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
+def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=False):
     """
     Register each timepoint to the template image.
 
     Inputs:
+    - templateFn: the filename of the template image
     - timepointFns: list of filenames for each timepoint
     - outputDir: directory to write the output files to
     - prealign: default is False - do you want to prealign the nonlinear 
@@ -519,21 +520,24 @@ def motionCorrection(timepointFns, outputDir, baseDir, prealign=False):
     Effects:
     - Writes each registered file to /path/markov-movement-correction/tmp/registered/
     """
-    # get the template image filename
-    templateFn = timepointFns[0]
+
     # set up lists
     registeredFns = []
     myThreads = []
     # for each subsequent image
-    for i in xrange(1, len(timepointFns), 1):
-        # set the output filename
-        outFn = outputDir+str(i).zfill(3)+'.nii.gz'
-        registeredFns.append(outFn)
-        templatePrefix = baseDir+'tmp/output_'
-        # start a thread to register the new timepoint to the template
-        t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, templatePrefix, prealign=prealign)
-        myThreads.append(t)
-        t.start()
+    for i in xrange(len(timepointFns)):
+        if timepointFns[i] == templateFn:
+            # copy the template file into the output directory
+            shutil.copy2(templateFn, outputDir)
+        else:
+            # set the output filename
+            outFn = outputDir+str(i).zfill(3)+'.nii.gz'
+            registeredFns.append(outFn)
+            templatePrefix = baseDir+'tmp/output_'
+            # start a thread to register the new timepoint to the template
+            t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, templatePrefix, prealign=prealign)
+            myThreads.append(t)
+            t.start()
         # do I need to limit the number of threads?
         # or will they automatically limit themselves to the number of cores?
 
@@ -759,9 +763,10 @@ def main(baseDir):
         if not os.path.exists(outputDir):
             os.mkdir(outputDir)
 
-        print(outputDir)
+        # print(outputDir)
         # register the images sequentially
-        registeredFns = motionCorrection(timepointFns, outputDir, baseDir)
+        templateImg = timepointFns[0]
+        registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir)
 
     elif args.correctionType == 'template':
         """
@@ -786,14 +791,20 @@ def main(baseDir):
                     sim.inputs.volume2 = img
                     sim.inputs.metric = 'cr'
                     res = sim.run()
-                    print(type(res.outputs))
-                    # imgTotalSims += res.outputs[0]
-        #     similarities[idx] = imgTotalSims
-        #     idx += 1
-        # # find the minimum total similarity
-        # minSim, minLoc = min((val, idx) for (idx, val) in enumerate(similarities))
-        # print("Min similarity", minSim, "at", minLoc)
+                    imgTotalSims += res.outputs.similarity[0]
+            similarities[idx] = imgTotalSims
+            idx += 1
+        # find the minimum total similarity
+        minSim, minLoc = min((val, idx) for (idx, val) in enumerate(similarities))
+        maxSim, maxLoc = max((val, idx) for (idx, val) in enumerate(similarities))
+        print("Min similarity", minSim, "at", minLoc)
+        print("Max similarity", maxSim, "at", maxLoc)
 
+        # define the template image
+        templateImg = timepointFns[minLoc]
+
+        # run the motion correction
+        registeredFns = motionCorrection(templateImg, imepointFns, outputDir, baseDir)
 
     elif args.correctionType == 'sequential':
         """
