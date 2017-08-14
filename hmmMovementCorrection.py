@@ -933,10 +933,10 @@ def main(baseDir):
         # get a subset of images
         subset = timepointFns[:20] # timepointFns[:20]
         # # make a testing dir
-        testDir = baseDir+'testing-inverse/'
+        testDir = baseDir+'testing/'
         if not os.path.exists(testDir):
             os.mkdir(testDir)
-            
+
         # registeredFns = markovCorrection(subset, testDir, testDir+'testing_transform_')
 
         # copy the subset to a timepoints dir in testing dir
