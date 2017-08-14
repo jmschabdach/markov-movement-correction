@@ -932,6 +932,7 @@ def main(baseDir):
     elif args.correctionType == 'testing':
         # get a subset of images
         subset = timepointFns[:20] # timepointFns[:20]
+        print(baseDir)
         # # make a testing dir
         testDir = baseDir+'testing/'
         if not os.path.exists(testDir):
