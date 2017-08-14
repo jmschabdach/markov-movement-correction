@@ -614,6 +614,8 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
 
     # tmpDir is not a global variable
     tmpDir = baseDir + 'tmp/'
+    if not os.path.exists(tmpDir):
+        os.mkdir(tmpDir)
 
     # Step 1: Divide the time series into compartments
     # flip the timepoints (goal: align with original timepoint 0)
