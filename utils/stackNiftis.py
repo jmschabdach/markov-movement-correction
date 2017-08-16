@@ -18,7 +18,7 @@ parser.add_argument('-c', '--coordinate_image', help='Name of the image with the
 # parse the args
 args = parser.parse_args()
 imgsDir = args.directory
-outFn = args.image
+outFn = args.out_image
 
 # check that the directory exists
 if not os.path.exists(imgsDir):
