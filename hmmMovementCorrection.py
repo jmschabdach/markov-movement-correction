@@ -951,7 +951,7 @@ def main(baseDir):
         subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
         
         # now use the stacking-hmm function
-        numCompartments = 4
+        numCompartments = 5
         registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
 
     else:
