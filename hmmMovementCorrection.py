@@ -928,12 +928,12 @@ def main(baseDir):
         Stacking HMM: divide the timeseries into compartments, HMM each compartment, recombine
         """
         # make compartments
-        numCompartments = 6
+        numCompartments = 6 # 150/6 = 25, nice and even
         registeredFns = stackingHmmCorrection(timepointFns, baseDir, numCompartments)
         
     elif args.correctionType == 'testing':
         # get a subset of images
-        subset = timepointFns[:20] # timepointFns[:20]
+        subset = timepointFns[:25] 
         print(baseDir)
         # # make a testing dir
         testDir = baseDir+'testing/'
@@ -965,8 +965,8 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
-    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
