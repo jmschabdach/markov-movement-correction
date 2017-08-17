@@ -710,7 +710,7 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
     # now we're in the last compartment
     alignedFns.extend(hmmCompartments[-1])
     # need to apply the final compartment transform function (this needs a better name)
-    alignCompartments(refImg, alignedFns[:-1], compartmentTransformFunctions[-1])
+    alignCompartments(refImg, alignedFns[:-1], compartmentTransformFns[-1])
 
     # print(compartmentTransformFns)
     # print(linkingTransFns)
