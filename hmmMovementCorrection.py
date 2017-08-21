@@ -684,16 +684,6 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
     # sort the hmmCompartments
     hmmCompartments = list(reversed(sorted(hmmCompartments)))
 
-    # # **** IMPORTANT: when perfected, remove this step
-    # # copy over the hmm registered images to a new directory
-    spareDir = baseDir+"stackingHmmNotLinked/"
-    if not os.path.exists(spareDir):
-        os.mkdir(spareDir)
-    for compartment in hmmCompartments:
-        for image in compartment:
-            shutil.copy2(image, spareDir)
-            print(image)
-
     # Step 4: apply linking transform to each compartment
     alignedFns = []
     refImg = origTimepoints[0] # reference image required, only for metadata
@@ -710,7 +700,19 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
     # now we're in the last compartment
     alignedFns.extend(hmmCompartments[-1])
     # need to apply the final compartment transform function (this needs a better name)
+
+    # # **** IMPORTANT: when perfected, remove this step
+    # # copy over the hmm registered images to a new directory
+    spareDir = baseDir+"stackingHmmNoFinalTransform/"
+    if not os.path.exists(spareDir):
+        os.mkdir(spareDir)
+    for compartment in hmmCompartments:
+        for image in compartment:
+            shutil.copy2(image, spareDir)
+            print(image)
+
     alignCompartments(refImg, alignedFns[:-1], compartmentTransformFns[-1])
+    print(compartmentTransformFns[-1])
 
     # print(compartmentTransformFns)
     # print(linkingTransFns)
