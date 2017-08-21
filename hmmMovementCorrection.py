@@ -806,7 +806,7 @@ def main(baseDir):
         # save the location of the template to a file
         fn = baseDir+'templateMatching-templateName.txt'
         with open(fn, 'w') as f:
-            f.write(minLoc)
+            f.write(str(minLoc))
 
         # define the template image
         templateImg = timepointFns[minLoc]
