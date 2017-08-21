@@ -812,7 +812,7 @@ def main(baseDir):
         templateImg = timepointFns[minLoc]
 
         # run the motion correction
-        registeredFns = motionCorrection(templateImg, imepointFns, outputDir, baseDir)
+        registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir)
 
     elif args.correctionType == 'sequential':
         """
