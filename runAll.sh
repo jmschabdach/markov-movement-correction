@@ -11,16 +11,16 @@ ORIG="0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz"
 # rm -rf "$BASE/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/"
 
 # run the template matching registration
-python hmmMovementCorrection.py -i $ORIG -o "$BASE/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/template_matching_correction.nii.gz" -t template
+python hmmMovementCorrection.py -i $ORIG -o "./0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/template_matching_correction.nii.gz" -t template
 
 # run the first timepoint matching registration
-python hmmMovementCorrection.py -i $ORIG -o "$BASE/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/first_timepoint_matching_correction.nii.gz" -t first-timepoint
+python hmmMovementCorrection.py -i $ORIG -o "./0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/first_timepoint_matching_correction.nii.gz" -t first-timepoint
 
 # run the sequential registration
-python hmmMovementCorrection.py -i $ORIG -o "$BASE/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/sequential_correction.nii.gz" -t sequential
+python hmmMovementCorrection.py -i $ORIG -o "./0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/sequential_correction.nii.gz" -t sequential
 
 # run the regular HMM registration
-python hmmMovementCorrection.py -i $ORIG -o "$BASE/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/hmm_correction.nii.gz" -t hmm
+python hmmMovementCorrection.py -i $ORIG -o "./0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/hmm_correction.nii.gz" -t hmm
 
 
 # run the similarity calculations

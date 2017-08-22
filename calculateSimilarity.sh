@@ -26,6 +26,17 @@ for img in $DIR ; do
     count=$((count+1))
 done
 
+DIR="$BASE/firstTimepointMatching/*"
+# for all the images in the non-registered version
+count=0
+echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_first.csv"
+for img in $DIR ; do
+    # make sure $img != 'template.nii.gz'
+    # compare each image to the template
+    sims=$(./utils/similarity.sh $TEMPLATE $img)
+    echo $count, $sims >> "$BASE/testing_similarities_first.csv"
+    count=$((count+1))
+done
 
 DIR="$BASE/hmm/*"
 # for all the images in the non-registered version
@@ -39,15 +50,40 @@ for img in $DIR ; do
     count=$((count+1))
 done
 
-DIR="$BASE2/hmm/*"
+DIR="$BASE/sequential/*"
 # for all the images in the non-registered version
 count=0
-echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_stackinghmm.csv"
+echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_sequential.csv"
 for img in $DIR ; do
     # make sure $img != 'template.nii.gz'
     # compare each image to the template
     sims=$(./utils/similarity.sh $TEMPLATE $img)
-    echo $count, $sims >> "$BASE/testing_similarities_stackinghmm.csv"
+    echo $count, $sims >> "$BASE/testing_similarities_sequential.csv"
     count=$((count+1))
 done
+
+DIR="$BASE/templateMatching/*"
+# for all the images in the non-registered version
+count=0
+echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_template.csv"
+for img in $DIR ; do
+    # make sure $img != 'template.nii.gz'
+    # compare each image to the template
+    sims=$(./utils/similarity.sh $TEMPLATE $img)
+    echo $count, $sims >> "$BASE/testing_similarities_template.csv"
+    count=$((count+1))
+done
+
+
+# DIR="$BASE2/stacking-hmm/*"
+# # for all the images in the non-registered version
+# count=0
+# echo "Timepoint, Similarity, Mutual_Information" > "$BASE/testing_similarities_stackinghmm.csv"
+# for img in $DIR ; do
+#     # make sure $img != 'template.nii.gz'
+#     # compare each image to the template
+#     sims=$(./utils/similarity.sh $TEMPLATE $img)
+#     echo $count, $sims >> "$BASE/testing_similarities_stackinghmm.csv"
+#     count=$((count+1))
+# done
 
