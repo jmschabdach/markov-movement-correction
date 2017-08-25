@@ -838,22 +838,27 @@ def main(baseDir):
         if not os.path.exists(baseDir+'tmp/'):
             os.mkdir(baseDir+'tmp/')
 
-        # copy the first image to the output directory
+        # # copy the first image to the output directory
         shutil.copy(timepointFns[0], outputDir)
+        print(timepointFns[0])
         registeredFns.append(outputDir+'000.nii.gz')
 
         # register the second image to the first
         outFn = outputDir+'001.nii.gz'
-        registerToTemplate(timepointFns[0], timepointFns[1], outFn, outputDir, transformPrefix)
+        registerToTemplate(timepointFns[0], timepointFns[1], outFn, outputDir, transformPrefix, initialize=False)
         registeredFns.append(outFn)
 
         # for every image
+        # for i in xrange(2, 3, 1):
         for i in xrange(2, len(timepointFns), 1):
             # set the output filename
             outFn = outputDir+str(i).zfill(3)+'.nii.gz'
             # register the image to the previous image
-            registerToTemplate(registeredFns[-1], timepointFns[i], outFn, outputDir, transformPrefix)
+            print(registeredFns[-1])
+            registerToTemplate(registeredFns[-1], timepointFns[i], outFn, outputDir, transformPrefix, initialize=False)
             registeredFns.append(outFn)
+
+        print(registeredFns)
 
     elif args.correctionType == 'hmm':
         """
@@ -977,8 +982,8 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
-    # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
