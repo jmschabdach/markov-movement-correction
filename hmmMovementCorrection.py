@@ -288,7 +288,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['MI']
+    reg.inputs.metric = ['CC']
     reg.inputs.metric_weight = [1]
     reg.inputs.radius_or_number_of_bins = [32]
     reg.inputs.sampling_strategy = ['Random']
@@ -366,7 +366,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['MI']
+    reg.inputs.metric = ['CC']
     reg.inputs.metric_weight = [1]
     reg.inputs.radius_or_number_of_bins = [32]
     reg.inputs.sampling_strategy = ['Random']
@@ -413,7 +413,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.use_estimate_learning_rate_once = [True]
     reg.inputs.use_histogram_matching = [True] # This is the ult
     reg.inputs.output_warped_image = outFn
-    reg.inputs.num_threads = 100
+    reg.inputs.num_threads = 20
 
     if initialize is True:
         reg.inputs.initial_moving_transform = transformPrefix+'0Warp.nii.gz'
@@ -949,27 +949,70 @@ def main(baseDir):
         registeredFns = stackingHmmCorrection(timepointFns, baseDir, numCompartments)
         
     elif args.correctionType == 'testing':
-        # get a subset of images
-        subset = timepointFns[:25] 
-        print(baseDir)
-        # # make a testing dir
-        testDir = baseDir+'testing/'
-        if not os.path.exists(testDir):
-            os.mkdir(testDir)
+        """
+        Testing #1: get stacking-hmm working and producing good results
+        """
+        # # get a subset of images
+        # subset = timepointFns[:25] 
+        # print(baseDir)
+        # # # make a testing dir
+        # testDir = baseDir+'testing/'
+        # if not os.path.exists(testDir):
+        #     os.mkdir(testDir)
 
-        # registeredFns = markovCorrection(subset, testDir, testDir+'testing_transform_')
+        # # registeredFns = markovCorrection(subset, testDir, testDir+'testing_transform_')
 
-        # copy the subset to a timepoints dir in testing dir
-        spareDir = testDir+"timepoints/"
-        if not os.path.exists(spareDir):
-            os.mkdir(spareDir)
-        for img in subset:
-            shutil.copy2(img, spareDir)
-        subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
+        # # copy the subset to a timepoints dir in testing dir
+        # spareDir = testDir+"timepoints/"
+        # if not os.path.exists(spareDir):
+        #     os.mkdir(spareDir)
+        # for img in subset:
+        #     shutil.copy2(img, spareDir)
+        # subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
         
-        # now use the stacking-hmm function
-        numCompartments = 5
-        registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
+        # # now use the stacking-hmm function
+        # numCompartments = 5
+        # registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
+
+        """
+        Testing #2: how long does the affine-syn registration take?
+        """
+        fixedImg = timepointFns[0]
+        movingImg = timepointFns[1]
+        outputPrefix = baseDir+"testing/affine-syn/"
+        if not os.path.exists(outputPrefix):
+            os.mkdir(outputPrefix)
+        outFn = outputPrefix+'001-corrected.nii.gz'
+
+        reg = Registration()
+        reg.inputs.fixed_image = fixedImg
+        reg.inputs.moving_image = movingImg
+        reg.inputs.output_transform_prefix = outputPrefix
+        reg.inputs.interpolation = 'NearestNeighbor'
+        reg.inputs.transforms = ['Affine', 'SyN']
+        reg.inputs.transform_parameters = [(2.0,), (0.25, 3.0, 0.0)]
+        reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]]
+        reg.inputs.dimension = 3
+        reg.inputs.write_composite_transform = False
+        reg.inputs.collapse_output_transforms = True
+        reg.inputs.initialize_transforms_per_stage = False
+        reg.inputs.metric = ['CC']*2
+        reg.inputs.metric_weight = [1]*2
+        reg.inputs.radius_or_number_of_bins = [32]*2
+        reg.inputs.sampling_strategy = ['Random', None]
+        reg.inputs.sampling_percentage = [0.05, None]
+        reg.inputs.convergence_threshold = [1.e-8, 1.e-9]
+        reg.inputs.convergence_window_size = [20]*2
+        reg.inputs.smoothing_sigmas = [[1,0], [2,1,0]]
+        reg.inputs.sigma_units = ['vox']*2
+        reg.inputs.shrink_factors = [[2,1], [3,2,1]]
+        reg.inputs.use_estimate_learning_rate_once = [True, True]
+        reg.inputs.use_histogram_matching = [True, True] # This is the ult
+        reg.inputs.output_warped_image = outFn
+        reg.inputs.num_threads = 50
+
+        reg.run()
+
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")
