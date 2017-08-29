@@ -377,7 +377,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.sigma_units = ['vox']
     reg.inputs.shrink_factors = [[2,1]]
     reg.inputs.use_estimate_learning_rate_once = [True]
-    reg.inputs.use_histogram_matching = [True] # This is the ult
+    reg.inputs.use_histogram_matching = [True] # This is the default
     reg.inputs.output_warped_image = outFn
 
     if initialize is True:
@@ -389,40 +389,40 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.run()
     print("Finished running affine registration for", outFn)
 
-    # Nonlinear transform
-    reg = Registration()
-    reg.inputs.fixed_image = fixedImgFn
-    reg.inputs.moving_image = outFn
-    reg.inputs.output_transform_prefix = transformPrefix
-    reg.inputs.interpolation = 'NearestNeighbor'
-    reg.inputs.transforms = ['SyN']
-    reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-    reg.inputs.number_of_iterations = [[100, 50, 30]]
-    reg.inputs.dimension = 3
-    reg.inputs.write_composite_transform = False
-    reg.inputs.collapse_output_transforms = True
-    reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC']
-    reg.inputs.metric_weight = [1]
-    reg.inputs.radius_or_number_of_bins = [32]
-    reg.inputs.convergence_threshold = [1.e-8]
-    reg.inputs.convergence_window_size = [20]
-    reg.inputs.smoothing_sigmas = [[2,1,0]]
-    reg.inputs.sigma_units = ['vox']
-    reg.inputs.shrink_factors = [[3,2,1]]
-    reg.inputs.use_estimate_learning_rate_once = [True]
-    reg.inputs.use_histogram_matching = [True] # This is the ult
-    reg.inputs.output_warped_image = outFn
-    reg.inputs.num_threads = 20
+    # # Nonlinear transform
+    # reg = Registration()
+    # reg.inputs.fixed_image = fixedImgFn
+    # reg.inputs.moving_image = outFn
+    # reg.inputs.output_transform_prefix = transformPrefix
+    # reg.inputs.interpolation = 'NearestNeighbor'
+    # reg.inputs.transforms = ['SyN']
+    # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+    # reg.inputs.number_of_iterations = [[100, 50, 30]]
+    # reg.inputs.dimension = 3
+    # reg.inputs.write_composite_transform = False
+    # reg.inputs.collapse_output_transforms = True
+    # reg.inputs.initialize_transforms_per_stage = False
+    # reg.inputs.metric = ['CC']
+    # reg.inputs.metric_weight = [1]
+    # reg.inputs.radius_or_number_of_bins = [32]
+    # reg.inputs.convergence_threshold = [1.e-8]
+    # reg.inputs.convergence_window_size = [20]
+    # reg.inputs.smoothing_sigmas = [[2,1,0]]
+    # reg.inputs.sigma_units = ['vox']
+    # reg.inputs.shrink_factors = [[3,2,1]]
+    # reg.inputs.use_estimate_learning_rate_once = [True]
+    # reg.inputs.use_histogram_matching = [True] # This is the default
+    # reg.inputs.output_warped_image = outFn
+    # reg.inputs.num_threads = 20
 
-    if initialize is True:
-        reg.inputs.initial_moving_transform = transformPrefix+'0Warp.nii.gz'
-        reg.inputs.invert_initial_moving_transform = False
+    # if initialize is True:
+    #     reg.inputs.initial_moving_transform = transformPrefix+'0Warp.nii.gz'
+    #     reg.inputs.invert_initial_moving_transform = False
 
-    # print(reg.cmdline)
-    print("Starting nonlinear registration for",outFn)
-    reg.run()
-    print("Finished running nonlinear registration for", outFn)
+    # # print(reg.cmdline)
+    # print("Starting nonlinear registration for",outFn)
+    # reg.run()
+    # print("Finished running nonlinear registration for", outFn)
 
     # else:
     #     print("WARNING: existing registered image found, image registration skipped.")
@@ -444,8 +444,8 @@ def alignCompartments(fixedImg, movingImgs, transform):
     Effects:
     - Overwrites the specified images with a more aligned version of the same images
 
-    *** Note: this version assumes the same fixed image. Could also be implemented 
-              so that the fixed image is the previous moving image.
+    *** Note: The fixed image sounds like it's only used for its metadata 
+              and coordiante system
     """
     # for each image
     for m in movingImgs:
@@ -533,7 +533,7 @@ def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=Fals
             # set the output filename
             outFn = outputDir+str(i).zfill(3)+'.nii.gz'
             registeredFns.append(outFn)
-            templatePrefix = baseDir+'tmp/output_'
+            # templatePrefix = baseDir+'tmp/output_'
             # start a thread to register the new timepoint to the template
             t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, templatePrefix, prealign=prealign)
             myThreads.append(t)
@@ -951,6 +951,7 @@ def main(baseDir):
     elif args.correctionType == 'testing':
         """
         Testing #1: get stacking-hmm working and producing good results
+                    currently adding lots of extra files/dirs for testing
         """
         # get a subset of images
         subset = timepointFns
@@ -1025,8 +1026,8 @@ def main(baseDir):
 
 if __name__ == "__main__":
     # set the base directory
-    baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
-    # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
+    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
