@@ -534,7 +534,7 @@ def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=Fals
             # set the output filename
             outFn = outputDir+str(i).zfill(3)+'.nii.gz'
             registeredFns.append(outFn)
-            # templatePrefix = baseDir+'tmp/output_'
+            templatePrefix = baseDir+'tmp/output_'
             # start a thread to register the new timepoint to the template
             t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, templatePrefix, prealign=prealign)
             myThreads.append(t)
