@@ -979,7 +979,7 @@ def main(baseDir):
         """
         fixedImg = timepointFns[0]
         movingImg = timepointFns[1]
-        outputPrefix = baseDir+"testing/affine-syn/"
+        outputPrefix = baseDir+"testing/"
         if not os.path.exists(outputPrefix):
             os.mkdir(outputPrefix)
         outFn = outputPrefix+'001-corrected.nii.gz'
