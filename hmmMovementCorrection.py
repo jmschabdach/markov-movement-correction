@@ -379,7 +379,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.use_estimate_learning_rate_once = [True]
     reg.inputs.use_histogram_matching = [True] # This is the default
     reg.inputs.output_warped_image = outFn
-    reg.inputs.num_threads = 20
+    # reg.inputs.num_threads = 20
 
     if initialize is True:
         reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
