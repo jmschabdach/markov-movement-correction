@@ -393,7 +393,8 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     # Nonlinear transform
     reg = Registration()
     reg.inputs.fixed_image = fixedImgFn
-    reg.inputs.moving_image = outFn
+    # reg.inputs.moving_image = outFn
+    reg.inputs.moving_image = movingImgFn
     reg.inputs.output_transform_prefix = transformPrefix
     reg.inputs.interpolation = 'NearestNeighbor'
     reg.inputs.transforms = ['SyN']
@@ -765,7 +766,7 @@ def main(baseDir):
 
     # divide the image into timepoints
     timepointFns = expandTimepoints(origFn, baseDir)
-    timepointFns = timepointFns[:5]
+    # timepointFns = timepointFns[:5]
 
     # Select the specified motion correction algorithm
     registeredFns = []
