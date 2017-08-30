@@ -526,7 +526,7 @@ def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=Fals
     registeredFns = []
     myThreads = []
     # for each subsequent image
-    for i in xrange(len(timepointFns)):
+    for i in xrange(len(timepointFns[:5])):
         if timepointFns[i] == templateFn:
             # copy the template file into the output directory
             shutil.copy2(templateFn, outputDir)
