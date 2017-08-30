@@ -349,7 +349,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     Effects:
     - Saves the registered image
     """
-    #print("Output filename:", outFn)
+    print("Output filename:", outFn)
     # if not os.path.isfile(outFn):
     #     print("The file to be registered does not exist. Registering now.")
 
