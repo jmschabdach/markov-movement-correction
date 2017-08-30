@@ -386,9 +386,9 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     #     reg.inputs.invert_initial_moving_transform = False
 
     # print(reg.cmdline)
-    print("Starting affine registration for",outFn)
-    reg.run()
-    print("Finished running affine registration for", outFn)
+    # print("Starting affine registration for",outFn)
+    # reg.run()
+    # print("Finished running affine registration for", outFn)
 
     # Nonlinear transform
     reg = Registration()
