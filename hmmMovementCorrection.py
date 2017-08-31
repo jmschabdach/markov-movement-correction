@@ -628,6 +628,7 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
     # make the list of lists
     compartments = [timepointFns[i*imgsPerCompartment:(i+1)*imgsPerCompartment] for i in xrange(numCompartments-1)]
     compartments.append(timepointFns[imgsPerCompartment*(numCompartments-1):])
+    print("There are", len(compartments))
 
     # Step 2: calculate the transform between the last image of each compartment 
     #         and the first image of the next compartment
