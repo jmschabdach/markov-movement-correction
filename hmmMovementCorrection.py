@@ -283,7 +283,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     # Affine transform
     reg.inputs.transforms = ['Affine']
     reg.inputs.transform_parameters = [(2.0,)]
-    reg.inputs.number_of_iterations = [[1500, 200]]
+    reg.inputs.number_of_iterations = [[500, 20]] #1500, 200
     reg.inputs.dimension = 3
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
@@ -293,7 +293,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     reg.inputs.radius_or_number_of_bins = [32]
     reg.inputs.sampling_strategy = ['Random']
     reg.inputs.sampling_percentage = [0.05]
-    reg.inputs.convergence_threshold = [1.e-8]
+    reg.inputs.convergence_threshold = [1.e-2]
     reg.inputs.convergence_window_size = [20]
     reg.inputs.smoothing_sigmas = [[2,1]]
     reg.inputs.sigma_units = ['vox']
@@ -322,9 +322,9 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     # reg.inputs.output_warped_image = 'testing.nii.gz'
 
     # print(reg.cmdline)
-    # print("Calculating linking transform for",transformFn)
+    print("Calculating linking transform for",transformFn)
     reg.run()
-    # print("Finished calculating linking transform for", transformFn)
+    print("Finished calculating linking transform for", transformFn)
 
     # else:
     #     print("WARNING: existing transform files found, linking transform calculation skipped.")
