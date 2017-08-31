@@ -609,6 +609,8 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
     - 
     """
 
+    print("There are", numCompartments,"compartments being used.")
+
     # make the output directory
     outputDir = baseDir + 'stacking-hmm/'
     if not os.path.exists(outputDir):
