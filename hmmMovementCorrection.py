@@ -322,9 +322,9 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     # reg.inputs.output_warped_image = 'testing.nii.gz'
 
     # print(reg.cmdline)
-    print("Calculating linking transform for",transformFn)
+    print("Calculating linking transform for",transformPrefix)
     reg.run()
-    print("Finished calculating linking transform for", transformFn)
+    print("Finished calculating linking transform for", transformPrefix)
 
     # else:
     #     print("WARNING: existing transform files found, linking transform calculation skipped.")
