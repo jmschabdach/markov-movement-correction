@@ -978,6 +978,7 @@ def main(baseDir):
         
         # now use the stacking-hmm function
         numCompartments = 5
+        print("Submitting", numCompartments, "compartments")
         registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
 
         """
