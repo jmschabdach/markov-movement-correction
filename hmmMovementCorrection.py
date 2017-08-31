@@ -288,7 +288,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC']
+    reg.inputs.metric = ['MI']
     reg.inputs.metric_weight = [1]
     reg.inputs.radius_or_number_of_bins = [32]
     reg.inputs.sampling_strategy = ['Random']
@@ -366,7 +366,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC']
+    reg.inputs.metric = ['MI']
     reg.inputs.metric_weight = [1]
     reg.inputs.radius_or_number_of_bins = [32]
     reg.inputs.sampling_strategy = ['Random']
@@ -404,7 +404,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC']
+    reg.inputs.metric = ['MI']
     reg.inputs.metric_weight = [1]
     reg.inputs.radius_or_number_of_bins = [32]
     reg.inputs.convergence_threshold = [1.e-8]
