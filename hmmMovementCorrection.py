@@ -366,9 +366,9 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['MI']
+    reg.inputs.metric = ['CC']
     reg.inputs.metric_weight = [1]
-    reg.inputs.radius_or_number_of_bins = [32]
+    reg.inputs.radius_or_number_of_bins = [5]
     reg.inputs.sampling_strategy = ['Random']
     reg.inputs.sampling_percentage = [0.05]
     reg.inputs.convergence_threshold = [1.e-8]
@@ -404,9 +404,9 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['MI']
+    reg.inputs.metric = ['CC']
     reg.inputs.metric_weight = [1]
-    reg.inputs.radius_or_number_of_bins = [32]
+    reg.inputs.radius_or_number_of_bins = [5]
     reg.inputs.convergence_threshold = [1.e-8]
     reg.inputs.convergence_window_size = [20]
     reg.inputs.smoothing_sigmas = [[2,1,0]]
@@ -960,7 +960,7 @@ def main(baseDir):
                     currently adding lots of extra files/dirs for testing
         """
         # get a subset of images
-        subset = timepointFns
+        subset = timepointFns[:25]
         print(baseDir)
         # # make a testing dir
         testDir = baseDir+'testing/'
