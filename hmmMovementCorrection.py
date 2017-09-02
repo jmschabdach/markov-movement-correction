@@ -288,9 +288,9 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = True
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['MI']
+    reg.inputs.metric = ['CC']
     reg.inputs.metric_weight = [1]
-    reg.inputs.radius_or_number_of_bins = [32]
+    reg.inputs.radius_or_number_of_bins = [5]
     reg.inputs.sampling_strategy = ['Random']
     reg.inputs.sampling_percentage = [0.05]
     reg.inputs.convergence_threshold = [1.e-2]
@@ -354,47 +354,47 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     #     print("The file to be registered does not exist. Registering now.")
 
     # Affine transform
-    reg = Registration()
-    reg.inputs.fixed_image = fixedImgFn
-    reg.inputs.moving_image = movingImgFn
-    reg.inputs.output_transform_prefix = transformPrefix
-    reg.inputs.interpolation = 'NearestNeighbor'
-    reg.inputs.transforms = ['Affine']
-    reg.inputs.transform_parameters = [(2.0,)]
-    reg.inputs.number_of_iterations = [[1500, 200]]
-    reg.inputs.dimension = 3
-    reg.inputs.write_composite_transform = False
-    reg.inputs.collapse_output_transforms = True
-    reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC']
-    reg.inputs.metric_weight = [1]
-    reg.inputs.radius_or_number_of_bins = [5]
-    reg.inputs.sampling_strategy = ['Random']
-    reg.inputs.sampling_percentage = [0.05]
-    reg.inputs.convergence_threshold = [1.e-8]
-    reg.inputs.convergence_window_size = [20]
-    reg.inputs.smoothing_sigmas = [[1,0]]
-    reg.inputs.sigma_units = ['vox']
-    reg.inputs.shrink_factors = [[2,1]]
-    reg.inputs.use_estimate_learning_rate_once = [True]
-    reg.inputs.use_histogram_matching = [True] # This is the default
-    reg.inputs.output_warped_image = outFn
-    reg.inputs.num_threads = 20
+    # reg = Registration()
+    # reg.inputs.fixed_image = fixedImgFn
+    # reg.inputs.moving_image = movingImgFn
+    # reg.inputs.output_transform_prefix = transformPrefix
+    # reg.inputs.interpolation = 'NearestNeighbor'
+    # reg.inputs.transforms = ['Affine']
+    # reg.inputs.transform_parameters = [(2.0,)]
+    # reg.inputs.number_of_iterations = [[1500, 200]]
+    # reg.inputs.dimension = 3
+    # reg.inputs.write_composite_transform = False
+    # reg.inputs.collapse_output_transforms = True
+    # reg.inputs.initialize_transforms_per_stage = False
+    # reg.inputs.metric = ['CC']
+    # reg.inputs.metric_weight = [1]
+    # reg.inputs.radius_or_number_of_bins = [5]
+    # reg.inputs.sampling_strategy = ['Random']
+    # reg.inputs.sampling_percentage = [0.05]
+    # reg.inputs.convergence_threshold = [1.e-8]
+    # reg.inputs.convergence_window_size = [20]
+    # reg.inputs.smoothing_sigmas = [[1,0]]
+    # reg.inputs.sigma_units = ['vox']
+    # reg.inputs.shrink_factors = [[2,1]]
+    # reg.inputs.use_estimate_learning_rate_once = [True]
+    # reg.inputs.use_histogram_matching = [True] # This is the default
+    # reg.inputs.output_warped_image = outFn
+    # reg.inputs.num_threads = 20
 
-    if initialize is True:
-        reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
-        reg.inputs.invert_initial_moving_transform = False
+    # if initialize is True:
+    #     reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
+    #     reg.inputs.invert_initial_moving_transform = False
 
-    # print(reg.cmdline)
-    # print("Starting affine registration for",outFn)
-    reg.run()
-    # print("Finished running affine registration for", outFn)
+    # # print(reg.cmdline)
+    # # print("Starting affine registration for",outFn)
+    # reg.run()
+    # # print("Finished running affine registration for", outFn)
 
     # Nonlinear transform
     reg = Registration()
     reg.inputs.fixed_image = fixedImgFn
-    reg.inputs.moving_image = outFn
-    # reg.inputs.moving_image = movingImgFn
+    # reg.inputs.moving_image = outFn
+    reg.inputs.moving_image = movingImgFn
     reg.inputs.output_transform_prefix = transformPrefix
     reg.inputs.interpolation = 'NearestNeighbor'
     reg.inputs.transforms = ['SyN']
@@ -967,20 +967,20 @@ def main(baseDir):
         if not os.path.exists(testDir):
             os.mkdir(testDir)
 
-        # registeredFns = markovCorrection(subset, testDir, testDir+'testing_transform_')
+        registeredFns = markovCorrection(subset, testDir, testDir+'testing_hmm_transform_')
 
-        # copy the subset to a timepoints dir in testing dir
-        spareDir = testDir+"timepoints/"
-        if not os.path.exists(spareDir):
-            os.mkdir(spareDir)
-        for img in subset:
-            shutil.copy2(img, spareDir)
-        subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
+        # # copy the subset to a timepoints dir in testing dir
+        # spareDir = testDir+"timepoints/"
+        # if not os.path.exists(spareDir):
+        #     os.mkdir(spareDir)
+        # for img in subset:
+        #     shutil.copy2(img, spareDir)
+        # subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
         
-        # now use the stacking-hmm function
-        numCompartments = 5
-        print("Submitting", numCompartments, "compartments")
-        registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
+        # # now use the stacking-hmm function
+        # numCompartments = 5
+        # print("Submitting", numCompartments, "compartments")
+        # registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
 
         """
         Testing #2: how long does the affine-syn registration take?
