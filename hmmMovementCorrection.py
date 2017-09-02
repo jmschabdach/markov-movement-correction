@@ -390,41 +390,77 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     # reg.run()
     # # print("Finished running affine registration for", outFn)
 
-    # Nonlinear transform
+    # # Nonlinear transform
+    # reg = Registration()
+    # reg.inputs.fixed_image = fixedImgFn
+    # # reg.inputs.moving_image = outFn
+    # reg.inputs.moving_image = movingImgFn
+    # reg.inputs.output_transform_prefix = transformPrefix
+    # reg.inputs.interpolation = 'NearestNeighbor'
+    # reg.inputs.transforms = ['SyN']
+    # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
+    # reg.inputs.number_of_iterations = [[100, 50, 30]]
+    # reg.inputs.dimension = 3
+    # reg.inputs.write_composite_transform = False
+    # reg.inputs.collapse_output_transforms = True #change to false
+    # reg.inputs.initialize_transforms_per_stage = False
+    # reg.inputs.metric = ['CC']
+    # reg.inputs.metric_weight = [1]
+    # reg.inputs.radius_or_number_of_bins = [5]
+    # reg.inputs.convergence_threshold = [1.e-8]
+    # reg.inputs.convergence_window_size = [20]
+    # reg.inputs.smoothing_sigmas = [[2,1,0]]
+    # reg.inputs.sigma_units = ['vox']
+    # reg.inputs.shrink_factors = [[3,2,1]]
+    # reg.inputs.use_estimate_learning_rate_once = [True]
+    # reg.inputs.use_histogram_matching = [True] # This is the default
+    # reg.inputs.output_warped_image = outFn
+    # reg.inputs.num_threads = 50
+
+    # if initialize is True:
+    #     reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
+    #     reg.inputs.invert_initial_moving_transform = False
+
+    # print(reg.cmdline)
+    # print("Starting nonlinear registration for",outFn)
+    # reg.run()
+    # print("Finished running nonlinear registration for", outFn)
+
+    # Affine and SyN transforms
     reg = Registration()
     reg.inputs.fixed_image = fixedImgFn
     # reg.inputs.moving_image = outFn
     reg.inputs.moving_image = movingImgFn
     reg.inputs.output_transform_prefix = transformPrefix
     reg.inputs.interpolation = 'NearestNeighbor'
-    reg.inputs.transforms = ['SyN']
-    reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-    reg.inputs.number_of_iterations = [[100, 50, 30]]
+    reg.inputs.transforms = ['Affine', 'SyN']
+    reg.inputs.transform_parameters = [(2.0,),(0.25, 3.0, 0.0)]
+    reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]]
     reg.inputs.dimension = 3
     reg.inputs.write_composite_transform = False
-    reg.inputs.collapse_output_transforms = True
+    reg.inputs.collapse_output_transforms = False
     reg.inputs.initialize_transforms_per_stage = False
-    reg.inputs.metric = ['CC']
-    reg.inputs.metric_weight = [1]
-    reg.inputs.radius_or_number_of_bins = [5]
-    reg.inputs.convergence_threshold = [1.e-8]
-    reg.inputs.convergence_window_size = [20]
-    reg.inputs.smoothing_sigmas = [[2,1,0]]
-    reg.inputs.sigma_units = ['vox']
-    reg.inputs.shrink_factors = [[3,2,1]]
-    reg.inputs.use_estimate_learning_rate_once = [True]
-    reg.inputs.use_histogram_matching = [True] # This is the default
+    reg.inputs.metric = ['CC']*2
+    reg.inputs.metric_weight = [1]*2
+    reg.inputs.radius_or_number_of_bins = [5]*2
+    reg.inputs.convergence_threshold = [1.e-8, 1.e-9]
+    reg.inputs.convergence_window_size = [20]*2
+    reg.inputs.smoothing_sigmas = [[1,0],[2,1,0]]
+    reg.inputs.sigma_units = ['vox']*2
+    reg.inputs.shrink_factors = [[2,1],[3,2,1]]
+    reg.inputs.use_estimate_learning_rate_once = [True,True]
+    reg.inputs.use_histogram_matching = [True, True] # This is the default
     reg.inputs.output_warped_image = outFn
     reg.inputs.num_threads = 50
 
     if initialize is True:
-        reg.inputs.initial_moving_transform = transformPrefix+'0Warp.nii.gz'
+        reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
         reg.inputs.invert_initial_moving_transform = False
 
     print(reg.cmdline)
-    print("Starting nonlinear registration for",outFn)
+    print("Starting affine/syn registration for",outFn)
     reg.run()
-    print("Finished running nonlinear registration for", outFn)
+    print("Finished affine/syn registration for",outFn)
 
     # else:
     #     print("WARNING: existing registered image found, image registration skipped.")
@@ -967,8 +1003,22 @@ def main(baseDir):
         if not os.path.exists(testDir):
             os.mkdir(testDir)
 
+        # ## First timepoint template
+        # outDir = testDir+'first/'
+        # if not os.path.exists(outDir):
+        #     os.mkdir(outDir)
+
+        # templateImg = subset[0]
+        # registeredFns = motionCorrection(templateImg, subset, outDir, baseDir)
+
+        ## HMM
+        outDir = testDir+'hmm/'
+        if not os.path.exists(outDir):
+            os.mkdir(outDir)
+
         registeredFns = markovCorrection(subset, testDir, testDir+'testing_hmm_transform_')
 
+        ## Markov
         # # copy the subset to a timepoints dir in testing dir
         # spareDir = testDir+"timepoints/"
         # if not os.path.exists(spareDir):
@@ -981,46 +1031,6 @@ def main(baseDir):
         # numCompartments = 5
         # print("Submitting", numCompartments, "compartments")
         # registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
-
-        """
-        Testing #2: how long does the affine-syn registration take?
-        """
-        # fixedImg = timepointFns[0]
-        # movingImg = timepointFns[1]
-        # outputPrefix = baseDir+"testing/"
-        # if not os.path.exists(outputPrefix):
-        #     os.mkdir(outputPrefix)
-        # outFn = outputPrefix+'001-corrected.nii.gz'
-
-        # reg = Registration()
-        # reg.inputs.fixed_image = fixedImg
-        # reg.inputs.moving_image = movingImg
-        # reg.inputs.output_transform_prefix = outputPrefix
-        # reg.inputs.interpolation = 'NearestNeighbor'
-        # reg.inputs.transforms = ['Affine', 'SyN']
-        # reg.inputs.transform_parameters = [(2.0,), (0.25, 3.0, 0.0)]
-        # reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]]
-        # reg.inputs.dimension = 3
-        # reg.inputs.write_composite_transform = False
-        # reg.inputs.collapse_output_transforms = True
-        # reg.inputs.initialize_transforms_per_stage = False
-        # reg.inputs.metric = ['CC']*2
-        # reg.inputs.metric_weight = [1]*2
-        # reg.inputs.radius_or_number_of_bins = [32]*2
-        # reg.inputs.sampling_strategy = ['Random', None]
-        # reg.inputs.sampling_percentage = [0.05, None]
-        # reg.inputs.convergence_threshold = [1.e-8, 1.e-9]
-        # reg.inputs.convergence_window_size = [20]*2
-        # reg.inputs.smoothing_sigmas = [[1,0], [2,1,0]]
-        # reg.inputs.sigma_units = ['vox']*2
-        # reg.inputs.shrink_factors = [[2,1], [3,2,1]]
-        # reg.inputs.use_estimate_learning_rate_once = [True, True]
-        # reg.inputs.use_histogram_matching = [True, True] # This is the ult
-        # reg.inputs.output_warped_image = outFn
-        # reg.inputs.num_threads = 50
-
-        # reg.run()
-
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")
