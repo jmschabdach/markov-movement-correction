@@ -330,7 +330,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     #     print("WARNING: existing transform files found, linking transform calculation skipped.")
 
 
-def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=False):
+def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=False, initialRegFile=0):
     """
     Register 2 images taken at different timepoints.
 
@@ -454,7 +454,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.num_threads = 50
 
     if initialize is True:
-        reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
+        reg.inputs.initial_moving_transform = transformPrefix+str(initialRegFile)+'Affine.mat'
         reg.inputs.invert_initial_moving_transform = False
 
     print(reg.cmdline)
@@ -624,7 +624,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix):
     for i in xrange(2, len(timepoints)):
         print("Time", i, "outfn:", registeredFns[i])
         # register the new timepoint to the template, using initialized transform
-        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True)
+        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, initialRegFile=(i-2))
 
     return registeredFns
 
@@ -1016,7 +1016,10 @@ def main(baseDir):
         if not os.path.exists(outDir):
             os.mkdir(outDir)
 
-        registeredFns = markovCorrection(subset, testDir, testDir+'testing_hmm_transform_')
+        if not os.path.exists(testDir+'transforms/'):
+            os.mkdir(testDir+'transforms/')
+
+        registeredFns = markovCorrection(subset, outDir, testDir+'transforms/testing_hmm_transform_')
 
         ## Markov
         # # copy the subset to a timepoints dir in testing dir
