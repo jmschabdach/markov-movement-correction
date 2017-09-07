@@ -17,14 +17,14 @@ I recommend using `conda` to manage all packages required by this project.
 
 # Directory Structure
  
-<subject id>  
-&nbsp;&nbsp;|-- <4D input image name>.nii.gz 
+subject-id/
+&nbsp;&nbsp;|-- 4D-input-image-name.nii.gz 
 &nbsp;&nbsp;|-- timepoints/  
 &nbsp;&nbsp;|-- hmm/  
 &nbsp;&nbsp;|-- stacking-hmm/  
 &nbsp;&nbsp;|-- sequential/  
 &nbsp;&nbsp;|-- tmp/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|-- <currently used for transform matrix storage>  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|-- currently used for transform matrix storage
 
 # Current pipeline
 
