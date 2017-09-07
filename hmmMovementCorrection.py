@@ -597,38 +597,39 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
 # Main
 #---------------------------------------------------------------------------------
 
-def main(baseDir):
+def main():
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Perform motion correction on time-series images.")
     # image filenames
-    parser.add_argument('-i', '--inputFn', type=str, help='The name of the file to correct')
-    parser.add_argument('-o', '--outputFn', type=str, help='The name of the file to save the correction to')
+    parser.add_argument('-i', '--inputFn', type=str, help='Full path to the name of the file to correct')
+    parser.add_argument('-o', '--outputFn', type=str, help='The name of the file to save the correction to (within the directory containing the original file.')
     # which type of motion correction
     parser.add_argument('-t', '--correctionType', type=str, help='Specify which type of correction to run. '
-                        +'Options include: first-timepoint, template, sequential, hmm, bi-hmm, stacking-hmm, and testing (use at your own risk)')
+                        +'Options include: first-timepoint, template, sequential, hmm, stacking-hmm, and testing (use at your own risk)')
 
     # now parse the arguments
     args = parser.parse_args()
 
     # image filename
-    origFn = baseDir + args.inputFn
+    origFn = args.inputFn.replace("//", '/')
+    baseDir = origFn.rsplit("/", 1)[0]+'/'
+    print(origFn)
+    print(baseDir)
 
-    # make the output directory
-    baseDir = baseDir+args.inputFn.split(".")[0]+"/"
+    # # make the output directory
     if not os.path.exists(baseDir):
         os.mkdir(baseDir)
 
-    # make the tmp directory
+    # # make the tmp directory
     tmpDir = baseDir+'tmp/'
     if not os.path.exists(tmpDir):
         os.mkdir(tmpDir)
 
-    # divide the image into timepoints
-    timepointFns = expandTimepoints(origFn, baseDir)
-    # timepointFns = timepointFns[:5]
+    # # divide the image into timepoints
+    # timepointFns = expandTimepoints(origFn, baseDir)
 
-    # Select the specified motion correction algorithm
-    registeredFns = []
+    # # Select the specified motion correction algorithm
+    # registeredFns = []
 
     if args.correctionType == 'first-timepoint':
         """
@@ -815,7 +816,7 @@ def main(baseDir):
 if __name__ == "__main__":
     # set the base directory
     # baseDir = '/home/pirc/processing/FETAL_Axial_BOLD_Motion_Processing/markov-movement-correction/'
-    baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
+    # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
     # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
 
     # very crude numpy version check
@@ -825,7 +826,7 @@ if __name__ == "__main__":
         sys.exit("Warning: the version for numpy is "+np.__version__+".\nPlease update to at least version 1.12.1 to use this pipeline.")
         
     startTime = time.time()
-    main(baseDir)
+    main()
     endTime = time.time() - startTime
 
     # turn this into a function

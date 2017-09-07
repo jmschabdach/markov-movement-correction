@@ -3,28 +3,23 @@
 # TODO: generalize the filename out
 
 # set up any vars here
-BASE='/home/jms565/Research/CHP-PIRC/markov-movement-correction'
+# BASE='/home/jms565/Research/CHP-PIRC/markov-movement-correction'
+BASE='/home/jenna/Research/CHP-PIRC/sandbox/'
+# BASE='/home/pirc/PIRCResearch/JennaS/Neonatal_Motion_Correction/'
 TEMPLATE="$BASE/timepoints/000.nii.gz"
 ORIG="0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz"
 
-# # clear the 0003_MR1... dir
-# rm -rf "$BASE/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/"
 
-# run the template matching registration
-python hmmMovementCorrection.py -i $ORIG -o "./0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/template_matching_correction.nii.gz" -t template
+for i in "$BASE"/* ; do
+    if [ -d "$i" ] ; then
+        SUB_ORIG="$i/BOLD.nii"
+        # echo "$SUB_ORIG"
+        python hmmMovementCorrection.py -i $SUB_ORIG -o corrected_firstTimepoint.nii.gz -t first-timepoint
+    fi
+done
 
-# run the first timepoint matching registration
-python hmmMovementCorrection.py -i $ORIG -o "./0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/first_timepoint_matching_correction.nii.gz" -t first-timepoint
+# # run the similarity calculations
+# # bash calculateSimilarity.sh "$BASE/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/" $TEMPLATE
 
-# run the sequential registration
-python hmmMovementCorrection.py -i $ORIG -o "./0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/sequential_correction.nii.gz" -t sequential
-
-# run the regular HMM registration
-python hmmMovementCorrection.py -i $ORIG -o "./0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/hmm_correction.nii.gz" -t hmm
-
-
-# run the similarity calculations
-# bash calculateSimilarity.sh "$BASE/0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/" $TEMPLATE
-
-echo "Finished running 4 registration algorithms. Go run the metric calculations."
+# echo "Finished running 4 registration algorithms. Go run the metric calculations."
 # note: the metric calculation for the template matching algorithm needs to use the template name specified at $BASE/templateMatching-templateName.txt
