@@ -462,6 +462,13 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.run()
     print("Finished affine/syn registration for",outFn)
 
+    tmpIdx = transformPrefix.index('transforms/')+len('transforms/')
+    transformDir = os.listdir(transformPrefix[:tmpIdx])
+    transformDir.sort()
+    print("Files in transform/ dir:")
+    for fn in transformDir:
+        print("   ", fn)
+
     # else:
     #     print("WARNING: existing registered image found, image registration skipped.")
 
@@ -619,12 +626,15 @@ def markovCorrection(timepoints, outputDir, transformPrefix):
     # register the first timepoint to the template
     registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, initialize=False)
 
+    # register the second timepoint to the template
+    registerToTemplate(templateFn, timepoints[2], registeredFns[2], outputDir, transformPrefix, initialize=True, initialRegFile=0)
+
     # for each subsequent image
     print("Number of timepoints:",len(timepoints))
-    for i in xrange(2, len(timepoints)):
+    for i in xrange(3, len(timepoints)):
         print("Time", i, "outfn:", registeredFns[i])
         # register the new timepoint to the template, using initialized transform
-        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, initialRegFile=(i-2))
+        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, initialRegFile=1)
 
     return registeredFns
 
