@@ -16,16 +16,15 @@ I recommend using `conda` to manage all packages required by this project.
 `bash calculateSimilarity.sh <base directory> <template image>`: calculate the similarity between the 3D image at each timepoint and the template for the expanded 4D images in `<base directory>/hmm/`, `<base directory>/sequential/`, `<base directory>/bi-hmm/`, `<base directory>/stacking-hmm/`, and `<base directory>/timepoints/`. The `<base directory>/timepoints/` directory stores a collection of 3D images. Each image is a single timepoint from the original 4D input image.
 
 # Directory Structure
-
-<4D input image name>.nii.gz  
-<4D input image name>  
+ 
+<subject id>  
+&nbsp;&nbsp;|-- <4D input image name>.nii.gz 
 &nbsp;&nbsp;|-- timepoints/  
 &nbsp;&nbsp;|-- hmm/  
-&nbsp;&nbsp;|-- bi-hmm/  
 &nbsp;&nbsp;|-- stacking-hmm/  
 &nbsp;&nbsp;|-- sequential/  
 &nbsp;&nbsp;|-- tmp/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|-- <currently unused, to be used for transform matrix storage>  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|-- <currently used for transform matrix storage>  
 
 # Current pipeline
 
