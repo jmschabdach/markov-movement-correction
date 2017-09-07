@@ -620,7 +620,7 @@ def main():
     if not os.path.exists(baseDir):
         os.mkdir(baseDir)
 
-    # # make the tmp directory
+    # make the tmp directory
     tmpDir = baseDir+'tmp/'
     if not os.path.exists(tmpDir):
         os.mkdir(tmpDir)
@@ -640,10 +640,10 @@ def main():
         if not os.path.exists(outputDir):
             os.mkdir(outputDir)
 
-        # # print(outputDir)
-        # # register the images sequentially
-        # templateImg = timepointFns[0]
-        # registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir)
+        # print(outputDir)
+        # register the images sequentially
+        templateImg = timepointFns[0]
+        registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir)
 
     elif args.correctionType == 'template':
         """
