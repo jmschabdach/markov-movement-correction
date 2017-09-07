@@ -4,17 +4,17 @@
 
 # set up any vars here
 # BASE='/home/jms565/Research/CHP-PIRC/markov-movement-correction'
-BASE='/home/jenna/Research/CHP-PIRC/sandbox/'
-# BASE='/home/pirc/PIRCResearch/JennaS/Neonatal_Motion_Correction/'
-TEMPLATE="$BASE/timepoints/000.nii.gz"
-ORIG="0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz"
+# BASE='/home/jenna/Research/CHP-PIRC/sandbox/'
+BASE='/home/pirc/PIRCResearch/JennaS/Neonates/Controls/'
+# TEMPLATE="$BASE/timepoints/000.nii.gz"
+# ORIG="0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001.nii.gz"
 
 
 for i in "$BASE"/* ; do
     if [ -d "$i" ] ; then
         SUB_ORIG="$i/BOLD.nii"
         # echo "$SUB_ORIG"
-        python hmmMovementCorrection.py -i $SUB_ORIG -o corrected_firstTimepoint.nii.gz -t first-timepoint
+        bash runAndNotify.sh python hmmMovementCorrection.py -i $SUB_ORIG -o corrected_firstTimepoint.nii.gz -t first-timepoint
     fi
 done
 
