@@ -625,11 +625,11 @@ def main():
     if not os.path.exists(tmpDir):
         os.mkdir(tmpDir)
 
-    # # divide the image into timepoints
-    # timepointFns = expandTimepoints(origFn, baseDir)
+    # divide the image into timepoints
+    timepointFns = expandTimepoints(origFn, baseDir)
 
-    # # Select the specified motion correction algorithm
-    # registeredFns = []
+    # Select the specified motion correction algorithm
+    registeredFns = []
 
     if args.correctionType == 'first-timepoint':
         """
@@ -640,10 +640,10 @@ def main():
         if not os.path.exists(outputDir):
             os.mkdir(outputDir)
 
-        # print(outputDir)
-        # register the images sequentially
-        templateImg = timepointFns[0]
-        registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir)
+        # # print(outputDir)
+        # # register the images sequentially
+        # templateImg = timepointFns[0]
+        # registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir)
 
     elif args.correctionType == 'template':
         """
