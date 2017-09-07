@@ -25,14 +25,15 @@ import threading
 """
 Perform different types of movement correction on a time series of 3D images. Current
 options are
-  * bi-hmm: split the time series in half and HMM each half, with the template as 
-            the middle image
+  * first-timepoint: correct all images to the first timepoint
   * hmm: follows the HMM movement correction algorithm outlined in "Temporal 
          registration in in-utero volumetric MRI time series" by Liao et al.
   * stacking-hmm: divide the time series into subcompartments, HMM each compartment,
                   and link the compartments together
   * sequential: basic, sequential alignment of each image to the previous one in the
-                time series
+                time series (currently needs testing)
+  * template: correct all images to the image with the lowest total acquisition 
+              correlation ratio
 """
 
 #---------------------------------------------------------------------------------
@@ -106,30 +107,6 @@ class linkingTransformThread(threading.Thread):
         calculateLinkingTransform(self.prevImg, self.nextImg, self.transformFn)
         print("Finished thread", self.name)
 
-class prealignmentThread(threading.Thread):
-    """
-    Implementation of the threading class in order to streamline
-    prealignment of the images
-    """
-    def __init__(self, threadId, baseDir, expandedImgs, transformPrefix):
-        threading.Thread.__init__(self)
-        self.threadId = threadId
-        self.baseDir = baseDir
-        self.expandedImgs = expandedImgs
-        self.transformPrefix = transformPrefix
-        self._return = None
-
-    def run(self):
-        # set up the registration
-        imgFns = prealignImageAffine(self.baseDir, self.expandedImgs, self.transformPrefix)
-        # print that finished running the registration
-        print("Prealignment thread", self.threadId,"finished.")
-        self._return = imgFns
-
-    def join(self):
-        threading.Thread.join(self)
-        return self._return
-
 #---------------------------------------------------------------------------------
 # Motion Correction: Helper Functions
 #---------------------------------------------------------------------------------
@@ -174,82 +151,6 @@ def expandTimepoints(imgFn, baseDir):
     return filenames
 
 
-def prealignImageAffine(baseDir, expandedImgs, transformPrefix):
-    """
-    Prealign the expanded image using an affine transformation
-
-    Inputs:
-    - baseDir: the base directory, used to create the new directory
-               for the prealigned images
-    - expandedImgs: a list of paths to the expanded images
-    - transformPrefix: the prefix for the prealignment transform 
-
-    Returns:
-    - preprocImgs: a list of paths to the preprocessed images
-
-    Effects:
-    - Create a new directory, ./baseDir/preprocessed/
-    - Save the prealigned images to the new directory
-    """
-
-    # if the directory doesn't exist, create it
-    outDir = baseDir+"prealigned/"
-    if not os.path.exists(outDir):
-        os.mkdir(outDir)
-
-    # set up the expandedImgs list
-    preprocImgs = [fn.replace('timepoints', 'prealigned') for fn in expandedImgs]
-
-    counter = 0
-    templateFn = expandedImgs[0]
-    # copy the template image into the new directory
-    shutil.copy(templateFn, outDir)
-    # for each file
-    for origImg, newImg in zip(expandedImgs[1:], preprocImgs[1:]):
-        # if the file exists in the new directory, skip it
-        # if not os.path.isfile(newImg):
-
-        # set up the thread
-        reg = Registration()
-        reg.inputs.fixed_image = templateFn
-        reg.inputs.moving_image = origImg
-        reg.inputs.output_transform_prefix = transformPrefix
-        reg.inputs.interpolation = 'NearestNeighbor'
-
-        # # affine transform
-        reg.inputs.transforms = ['Rigid']
-        reg.inputs.transform_parameters = [(2.0,)]
-        reg.inputs.number_of_iterations = [[1500, 200]]
-        reg.inputs.dimension = 3
-        reg.inputs.write_composite_transform = False
-        reg.inputs.collapse_output_transforms = True
-        reg.inputs.initialize_transforms_per_stage = False
-        reg.inputs.metric = ['MI']
-        reg.inputs.metric_weight = [1]
-        reg.inputs.radius_or_number_of_bins = [32]
-        reg.inputs.sampling_strategy = ['Random']
-        reg.inputs.sampling_percentage = [0.15]
-        reg.inputs.convergence_threshold = [1.e-8]
-        reg.inputs.convergence_window_size = [20]
-        reg.inputs.smoothing_sigmas = [[2,1]]
-        reg.inputs.sigma_units = ['vox']
-        reg.inputs.shrink_factors = [[2,1]]
-
-        reg.inputs.output_warped_image = newImg
-
-        if counter != 0:
-            reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
-            reg.inputs.invert_initial_moving_transform = False
-        
-        counter += 1
-
-        # run the registration
-        reg.run()
-
-    # return the list of aligned images
-    return preprocImgs
-
-
 def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     """
     Register 2 images taken at different timepoints.
@@ -259,11 +160,11 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     - nextCompImg: filename of the first image from the next compartment
     - transformPrefix: name of the file to save the transform to
 
-    Outputs:
+    Returns:
     - None
 
     Effects:
-    - Saves the registered image
+    - Saves the registration files
     """
 
     # for debugging
@@ -299,25 +200,8 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     reg.inputs.sigma_units = ['vox']
     reg.inputs.shrink_factors = [[2,1]]
 
-    # # Nonlinear transform
-    # reg.inputs.transforms = ['SyN']
-    # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-    # reg.inputs.number_of_iterations = [[100, 50, 30]]
-    # reg.inputs.dimension = 3
-    # reg.inputs.write_composite_transform = False
-    # reg.inputs.collapse_output_transforms = True
-    # reg.inputs.initialize_transforms_per_stage = False
-    # reg.inputs.metric = ['CC']
-    # reg.inputs.metric_weight = [1]
-    # reg.inputs.radius_or_number_of_bins = [32]
-    # reg.inputs.convergence_threshold = [1.e-8]
-    # reg.inputs.convergence_window_size = [20]
-    # reg.inputs.smoothing_sigmas = [[2,1,0]]
-    # reg.inputs.sigma_units = ['vox']
-    # reg.inputs.shrink_factors = [[3,2,1]]
-
     reg.inputs.use_estimate_learning_rate_once = [True]
-    reg.inputs.use_histogram_matching = [True] # This is the ult
+    reg.inputs.use_histogram_matching = [True] # This is the default
     reg.inputs.output_warped_image = False
     # reg.inputs.output_warped_image = 'testing.nii.gz'
 
@@ -342,89 +226,18 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     - transformPrefix: prefix for the transform function
     - initialize: optional parameter to specify the location of the
                   transformation matrix from the previous registration
+    - initialRegFile: optional parameter to be used with the initialize paramter;
+                      specifies which output_#Affine.mat file to use
 
     Outputs:
-    - Currently, nothing. Should return or save the transformation
+    - None
 
     Effects:
-    - Saves the registered image
+    - Saves the registered image and the registration files
     """
     print("Output filename:", outFn)
     # if not os.path.isfile(outFn):
     #     print("The file to be registered does not exist. Registering now.")
-
-    # Affine transform
-    # reg = Registration()
-    # reg.inputs.fixed_image = fixedImgFn
-    # reg.inputs.moving_image = movingImgFn
-    # reg.inputs.output_transform_prefix = transformPrefix
-    # reg.inputs.interpolation = 'NearestNeighbor'
-    # reg.inputs.transforms = ['Affine']
-    # reg.inputs.transform_parameters = [(2.0,)]
-    # reg.inputs.number_of_iterations = [[1500, 200]]
-    # reg.inputs.dimension = 3
-    # reg.inputs.write_composite_transform = False
-    # reg.inputs.collapse_output_transforms = True
-    # reg.inputs.initialize_transforms_per_stage = False
-    # reg.inputs.metric = ['CC']
-    # reg.inputs.metric_weight = [1]
-    # reg.inputs.radius_or_number_of_bins = [5]
-    # reg.inputs.sampling_strategy = ['Random']
-    # reg.inputs.sampling_percentage = [0.05]
-    # reg.inputs.convergence_threshold = [1.e-8]
-    # reg.inputs.convergence_window_size = [20]
-    # reg.inputs.smoothing_sigmas = [[1,0]]
-    # reg.inputs.sigma_units = ['vox']
-    # reg.inputs.shrink_factors = [[2,1]]
-    # reg.inputs.use_estimate_learning_rate_once = [True]
-    # reg.inputs.use_histogram_matching = [True] # This is the default
-    # reg.inputs.output_warped_image = outFn
-    # reg.inputs.num_threads = 20
-
-    # if initialize is True:
-    #     reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
-    #     reg.inputs.invert_initial_moving_transform = False
-
-    # # print(reg.cmdline)
-    # # print("Starting affine registration for",outFn)
-    # reg.run()
-    # # print("Finished running affine registration for", outFn)
-
-    # # Nonlinear transform
-    # reg = Registration()
-    # reg.inputs.fixed_image = fixedImgFn
-    # # reg.inputs.moving_image = outFn
-    # reg.inputs.moving_image = movingImgFn
-    # reg.inputs.output_transform_prefix = transformPrefix
-    # reg.inputs.interpolation = 'NearestNeighbor'
-    # reg.inputs.transforms = ['SyN']
-    # reg.inputs.transform_parameters = [(0.25, 3.0, 0.0)]
-    # reg.inputs.number_of_iterations = [[100, 50, 30]]
-    # reg.inputs.dimension = 3
-    # reg.inputs.write_composite_transform = False
-    # reg.inputs.collapse_output_transforms = True #change to false
-    # reg.inputs.initialize_transforms_per_stage = False
-    # reg.inputs.metric = ['CC']
-    # reg.inputs.metric_weight = [1]
-    # reg.inputs.radius_or_number_of_bins = [5]
-    # reg.inputs.convergence_threshold = [1.e-8]
-    # reg.inputs.convergence_window_size = [20]
-    # reg.inputs.smoothing_sigmas = [[2,1,0]]
-    # reg.inputs.sigma_units = ['vox']
-    # reg.inputs.shrink_factors = [[3,2,1]]
-    # reg.inputs.use_estimate_learning_rate_once = [True]
-    # reg.inputs.use_histogram_matching = [True] # This is the default
-    # reg.inputs.output_warped_image = outFn
-    # reg.inputs.num_threads = 50
-
-    # if initialize is True:
-    #     reg.inputs.initial_moving_transform = transformPrefix+'0GenericAffine.mat'
-    #     reg.inputs.invert_initial_moving_transform = False
-
-    # print(reg.cmdline)
-    # print("Starting nonlinear registration for",outFn)
-    # reg.run()
-    # print("Finished running nonlinear registration for", outFn)
 
     # Affine and SyN transforms
     reg = Registration()
@@ -475,8 +288,8 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
 
 def alignCompartments(fixedImg, movingImgs, transform):
     """
-    Given a precalculated linking transform and a fixed image (required by ANTS, not 
-    sure why), align each image in the movingImgs list to the fixed image.
+    Given a precalculated linking transform and a fixed image (used for coordinate
+    system and/or metadata), align each image in the movingImgs list to the fixed image.
 
     Inputs:
     - fixedImg: the path to the fixed image
@@ -489,8 +302,6 @@ def alignCompartments(fixedImg, movingImgs, transform):
     Effects:
     - Overwrites the specified images with a more aligned version of the same images
 
-    *** Note: The fixed image sounds like it's only used for its metadata 
-              and coordiante system
     """
     # for each image
     for m in movingImgs:
@@ -508,7 +319,7 @@ def alignCompartments(fixedImg, movingImgs, transform):
 
 def stackNiftis(origFn, registeredFns, outFn):
     """
-    Combine the registered timepoint images into a single file.
+    Combine the list of registered timepoint images into a single file.
 
     Inputs:
     - origFn: filename of the original image file
@@ -584,7 +395,6 @@ def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=Fals
             myThreads.append(t)
             t.start()
         # do I need to limit the number of threads?
-        # or will they automatically limit themselves to the number of cores?
 
     print(timepointFns)
 
@@ -626,7 +436,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix):
     # register the first timepoint to the template
     registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, initialize=False)
 
-    # register the second timepoint to the template
+    # register the second timepoint to the template using the initialized transform
     registerToTemplate(templateFn, timepoints[2], registeredFns[2], outputDir, transformPrefix, initialize=True, initialRegFile=0)
 
     # for each subsequent image
@@ -939,58 +749,6 @@ def main(baseDir):
         print(transformPrefix)
         # register the images using HMM correction
         registeredFns = markovCorrection(timepointFns, outputDir, transformPrefix)
-
-    elif args.correctionType == 'bi-hmm':
-        """
-        Bifurcating HMM: use the middle image as the template and build out
-        """
-        # make the output directory 
-        outputDir = baseDir + "bi-hmm/"
-        if not os.path.exists(outputDir):
-            os.mkdir(outputDir)
-
-        print(outputDir)
-
-        # divide the timepoint filenames list in half
-        midpoint = len(timepointFns)/2
-        print("midpoint:",midpoint)
-        firstHalf = timepointFns[:midpoint]
-        # reverse the first list
-        firstHalf = firstHalf[::-1]  # reverse the first half list of filenames
-        print("Check the template file:", firstHalf[0])
-        secondHalf = timepointFns[midpoint-1:]
-        print("Check the template file:", secondHalf[0])
-
-        # save the template image in the tmp folder
-        img = load_image(firstHalf[0])
-        coord = img.coordmap
-        template = Image(img, coord)
-        if not os.path.exists(tmpDir+"templates/"):
-            os.mkdir(tmpDir+"templates/")
-        save_image(template, tmpDir+"templates/bi-hmm_"+firstHalf[0].split('/')[-1])
-
-        # set up the variable to indicate the location of the transform prefix
-        if not os.path.exists(tmpDir+"prealignTransforms/"):
-            os.mkdir(tmpDir+"prealignTransforms/")
-        transformPrefix = tmpDir+"prealignTransforms/bi-hmm_"
-        print(transformPrefix)
-
-        # make the threads
-        t1 = hmmMotionCorrectionThread(1, "firstHalf", firstHalf, outputDir, transformPrefix)
-        t2 = hmmMotionCorrectionThread(2, "secondHalf", secondHalf, outputDir, transformPrefix)
-
-        # start the threads
-        t1.start()
-        t2.start()
-
-        # join on the threads
-        out1 = t1.join()
-        #t2.start()
-        out2 = t2.join()
-
-        # format the filenames
-        registeredFns = list(set(out1+out2))
-        registeredFns.sort()
 
     elif args.correctionType == 'stacking-hmm':
         """
