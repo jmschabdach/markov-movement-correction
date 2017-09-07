@@ -14,8 +14,8 @@ for i in "$BASE"/* ; do
     if [ -d "$i" ] ; then
         SUB_ORIG="$i/BOLD.nii"
         echo "$SUB_ORIG"
-        python hmmMovementCorrection.py -i $SUB_ORIG -o corrected_firstTimepoint.nii.gz -t first-timepoint
-        # bash runAndNotify.sh python hmmMovementCorrection.py -i $SUB_ORIG -o corrected_firstTimepoint.nii.gz -t first-timepoint
+        # python hmmMovementCorrection.py -i $SUB_ORIG -o corrected_firstTimepoint.nii.gz -t first-timepoint
+        bash runAndNotify.sh python hmmMovementCorrection.py -i $SUB_ORIG -o corrected_firstTimepoint.nii.gz -t first-timepoint
     fi
 done
 
