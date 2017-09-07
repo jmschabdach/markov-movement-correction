@@ -2,3 +2,5 @@ tmp/
 *.nii.gz
 *.nii
 .ipynb_checkpoints/
+*.png
+*.pdf
