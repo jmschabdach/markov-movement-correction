@@ -275,12 +275,12 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.run()
     print("Finished affine/syn registration for",outFn)
 
-    tmpIdx = transformPrefix.index('transforms/')+len('transforms/')
-    transformDir = os.listdir(transformPrefix[:tmpIdx])
-    transformDir.sort()
-    print("Files in transform/ dir:")
-    for fn in transformDir:
-        print("   ", fn)
+    # tmpIdx = transformPrefix.index('transforms/')+len('transforms/')
+    # transformDir = os.listdir(transformPrefix[:tmpIdx])
+    # transformDir.sort()
+    # print("Files in transform/ dir:")
+    # for fn in transformDir:
+    #     print("   ", fn)
 
     # else:
     #     print("WARNING: existing registered image found, image registration skipped.")
@@ -780,29 +780,29 @@ def main():
         # templateImg = subset[0]
         # registeredFns = motionCorrection(templateImg, subset, outDir, baseDir)
 
-        ## HMM
-        outDir = testDir+'hmm/'
-        if not os.path.exists(outDir):
-            os.mkdir(outDir)
+        # ## HMM
+        # outDir = testDir+'hmm/'
+        # if not os.path.exists(outDir):
+        #     os.mkdir(outDir)
 
-        if not os.path.exists(testDir+'transforms/'):
-            os.mkdir(testDir+'transforms/')
+        # if not os.path.exists(testDir+'transforms/'):
+        #     os.mkdir(testDir+'transforms/')
 
-        registeredFns = markovCorrection(subset, outDir, testDir+'transforms/testing_hmm_transform_')
+        # registeredFns = markovCorrection(subset, outDir, testDir+'transforms/testing_hmm_transform_')
 
-        ## Markov
-        # # copy the subset to a timepoints dir in testing dir
-        # spareDir = testDir+"timepoints/"
-        # if not os.path.exists(spareDir):
-        #     os.mkdir(spareDir)
-        # for img in subset:
-        #     shutil.copy2(img, spareDir)
-        # subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
+        # Stacking Markov
+        # copy the subset to a timepoints dir in testing dir
+        spareDir = testDir+"timepoints/"
+        if not os.path.exists(spareDir):
+            os.mkdir(spareDir)
+        for img in subset:
+            shutil.copy2(img, spareDir)
+        subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
         
-        # # now use the stacking-hmm function
-        # numCompartments = 5
-        # print("Submitting", numCompartments, "compartments")
-        # registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
+        # now use the stacking-hmm function
+        numCompartments = 5
+        print("Submitting", numCompartments, "compartments")
+        registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")
