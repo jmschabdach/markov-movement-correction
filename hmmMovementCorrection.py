@@ -270,7 +270,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.initial_moving_transform = transformPrefix+str(initialRegFile)+'Affine.mat'
         reg.inputs.invert_initial_moving_transform = False
 
-    print(reg.cmdline)
+    # print(reg.cmdline)
     print("Starting affine/syn registration for",outFn)
     reg.run()
     print("Finished affine/syn registration for",outFn)
@@ -527,8 +527,8 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
         # make a new HMM motion correction thread
         t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i)+'_')
         # add the name of the transform file to the appropriate list
-        compartmentTransformFns.append(transformPrefix+str(i)+'_0GenericAffine.mat')
-        print("In stackingHmmCorrection:", transformPrefix+str(i)+'_0GenericAffine.mat')
+        compartmentTransformFns.append(transformPrefix+str(i)+'_1Affine.mat')
+        print("In stackingHmmCorrection:", transformPrefix+str(i)+'_1Affine.mat')
         # add the thread to the list of threads
         threads.append(t)
 
