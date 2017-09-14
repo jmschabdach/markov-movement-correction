@@ -765,7 +765,7 @@ def main():
                     currently adding lots of extra files/dirs for testing
         """
         # get a subset of images
-        subset = timepointFns[:25]
+        subset = timepointFns
         print(baseDir)
         # # make a testing dir
         testDir = baseDir+'testing/'
@@ -800,7 +800,7 @@ def main():
         subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
         
         # now use the stacking-hmm function
-        numCompartments = 5
+        numCompartments = 6
         print("Submitting", numCompartments, "compartments")
         registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
 
