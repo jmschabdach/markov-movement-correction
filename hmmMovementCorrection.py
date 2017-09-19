@@ -267,7 +267,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.num_threads = 50
 
     if initialize is True:
-        reg.inputs.initial_moving_transform = transformPrefix+str(initialRegFile)+'Affine.mat'
+        reg.inputs.initial_moving_transform = [transformPrefix+str(initialRegFile)+'Affine.mat', transformPrefix+str(initialRegFile+1)+"Warp.nii.gz"]
         reg.inputs.invert_initial_moving_transform = False
 
     # print(reg.cmdline)
@@ -310,7 +310,7 @@ def alignCompartments(fixedImg, movingImgs, transform):
         at.inputs.input_image = m
         at.inputs.reference_image = fixedImg
         at.inputs.output_image = m
-        at.inputs.transforms = transform
+        at.inputs.transforms = [transform+'_1Affine.mat', transform+'_2Warp.nii.gz']
         at.inputs.interpolation = 'NearestNeighbor'
         at.inputs.invert_transform_flags =[False]
         # run the transform application
@@ -514,8 +514,8 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
         # make a new HMM motion correction thread
         t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i)+'_')
         # add the name of the transform file to the appropriate list
-        compartmentTransformFns.append(transformPrefix+str(i)+'_1Affine.mat')
-        print("In stackingHmmCorrection:", transformPrefix+str(i)+'_1Affine.mat')
+        compartmentTransformFns.append(transformPrefix+str(i))
+        print("In stackingHmmCorrection:", transformPrefix+str(i))
         # add the thread to the list of threads
         threads.append(t)
 
