@@ -310,7 +310,7 @@ def alignCompartments(fixedImg, movingImgs, transform):
         at.inputs.input_image = m
         at.inputs.reference_image = fixedImg
         at.inputs.output_image = m
-        at.inputs.transforms = [transform+'_1Affine.mat', transform+'_2Warp.nii.gz']
+        at.inputs.transforms = transform+'_1Affine.mat'
         at.inputs.interpolation = 'NearestNeighbor'
         at.inputs.invert_transform_flags =[False]
         # run the transform application
