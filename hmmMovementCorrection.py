@@ -730,7 +730,7 @@ def main():
                     currently adding lots of extra files/dirs for testing
         """
         # get a subset of images
-        subset = timepointFns[:16]
+        subset = timepointFns
         print(baseDir)
         # # make a testing dir
         testDir = baseDir+'testing/'
