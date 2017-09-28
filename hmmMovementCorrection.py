@@ -605,7 +605,6 @@ def main():
         if not os.path.exists(outputDir):
             os.mkdir(outputDir)
 
-        # print(outputDir)
         # register the images sequentially
         templateImg = timepointFns[0]
         registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir)
@@ -765,7 +764,7 @@ def main():
         subset = [img.replace('timepoints/', 'testing/timepoints/') for img in subset]
         
         # now use the stacking-hmm function
-        numCompartments = 4
+        numCompartments = 6
         print("Submitting", numCompartments, "compartments")
         registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
 
