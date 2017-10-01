@@ -532,16 +532,6 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
     # sort the hmmCompartments
     hmmCompartments = sorted(hmmCompartments)
 
-    # **** IMPORTANT: when perfected, remove this step
-    # copy over the hmm registered images to a new directory
-    spareDir = baseDir+"stackingHmmNotLinked/"
-    if not os.path.exists(spareDir):
-        os.mkdir(spareDir)
-    for compartment in hmmCompartments:
-        for image in compartment:
-            shutil.copy2(image, spareDir)
-            print(image)
-
     # Step 4: apply linking transform to each compartment
     # iterate through the transform functions list, backward
     # skip the last transform function - it's for the last compartment
@@ -720,7 +710,7 @@ def main():
         Stacking HMM: divide the timeseries into compartments, HMM each compartment, recombine
         """
         # make compartments
-        numCompartments = 6 # 150/6 = 25, nice and even
+        numCompartments = 5 # 150/6 = 25, nice and even
         registeredFns = stackingHmmCorrection(timepointFns, baseDir, numCompartments)
         
     elif args.correctionType == 'testing':
