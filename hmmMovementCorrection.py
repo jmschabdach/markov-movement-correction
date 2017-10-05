@@ -268,9 +268,9 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.transforms = ['Affine']
     reg.inputs.transform_parameters = [(2.0,)]
     reg.inputs.number_of_iterations = [[1500, 200]] 
-    reg.inputs.metric = ['CC']
+    reg.inputs.metric = ['MI']#['CC']
     reg.inputs.metric_weight = [1]
-    reg.inputs.radius_or_number_of_bins = [5]
+    reg.inputs.radius_or_number_of_bins = [32] #[5]
     reg.inputs.convergence_threshold = [1.e-8]
     reg.inputs.convergence_window_size = [20]
     reg.inputs.smoothing_sigmas = [[1,0]]
@@ -286,9 +286,9 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.initial_moving_transform = transformPrefix+str(initialRegFile)+'Affine.mat'
         reg.inputs.invert_initial_moving_transform = False
 
-    # print(reg.cmdline)
+    print(reg.cmdline)
     print("Starting affine/syn registration for",outFn)
-    reg.run()
+    # reg.run()
     print("Finished affine/syn registration for",outFn)
 
     # tmpIdx = transformPrefix.index('transforms/')+len('transforms/')
