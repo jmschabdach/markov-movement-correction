@@ -286,9 +286,9 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.initial_moving_transform = transformPrefix+str(initialRegFile)+'Affine.mat'
         reg.inputs.invert_initial_moving_transform = False
 
-    print(reg.cmdline)
+    # print(reg.cmdline)
     print("Starting affine/syn registration for",outFn)
-    # reg.run()
+    reg.run()
     print("Finished affine/syn registration for",outFn)
 
     # tmpIdx = transformPrefix.index('transforms/')+len('transforms/')
