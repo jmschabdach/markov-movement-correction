@@ -3,7 +3,7 @@
 # TODO: generalize the filename out
 
 # set up any vars here
-BASE='/home/jms565/Research/CHP-PIRC/markov-movement-correction'
+BASE='/home/jms565/Research/CHP-PIRC/markov-movement-correction/Controls'
 #BASE='/home/jenna/Research/CHP-PIRC/sandbox'
 #BASE='/home/pirc/processing/Motion_Correction/Controls/'
 # TEMPLATE="$BASE/timepoints/000.nii.gz"
