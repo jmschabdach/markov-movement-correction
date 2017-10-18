@@ -123,7 +123,7 @@ def expandTimepoints(imgFn, baseDir):
     """
     # load the image
     img = load_image(imgFn)
-    print(img.get_data().shape)
+    # print(img.get_data().shape)
     coord = img.coordmap
 
     if not os.path.exists(baseDir+'timepoints/'):
@@ -168,8 +168,8 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     """
 
     # for debugging
-    print(prevCompImg)
-    print(nextCompImg)
+    # print(prevCompImg)
+    # print(nextCompImg)
 
     # check if the transform file exists:
     # if not os.path.isfile(transformFn+"Composite.h5") and not os.path.isfile(transformFn+"InverseComposite.h5"):
@@ -235,7 +235,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     Effects:
     - Saves the registered image and the registration files
     """
-    print("Output filename:", outFn)
+    # print("Output filename:", outFn)
     # if not os.path.isfile(outFn):
     #     print("The file to be registered does not exist. Registering now.")
 
@@ -251,33 +251,33 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.collapse_output_transforms = False
     reg.inputs.initialize_transforms_per_stage = False
 
-    #reg.inputs.transforms = ['Affine', 'SyN']
-    #reg.inputs.transform_parameters = [(2.0,),(0.25, 3.0, 0.0)]
-    #reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]] 
-    #reg.inputs.metric = ['CC']*2
-    #reg.inputs.metric_weight = [1]*2
-    #reg.inputs.radius_or_number_of_bins = [5]*2
-    #reg.inputs.convergence_threshold = [1.e-8, 1.e-9]
-    #reg.inputs.convergence_window_size = [20]*2
-    #reg.inputs.smoothing_sigmas = [[1,0],[2,1,0]]
-    #reg.inputs.sigma_units = ['vox']*2
-    #reg.inputs.shrink_factors = [[2,1],[3,2,1]]
-    #reg.inputs.use_estimate_learning_rate_once = [True,True]
-    #reg.inputs.use_histogram_matching = [True, True] # This is the default
+    reg.inputs.transforms = ['Affine', 'SyN']
+    reg.inputs.transform_parameters = [(2.0,),(0.25, 3.0, 0.0)]
+    reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]] 
+    reg.inputs.metric = ['CC']*2
+    reg.inputs.metric_weight = [1]*2
+    reg.inputs.radius_or_number_of_bins = [5]*2
+    reg.inputs.convergence_threshold = [1.e-8, 1.e-9]
+    reg.inputs.convergence_window_size = [20]*2
+    reg.inputs.smoothing_sigmas = [[1,0],[2,1,0]]
+    reg.inputs.sigma_units = ['vox']*2
+    reg.inputs.shrink_factors = [[2,1],[3,2,1]]
+    reg.inputs.use_estimate_learning_rate_once = [True,True]
+    reg.inputs.use_histogram_matching = [True, True] # This is the default
 
-    reg.inputs.transforms = ['Affine']
-    reg.inputs.transform_parameters = [(2.0,)]
-    reg.inputs.number_of_iterations = [[1500, 200]] 
-    reg.inputs.metric = ['MI']#['CC']
-    reg.inputs.metric_weight = [1]
-    reg.inputs.radius_or_number_of_bins = [32] #[5]
-    reg.inputs.convergence_threshold = [1.e-8]
-    reg.inputs.convergence_window_size = [20]
-    reg.inputs.smoothing_sigmas = [[1,0]]
-    reg.inputs.sigma_units = ['vox']
-    reg.inputs.shrink_factors = [[2,1]]
-    reg.inputs.use_estimate_learning_rate_once = [True]
-    reg.inputs.use_histogram_matching = [True] # This is the default
+    # reg.inputs.transforms = ['Affine']
+    # reg.inputs.transform_parameters = [(2.0,)]
+    # reg.inputs.number_of_iterations = [[1500, 200]] 
+    # reg.inputs.metric = ['MI']#['CC']
+    # reg.inputs.metric_weight = [1]
+    # reg.inputs.radius_or_number_of_bins = [32] #[5]
+    # reg.inputs.convergence_threshold = [1.e-8]
+    # reg.inputs.convergence_window_size = [20]
+    # reg.inputs.smoothing_sigmas = [[1,0]]
+    # reg.inputs.sigma_units = ['vox']
+    # reg.inputs.shrink_factors = [[2,1]]
+    # reg.inputs.use_estimate_learning_rate_once = [True]
+    # reg.inputs.use_histogram_matching = [True] # This is the default
 
     reg.inputs.output_warped_image = outFn
     reg.inputs.num_threads = 50
@@ -365,8 +365,8 @@ def stackNiftis(origFn, registeredFns, outFn):
             imgs.append(img.get_data())
 
     imgs = np.stack(imgs, axis=-1)
-    print(imgs.shape)
-    print(coords)
+    # print(imgs.shape)
+    # print(coords)
     
     registeredImg = Image(imgs, coords)
     save_image(registeredImg, outFn)
@@ -412,7 +412,7 @@ def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=Fals
             t.start()
         # do I need to limit the number of threads?
 
-    print(timepointFns)
+    # print(timepointFns)
 
     for t in myThreads:
         t.join()
@@ -437,7 +437,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix):
     Effects:
     - Writes each registered file to /path/markov-movement-correction/tmp/markov/
     """
-    print(outputDir)
+    # print(outputDir)
     # get the template image filename
     templateFn = timepoints[0]
     # copy the template file to the registered directory
@@ -447,7 +447,7 @@ def markovCorrection(timepoints, outputDir, transformPrefix):
     registeredFns = [outputDir+fn.split("/")[-1].split(".")[0]+'.nii.gz' for fn in timepoints]
 
     # location of the transform file:
-    print("In markovCorrection (prefix):", transformPrefix)
+    # print("In markovCorrection (prefix):", transformPrefix)
 
     # register the first timepoint to the template
     registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, initialize=False)
@@ -456,9 +456,9 @@ def markovCorrection(timepoints, outputDir, transformPrefix):
     registerToTemplate(templateFn, timepoints[2], registeredFns[2], outputDir, transformPrefix, initialize=True, initialRegFile=0)
 
     # for each subsequent image
-    print("Number of timepoints:",len(timepoints))
+    # print("Number of timepoints:",len(timepoints))
     for i in xrange(3, len(timepoints)):
-        print("Time", i, "outfn:", registeredFns[i])
+        # print("Time", i, "outfn:", registeredFns[i])
         # register the new timepoint to the template, using initialized transform
         registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, initialRegFile=1)
 
@@ -481,7 +481,7 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
     - 
     """
 
-    print("There are", numCompartments,"compartments being used.")
+    # print("There are", numCompartments,"compartments being used.")
 
     # make the output directory
     outputDir = baseDir + 'stacking-hmm/'
@@ -499,7 +499,7 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
     # make the list of lists
     compartments = [timepointFns[i*imgsPerCompartment:((i+1)*imgsPerCompartment)+1] for i in xrange(numCompartments-1)]
     compartments.append(timepointFns[imgsPerCompartment*(numCompartments-1):])
-    print("There are", len(compartments))
+    # print("There are", len(compartments))
 
     flatCompartments = compartments[:]
     for i in xrange(len(compartments)):
@@ -508,15 +508,15 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
         else:
             flatCompartments[i] = flatCompartments[i][1:]
 
-    for c in compartments:
-        print(c)
-        print(len(c))
+    # for c in compartments:
+    #     print(c)
+    #     print(len(c))
 
-    print()
+    # print()
 
-    for c in flatCompartments:
-        print(c)
-        print(len(c))
+    # for c in flatCompartments:
+    #     print(c)
+    #     print(len(c))
 
     # Step 2: perform regular HMM motion correction in each compartment
     # set up the variable to indicate the location of the transform prefix
@@ -531,7 +531,7 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
         t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i)+'_')
         # add the name of the transform file to the appropriate list
         compartmentTransformFns.append(transformPrefix+str(i))
-        print("In stackingHmmCorrection:", transformPrefix+str(i))
+        # print("In stackingHmmCorrection:", transformPrefix+str(i))
         # add the thread to the list of threads
         threads.append(t)
 
@@ -673,7 +673,7 @@ def main():
 
         # # copy the first image to the output directory
         shutil.copy(timepointFns[0], outputDir)
-        print(timepointFns[0])
+        # print(timepointFns[0])
         registeredFns.append(outputDir+'000.nii.gz')
 
         # register the second image to the first
@@ -687,11 +687,11 @@ def main():
             # set the output filename
             outFn = outputDir+str(i).zfill(3)+'.nii.gz'
             # register the image to the previous image
-            print(registeredFns[-1])
+            # print(registeredFns[-1])
             registerToTemplate(registeredFns[-1], timepointFns[i], outFn, outputDir, transformPrefix, initialize=False)
             registeredFns.append(outFn)
 
-        print(registeredFns)
+        # print(registeredFns)
 
     elif args.correctionType == 'hmm':
         """
@@ -716,8 +716,8 @@ def main():
             os.mkdir(tmpDir+"prealignTransforms/")
         transformPrefix = tmpDir+"prealignTransforms/hmm_"
 
-        print(outputDir)
-        print(transformPrefix)
+        # print(outputDir)
+        # print(transformPrefix)
         # register the images using HMM correction
         registeredFns = markovCorrection(timepointFns, outputDir, transformPrefix)
 
@@ -782,13 +782,10 @@ def main():
     comboFn = baseDir+args.outputFn
     stackNiftis(origFn, registeredFns, comboFn)
 
+    return origFn, args.correctionType
+
 
 if __name__ == "__main__":
-    # set the base directory
-    # baseDir = '/home/pirc/processing/Motion_Processing/markov-movement-correction/'
-    # baseDir = '/home/jms565/Research/CHP-PIRC/markov-movement-correction/'
-    # baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
-
     # very crude numpy version check
     npVer = np.__version__
     npVerList = [int(i) for i in npVer.split('.')]
@@ -796,7 +793,7 @@ if __name__ == "__main__":
         sys.exit("Warning: the version for numpy is "+np.__version__+".\nPlease update to at least version 1.12.1 to use this pipeline.")
         
     startTime = time.time()
-    main()
+    subjFn, method = main()
     endTime = time.time() - startTime
 
     # turn this into a function
@@ -808,3 +805,24 @@ if __name__ == "__main__":
     totalSecs = endTime%60.0
     print("Total run time:",totalDays,"days,",totalHours,"hours,",totalMins,"minutes,",totalSecs)
 
+    # set up the lines and variables to write for the runtime analysis
+    headerLine = "Subject, Method, RunTime (DD:HH:MM:SS)\n"
+    subj = subjFn.split("/")[-2]
+    baseDir = subjFn.split(subj)[0]
+    print(baseDir)
+    timeLine = subj+", "+ method+", "+ str(totalDays).zfill(2) + ":" + str(totalHours).zfill(2) + ":" + str(totalMins).zfill(2) + ":" + str(totalSecs).zfill(2) + "\n"
+
+    # write the time to a file
+    fn = baseDir+"timeToRun.csv"
+    if not os.path.isfile(fn):
+        # open the file in write
+        with open(fn, "w") as file:
+            # write the header line
+            file.write(headerLine)
+            # write the time line
+            file.write(timeLine)
+
+    else:
+        with open(fn, "a+") as file:
+            # write the time line
+            file.write(timeLine)
