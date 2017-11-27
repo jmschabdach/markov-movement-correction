@@ -4,7 +4,8 @@
 
 # bash calculateCorrelationMatrix.sh 0003_MR1_18991230_000000EP2DBOLDLINCONNECTIVITYs004a001/stacking-hmm/ metrics/correlationMatrix-stackingHmm-5c.csv
 
-BASE='/home/jenna/Research/CHP-PIRC/markov-movement-correction/Controls'
+#BASE='/home/jenna/Research/CHP-PIRC/markov-movement-correction/Controls'
+BASE=$1
 
 for i in "$BASE"/* ; do
     if [ -d "$i" ] ; then

@@ -4,7 +4,8 @@
 # Useage:
 # bash calculatePowerMetrics.sh
 
-BASE='/home/jenna/Research/CHP-PIRC/markov-movement-correction/Controls'
+#BASE='/home/jenna/Research/CHP-PIRC/markov-movement-correction/Controls'
+BASE=$1
 
 for i in "$BASE"/* ; do
     if [ -d "$i" ] ; then
