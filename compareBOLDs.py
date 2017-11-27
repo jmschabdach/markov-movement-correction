@@ -43,8 +43,11 @@ for subjLinearDir, subjNonlinearDir in zip(linearDirs, nonlinearDirs):
     linearImg = load_image(origLinear)
     nonlinearImg = load_image(origNon)
 
-    linearData = linearImg.get_data()
-    nonlinearData = nonlinearImg.get_data()
+    linearData = np.asarray(linearImg.get_data())
+    nonlinearData = np.asarray(nonlinearImg.get_data())
+    # print(linearData.shape)
+    # print(nonlinearData.shape)
+    print(type(linearData), type(nonlinearData))
 
     print("Images same:",np.array_equal(linearData, nonlinearData))
 
@@ -56,14 +59,61 @@ for subjLinearDir, subjNonlinearDir in zip(linearDirs, nonlinearDirs):
     nonlinearMatrix = np.loadtxt(open(nonlinearMatrixFn, 'r'), delimiter=',')
 
     print("Correlation ratio matrices same:",np.array_equal(linearMatrix, nonlinearMatrix))
+    print("Mean linear correl matrix:", np.mean(linearMatrix))
+    print("Mean nonlinear correl matrix:", np.mean(nonlinearMatrix))
+    print("Standard dev. linear:", np.std(linearMatrix))
+    print("Standard dev. nonlinear:", np.std(nonlinearMatrix))
 
 """
-BASE1='/home/jenna/Research/CHP-PIRC/markov-movement-correction/LinearControls/0068'
+BASE1='/home/jenna/Research/CHP-PIRC/markov-movement-correction/LinearControls/0473_TC_070_02a'
 TIME1="$BASE1/timepoints/"
 TIME_FN1="$BASE1/metrics/crossCorrelation-timepoints.csv"
 
-BASE2='/home/jenna/Research/CHP-PIRC/markov-movement-correction/Controls/0068'
+BASE2='/home/jenna/Research/CHP-PIRC/markov-movement-correction/Controls/0473_TC_070_02a'
 TIME2="$BASE2/timepoints/"
 TIME_FN2="$BASE2/metrics/crossCorrelation-timepoints.csv"
-bash calculateCorrelationMatrix-2.sh $TIME1 $TIME_FN1 & bash calculateCorrelationMatrix-3.sh $TIME2 $TIME_FN2
- """
+bash calculateCorrelationMatrix-3.sh $TIME1 $TIME_FN1
+bash calculateCorrelationMatrix-3.sh $TIME2 $TIME_FN2
+"""
+
+"""
+BASE1='/home/jenna/Desktop/LinearControls'
+TIME1="$BASE1/timepoints/"
+TIME_FN1="$BASE1/crossCorrelation-timepoints.csv"
+
+BASE2='/home/jenna/Desktop/Controls/'
+TIME2="$BASE2/timepoints/"
+TIME_FN2="$BASE2/crossCorrelation-timepoints.csv"
+bash calculateCorrelationMatrix-3.sh $TIME1 $TIME_FN1
+bash calculateCorrelationMatrix-3.sh $TIME2 $TIME_FN2
+"""
+
+# For experiments on the Desktop
+baseDir = '/home/jenna/Desktop/'
+linearDir = baseDir + "LinearControls/"
+nonlinearDir = baseDir + "Controls/"
+
+origLinear = linearDir+"/0039_BOLD_Linear.nii"
+origNon = nonlinearDir+"/0039_BOLD_Nonlinear.nii"
+
+linearImg = load_image(origLinear)
+nonlinearImg = load_image(origNon)
+
+linearData = np.asarray(linearImg.get_data())
+nonlinearData = np.asarray(nonlinearImg.get_data())
+print(type(linearData), type(nonlinearData))
+
+print("Images same:",np.array_equal(linearData, nonlinearData))
+
+# Check the correlation ratio matrices
+linearMatrixFn = linearDir+"/crossCorrelation-timepoints.csv"
+nonlinearMatrixFn = nonlinearDir+"/crossCorrelation-timepoints.csv"
+
+linearMatrix = np.loadtxt(open(linearMatrixFn, 'r'), delimiter=',')
+nonlinearMatrix = np.loadtxt(open(nonlinearMatrixFn, 'r'), delimiter=',')
+
+print("Correlation ratio matrices same:",np.array_equal(linearMatrix, nonlinearMatrix))
+print("Mean linear correl matrix:", np.mean(linearMatrix))
+print("Mean nonlinear correl matrix:", np.mean(nonlinearMatrix))
+print("Standard dev. linear:", np.std(linearMatrix))
+print("Standard dev. nonlinear:", np.std(nonlinearMatrix))

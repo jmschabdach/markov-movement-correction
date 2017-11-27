@@ -38,7 +38,7 @@ coord = img.coordmap
 for i in xrange(img.get_data().shape[3]):
     tmp = img[:,:,:,i].get_data()[:,:,:,None]
     tmpImg = Image(tmp, coord)
-    outFn = outDir+outImgBase+'_'+str(i).zfill(3)+'.nii.gz'
+    outFn = outDir+str(i).zfill(3)+'.nii.gz'
     save_image(tmpImg, outFn)
 
 # finished splitting the image
