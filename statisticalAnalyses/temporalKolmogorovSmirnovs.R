@@ -105,7 +105,7 @@ plot(density(dispHmms),
      ylab = "Density")
 lines(density(dispFirsts), lty=2)
 # lines(density(dispBOLDs), lty=1, col="blue")
-abline(v=2.0, col='red')
+abline(v=0.2, col='red')
 legend(11.75, .8, 
        c("HMM", "First Volume", "Threshold"), 
        lty=c(1,2, 1), lwd=c(2.5, 2.5, 2.5),
@@ -133,19 +133,23 @@ mean(dispFirsts)
 median(dispFirsts)
 sd(dispFirsts)
 skewness(dispFirsts)
+kurtosis(dispFirsts)
 
 mean(dispHmms)
 median(dispHmms)
 sd(dispHmms)
 skewness(dispHmms)
+kurtosis(dispHmms)
 
 
 mean(intFirsts)
 median(intFirsts)
 sd(intFirsts)
 skewness(intFirsts)
+kurtosis(intFirsts)
 
 mean(intHmms)
 median(intHmms)
 sd(intHmms)
 skewness(intHmms)
+kurtosis(intHmms)
