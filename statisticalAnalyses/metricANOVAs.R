@@ -1,8 +1,12 @@
 library(rlist)
 
 # read the data
-dispFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/LinearControls/tableOfDisplacementAverages.csv"
-intFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/LinearControls/tableOfIntensityAverages.csv"
+linearDispFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/Controls/tableOfDisplacementAverages.csv"
+linearIntFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/Controls/tableOfIntensityAverages.csv"
+linearDispData <- read.csv(linearDispFn)
+linearIntData <- read.csv(linearIntFn)
+dispFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/LinearControls/tableOfDisplacementAverages.csv"
+intFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/LinearControls/tableOfIntensityAverages.csv"
 dispData <- read.csv(dispFn)
 intData <- read.csv(intFn)
 

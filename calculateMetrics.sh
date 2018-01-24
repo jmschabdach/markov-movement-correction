@@ -4,8 +4,8 @@
 # Updated analysis: 11/18/2017
 # Usage: bash calculateMetrics.sh
 
-BASE="/home/jms565/Research/CHP-PIRC/markov-movement-correction/Controls"
-#BASE="/home/jenna/Research/CHP-PIRC/markov-movement-correction/Controls/"
+BASE="/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/LinearControls"
+#BASE="/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/Controls/"
 
 # Just in case, remove all existing unzipped volumes and re-unzip the BOLDs
 for i in "$BASE"/* ; do
@@ -26,9 +26,9 @@ done
 
 # Calculate correlation ratio matrices
 bash calculateCorrelationMatrices-timepoints.sh $BASE #&
-#bash calculateCorrelationMatrices-first.sh $BASE #&
-#bash calculateCorrelationMatrices-hmm.sh $BASE #&
+bash calculateCorrelationMatrices-first.sh $BASE #&
+bash calculateCorrelationMatrices-hmm.sh $BASE #&
 #bash calculateCorrelationMatrices-stacking.sh
 
 # Calculate Power et al. displacement and RMS intensity change
-#bash calculatePowerMetrics.sh $BASE
+bash calculatePowerMetrics.sh $BASE

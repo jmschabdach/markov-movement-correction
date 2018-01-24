@@ -22,8 +22,12 @@ from nipype.interfaces import dcmstack
 # threading
 import threading
 
+"""
+Check to make sure the images and results processed on both DBMI and PIRC computers are the same.
+"""
+
 # Examine all subjects
-baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/'
+baseDir = '/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/'
 linearDir = baseDir + "LinearControls/"
 nonlinearDir = baseDir + "Controls/"
 
@@ -58,6 +62,7 @@ for subjLinearDir, subjNonlinearDir in zip(linearDirs, nonlinearDirs):
     linearMatrix = np.loadtxt(open(linearMatrixFn, 'r'), delimiter=',')
     nonlinearMatrix = np.loadtxt(open(nonlinearMatrixFn, 'r'), delimiter=',')
 
+#    if not np.array_equal(linearMatrix, nonlinearMatrix):
     print("Correlation ratio matrices same:",np.array_equal(linearMatrix, nonlinearMatrix))
     print("Mean linear correl matrix:", np.mean(linearMatrix))
     print("Mean nonlinear correl matrix:", np.mean(nonlinearMatrix))
