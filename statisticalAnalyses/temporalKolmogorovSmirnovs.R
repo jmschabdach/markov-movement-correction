@@ -2,8 +2,10 @@ library(rlist)
 library(moments)
 
 # read the data
-dispFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/LinearControls/displacementCounts.csv"
-intFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/LinearControls/intensityCounts.csv"
+dispFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/LinearControls/displacementCounts.csv"
+intFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/LinearControls/intensityCounts.csv"
+#dispFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/Controls/displacementCounts.csv"
+#intFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/Controls/intensityCounts.csv"
 dispData <- read.csv(dispFn)
 intData <- read.csv(intFn)
 
@@ -94,9 +96,10 @@ intDs
 ks.test(dispFirsts, dispHmms, alternative = "less")
 ks.test(intFirsts, intHmms, alternative = "less")
 
-setwd('/home/jenna/Research/CHP-PIRC/markov-motion-correction/figures/')
+setwd('/home/jenna/Research/CHP-PIRC/markov-movement-correction/figures/')
 
-png(filename = "powerDensityDisplacement",
+#png(filename = "powerDensityDisplacementNonlinear.png",
+png(filename = "powerDensityDisplacement.png",
     width = 17, height = 12, units="cm", bg = "white", res=600)
 # plot densities
 plot(density(dispHmms),
@@ -112,7 +115,7 @@ legend(11.75, .8,
        col=c("black", "black", "red"))
 dev.off()
 
-
+#png(filename = "powerDensityVoxelNonlinear.png",
 png(filename = "powerDensityVoxel.png",
     width = 17, height = 12, units="cm", bg = "white", res=600)
 # plot intensities
