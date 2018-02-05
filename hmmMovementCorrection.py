@@ -43,7 +43,7 @@ class motionCorrectionThread(threading.Thread):
     """
     Implementation of the threading class.
     """
-    def __init__(self, threadId, name, templateFn, timepointFn, outputFn, outputDir, templatePrefix, prealign=False):
+    def __init__(self, threadId, name, templateFn, timepointFn, outputFn, outputDir, templatePrefix, prealign=False, regType='nonlinear'):
         # What other properties my threads will need?
         threading.Thread.__init__(self)
         self.threadId = threadId
@@ -54,13 +54,14 @@ class motionCorrectionThread(threading.Thread):
         self.outputDir = outputDir
         self.templatePrefix = templatePrefix
         self.prealign = prealign
+        self.regType = regType
 
     def run(self):
         print("Starting motion correction for", self.name)
         if not self.prealign:
-            registerToTemplate(self.templateFn, self.timepointFn, self.outputFn, self.outputDir, self.templatePrefix)
+            registerToTemplate(self.templateFn, self.timepointFn, self.outputFn, self.outputDir, self.templatePrefix, regType=self.regType)
         else:
-            registerToTemplatePrealign(self.templateFn, self.timepointFn, self.outputFn, self.outputDir, self.templatePrefix)
+            registerToTemplatePrealign(self.templateFn, self.timepointFn, self.outputFn, self.outputDir, self.templatePrefix, regType=self.regType)
         print("Finished motion correction for", self.name)
 
 class hmmMotionCorrectionThread(threading.Thread):
@@ -69,7 +70,7 @@ class hmmMotionCorrectionThread(threading.Thread):
 
     Purpose: allow for sectioned HMM motion correction. 
     """
-    def __init__(self, threadId, threadName, filenames, outputDir, transformPrefix):
+    def __init__(self, threadId, threadName, filenames, outputDir, transformPrefix, regType='nonlinear'):
         threading.Thread.__init__(self)
         self.threadId = threadId
         self.name = threadName
@@ -77,10 +78,11 @@ class hmmMotionCorrectionThread(threading.Thread):
         self.outputDir = outputDir
         self.transformPrefix = transformPrefix
         self._return = None
+        self.regType = regType
 
     def run(self):
         print("Starting the HMM motion correction for", self.name)
-        outfiles = markovCorrection(self.fns, self.outputDir, self.transformPrefix)
+        outfiles = markovCorrection(self.fns, self.outputDir, self.transformPrefix, regType=self.regType)
         print("Finished the HMM motion correction for", self.name)
         self._return = outfiles
 
@@ -214,7 +216,7 @@ def calculateLinkingTransform(prevCompImg, nextCompImg, transformPrefix):
     #     print("WARNING: existing transform files found, linking transform calculation skipped.")
 
 
-def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=False, initialRegFile=0):
+def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, initialize=False, initialRegFile=0, regType='nonlinear'):
     """
     Register 2 images taken at different timepoints.
 
@@ -251,33 +253,35 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.collapse_output_transforms = False
     reg.inputs.initialize_transforms_per_stage = False
 
-    reg.inputs.transforms = ['Affine', 'SyN']
-    reg.inputs.transform_parameters = [(2.0,),(0.25, 3.0, 0.0)]
-    reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]] 
-    reg.inputs.metric = ['CC']*2
-    reg.inputs.metric_weight = [1]*2
-    reg.inputs.radius_or_number_of_bins = [5]*2
-    reg.inputs.convergence_threshold = [1.e-8, 1.e-9]
-    reg.inputs.convergence_window_size = [20]*2
-    reg.inputs.smoothing_sigmas = [[1,0],[2,1,0]]
-    reg.inputs.sigma_units = ['vox']*2
-    reg.inputs.shrink_factors = [[2,1],[3,2,1]]
-    reg.inputs.use_estimate_learning_rate_once = [True,True]
-    reg.inputs.use_histogram_matching = [True, True] # This is the default
+    if regType == 'nonlinear':
+        reg.inputs.transforms = ['Affine', 'SyN']
+        reg.inputs.transform_parameters = [(2.0,),(0.25, 3.0, 0.0)]
+        reg.inputs.number_of_iterations = [[1500, 200], [100, 50, 30]] 
+        reg.inputs.metric = ['CC']*2
+        reg.inputs.metric_weight = [1]*2
+        reg.inputs.radius_or_number_of_bins = [5]*2
+        reg.inputs.convergence_threshold = [1.e-8, 1.e-9]
+        reg.inputs.convergence_window_size = [20]*2
+        reg.inputs.smoothing_sigmas = [[1,0],[2,1,0]]
+        reg.inputs.sigma_units = ['vox']*2
+        reg.inputs.shrink_factors = [[2,1],[3,2,1]]
+        reg.inputs.use_estimate_learning_rate_once = [True,True]
+        reg.inputs.use_histogram_matching = [True, True] # This is the default
 
-    # reg.inputs.transforms = ['Affine']
-    # reg.inputs.transform_parameters = [(2.0,)]
-    # reg.inputs.number_of_iterations = [[1500, 200]] 
-    # reg.inputs.metric = ['MI']#['CC']
-    # reg.inputs.metric_weight = [1]
-    # reg.inputs.radius_or_number_of_bins = [32] #[5]
-    # reg.inputs.convergence_threshold = [1.e-8]
-    # reg.inputs.convergence_window_size = [20]
-    # reg.inputs.smoothing_sigmas = [[1,0]]
-    # reg.inputs.sigma_units = ['vox']
-    # reg.inputs.shrink_factors = [[2,1]]
-    # reg.inputs.use_estimate_learning_rate_once = [True]
-    # reg.inputs.use_histogram_matching = [True] # This is the default
+    elif regType == 'affine':
+        reg.inputs.transforms = ['Affine']
+        reg.inputs.transform_parameters = [(2.0,)]
+        reg.inputs.number_of_iterations = [[1500, 200]] 
+        reg.inputs.metric = ['CC'] #['MI']#['CC']   # Um, why is this mutual information and not cross correlation? I think there was a legit reason...
+        reg.inputs.metric_weight = [1]
+        reg.inputs.radius_or_number_of_bins = [5] # [32] #[5]
+        reg.inputs.convergence_threshold = [1.e-8]
+        reg.inputs.convergence_window_size = [20]
+        reg.inputs.smoothing_sigmas = [[1,0]]
+        reg.inputs.sigma_units = ['vox']
+        reg.inputs.shrink_factors = [[2,1]]
+        reg.inputs.use_estimate_learning_rate_once = [True]
+        reg.inputs.use_histogram_matching = [True] # This is the default
 
     reg.inputs.output_warped_image = outFn
     reg.inputs.num_threads = 50
@@ -287,9 +291,9 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.invert_initial_moving_transform = False
 
     # print(reg.cmdline)
-    print("Starting affine/syn registration for",outFn)
+    print("Starting", regType, "registration for",outFn)
     reg.run()
-    print("Finished affine/syn registration for",outFn)
+    print("Finished", regType, "registration for",outFn)
 
     # tmpIdx = transformPrefix.index('transforms/')+len('transforms/')
     # transformDir = os.listdir(transformPrefix[:tmpIdx])
@@ -375,7 +379,7 @@ def stackNiftis(origFn, registeredFns, outFn):
 #---------------------------------------------------------------------------------
 # Motion Correction: Big Functions
 #---------------------------------------------------------------------------------
-def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=False):
+def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=False, regType='nonlinear'):
     """
     Register each timepoint to the template image.
 
@@ -407,7 +411,7 @@ def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=Fals
             registeredFns.append(outFn)
             templatePrefix = baseDir+'tmp/output_'
             # start a thread to register the new timepoint to the template
-            t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, templatePrefix, prealign=prealign)
+            t = motionCorrectionThread(i, str(i).zfill(3), templateFn, timepointFns[i], outFn, outputDir, templatePrefix, prealign=prealign, regType=regType)
             myThreads.append(t)
             t.start()
         # do I need to limit the number of threads?
@@ -420,7 +424,7 @@ def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=Fals
     return registeredFns
 
 
-def markovCorrection(timepoints, outputDir, transformPrefix):
+def markovCorrection(timepoints, outputDir, transformPrefix, regType='nonlinear'):
     """
     Apply the markov motion correction algorithm to a timeseries image.
     Assumes that the first filename in the timepoints list specifies the
@@ -450,22 +454,22 @@ def markovCorrection(timepoints, outputDir, transformPrefix):
     # print("In markovCorrection (prefix):", transformPrefix)
 
     # register the first timepoint to the template
-    registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, initialize=False)
+    registerToTemplate(templateFn, timepoints[1], registeredFns[1], outputDir, transformPrefix, initialize=False, regType=regType)
 
     # register the second timepoint to the template using the initialized transform
-    registerToTemplate(templateFn, timepoints[2], registeredFns[2], outputDir, transformPrefix, initialize=True, initialRegFile=0)
+    registerToTemplate(templateFn, timepoints[2], registeredFns[2], outputDir, transformPrefix, initialize=True, initialRegFile=0, regType=regType)
 
     # for each subsequent image
     # print("Number of timepoints:",len(timepoints))
     for i in xrange(3, len(timepoints)):
         # print("Time", i, "outfn:", registeredFns[i])
         # register the new timepoint to the template, using initialized transform
-        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, initialRegFile=1)
+        registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, initialRegFile=1, regType=regType)
 
     return registeredFns
 
 
-def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
+def stackingHmmCorrection(origTimepoints, baseDir, numCompartments, regType='nonlinear'):
     """
     Perform stacking-hmm correction on the filenames passed to the function.
 
@@ -528,7 +532,7 @@ def stackingHmmCorrection(origTimepoints, baseDir, numCompartments):
     # iterate over all compartments
     for i in xrange(len(compartments)):
         # make a new HMM motion correction thread
-        t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i)+'_')
+        t = hmmMotionCorrectionThread(i, "compartment_"+str(i), compartments[i], outputDir, transformPrefix+str(i)+'_', regType=regType)
         # add the name of the transform file to the appropriate list
         compartmentTransformFns.append(transformPrefix+str(i))
         # print("In stackingHmmCorrection:", transformPrefix+str(i))
@@ -577,6 +581,8 @@ def main():
     # which type of motion correction
     parser.add_argument('-t', '--correctionType', type=str, help='Specify which type of correction to run. '
                         +'Options include: first-timepoint, template, sequential, hmm, stacking-hmm, and testing (use at your own risk)')
+    # which type of registration
+    parser.add_argument('-r', '--registrationType', type=str, help='Specify which type of registration to use: affine or nonlinear')
 
     # now parse the arguments
     args = parser.parse_args()
@@ -613,7 +619,7 @@ def main():
 
         # register the images sequentially
         templateImg = timepointFns[0]
-        registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir)
+        registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir, regType=args.registrationType)
 
     elif args.correctionType == 'template':
         """
@@ -655,7 +661,7 @@ def main():
         templateImg = timepointFns[minLoc]
 
         # run the motion correction
-        registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir)
+        registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir, regType=args.registrationType)
 
     elif args.correctionType == 'sequential':
         """
@@ -678,7 +684,7 @@ def main():
 
         # register the second image to the first
         outFn = outputDir+'001.nii.gz'
-        registerToTemplate(timepointFns[0], timepointFns[1], outFn, outputDir, transformPrefix, initialize=False)
+        registerToTemplate(timepointFns[0], timepointFns[1], outFn, outputDir, transformPrefix, initialize=False, regType=args.registrationType)
         registeredFns.append(outFn)
 
         # for every image
@@ -688,7 +694,7 @@ def main():
             outFn = outputDir+str(i).zfill(3)+'.nii.gz'
             # register the image to the previous image
             # print(registeredFns[-1])
-            registerToTemplate(registeredFns[-1], timepointFns[i], outFn, outputDir, transformPrefix, initialize=False)
+            registerToTemplate(registeredFns[-1], timepointFns[i], outFn, outputDir, transformPrefix, initialize=False, regType=args.registrationType)
             registeredFns.append(outFn)
 
         # print(registeredFns)
@@ -719,7 +725,7 @@ def main():
         # print(outputDir)
         # print(transformPrefix)
         # register the images using HMM correction
-        registeredFns = markovCorrection(timepointFns, outputDir, transformPrefix)
+        registeredFns = markovCorrection(timepointFns, outputDir, transformPrefix, regType=args.registrationType)
 
     elif args.correctionType == 'stacking-hmm':
         """
@@ -772,7 +778,7 @@ def main():
         # now use the stacking-hmm function
         numCompartments = 6
         print("Submitting", numCompartments, "compartments")
-        registeredFns = stackingHmmCorrection(subset, testDir, numCompartments)
+        registeredFns = stackingHmmCorrection(subset, testDir, numCompartments, regType=args.registrationType)
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")
