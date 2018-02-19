@@ -4,12 +4,14 @@
 # Updated analysis: 11/18/2017
 # Usage: bash calculateMetrics.sh
 
-BASE="/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/LinearControls"
+#BASE="/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/NonlinearControls-MI/"
 #BASE="/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/Controls/"
+BASE=$1
 
 # Just in case, remove all existing unzipped volumes and re-unzip the BOLDs
 for i in "$BASE"/* ; do
     if [ -d "$i" ] ; then
+        echo "$i"
         ORIG_DIR="$i/timepoints"
         FIRST_DIR="$i/firstTimepointMatching"
         HMM_DIR="$i/hmm"
