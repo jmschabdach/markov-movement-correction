@@ -28,14 +28,16 @@ for (subj in unique(linDispData$Subject)){
   dispDAGLin <- c(dispDAGLin, subjDf$dispHmm)
   # dispStacks <- c(dispStacks, subjDf$dispStackingHmm) # Commented out because it isn't currently used
 }
+dispGlobalLin == dispDAGLin
 
 # for each subject in the nonlinear file, add that subject's data to the correct list
 for (subj in unique(nonlinDispData$Subject)){
-  subjDf <- subset(linDispData, Subject == subj)
+  subjDf <- subset(nonlinDispData, Subject == subj)
   dispGlobalNonlin <- c(dispGlobalNonlin, subjDf$dispFirstVolume)
   dispDAGNonlin <- c(dispDAGNonlin, subjDf$dispHmm)
   # don't grab the original infomration because theoretically it's the same as in the linear file
 }
+dispGlobalNonlin == dispGlobalLin
 
 # Perform the Kolmogorov-Smirnov tests for FDs
 dispPvals <- c()
@@ -92,7 +94,7 @@ for (subj in unique(linIntData$Subject)){
 
 # for each subject in the nonlinear file, add that subject's data to the correct list
 for (subj in unique(nonlinIntData$Subject)){
-  subjDf <- subset(linIntData, Subject == subj)
+  subjDf <- subset(nonlinIntData, Subject == subj)
   intGlobalNonlin <- c(intGlobalNonlin, subjDf$intFirstVolume)
   intDAGNonlin <- c(intDAGNonlin, subjDf$intHmm)
   # don't grab the original infomration because theoretically it's the same as in the linear file
@@ -143,7 +145,7 @@ ks.test(intFirsts, intHmms, alternative = "less")
 
 setwd('/home/jenna/Research/CHP-PIRC/markov-movement-correction/figures/')
 
-saveFigureToFile <- function(saveFn, hist1, hist2, title, xlabel, ylabel, legend1, legend2) {
+saveFigureToFile <- function(saveFn, hist1, hist2, title, xlabel, ylabel, thresh, legend1, legend2, legX, legY) {
   png(filename = saveFn,
       width = 17, height = 12, units="cm", bg = "white", res=600)
   # plot densities
@@ -153,8 +155,9 @@ saveFigureToFile <- function(saveFn, hist1, hist2, title, xlabel, ylabel, legend
        ylab = ylabel)
   lines(density(hist2), lty=2)
   # lines(density(dispBOLDs), lty=1, col="blue")
-  abline(v=0.2, col='red')
-  legend(11.75, .8, 
+  #abline(v=0.2, col='red')
+  abline(v=25, col='red')
+  legend(legX, legY, 
          c(legend1, legend2, "Threshold"), 
          lty=c(1,2, 1), lwd=c(2.5, 2.5, 2.5),
          col=c("black", "black", "red"))
@@ -164,16 +167,16 @@ saveFigureToFile <- function(saveFn, hist1, hist2, title, xlabel, ylabel, legend
 
 # save the linear displacement histograms
 saveFigureToFile("linearFDHistograms.png", dispDAGLin, dispGlobalLin, "Histogram of Framewise Displacement Changes (Affine)",
-                 "Displacement (mm)", "Density", "DAG", "Global")
+                 0.2, "Displacement (mm)", "Density", "DAG", "Global", 11.75, .8)
 # save the linear intensity histograms
 saveFigureToFile("linearDVARSHistograms.png", intDAGLin, intGlobalLin, "Histogram of Framewise DVARS Changes (Affine)",
-                 "RMS Voxel Intensity (units)", "Density", "DAG", "Global")
+                 25, "RMS Voxel Intensity (units)", "Density", "DAG", "Global", 510, .00875)
 # save the nonlinear displacement histograms
 saveFigureToFile("nonlinearFDHistograms.png", dispDAGNonlin, dispGlobalNonlin, "Histogram of Framewise Displacement Changes (Nonlinear)",
-                 "Displacement (mm)", "Density", "DAG", "Global")
+                 0.2, "Displacement (mm)", "Density", "DAG", "Global", 6.25, 1)
 # save the nonlinear intensity histograms
 saveFigureToFile("nonlinearDVARSHistograms.png", intDAGNonlin, intGlobalNonlin, "Histogram of Framewise DVARS Changes (Nonlinear)",
-                 "RMS Voxel Intensity (units)", "Density", "DAG", "Global")
+                 25, "RMS Voxel Intensity (units)", "Density", "DAG", "Global", 510, .01)
 
 #------ Make tables with statistics about each method
 

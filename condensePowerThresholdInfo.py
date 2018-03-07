@@ -17,6 +17,8 @@ subjDirs = args.dir
 dispOutFn = subjDirs+"displacementCounts.csv"
 intOutFn = subjDirs+"intensityCounts.csv"
 print(subjDirs)
+print(dispOutFn)
+print(intOutFn)
 
 metricsPre = ["BOLD-",
               "corrected_firstTimepoint-",
@@ -104,8 +106,8 @@ with open(outFn, 'w') as f:
         for subject in combDf[combHeaders[0]].unique().tolist():
             subjectText = subject
             # get the counts
-            print(combHeaders[method])
-            print(combHeaders[method+3])
+#            print(combHeaders[method])
+#            print(combHeaders[method+3])
             dispCount = len(combDf[(combDf[combHeaders[0]] == subject ) & (combDf[combHeaders[method]] < 0.2 )]) 
             intCount = len(combDf[(combDf[combHeaders[0]] == subject ) & (combDf[combHeaders[method+3]] < 25 )])
             bothCount = len(combDf[(combDf[combHeaders[0]] == subject ) & (combDf[combHeaders[method]] < 0.2) & (combDf[combHeaders[method+3]] < 25 )])
