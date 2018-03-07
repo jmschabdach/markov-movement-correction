@@ -4,5 +4,7 @@ tmp/
 .ipynb_checkpoints/
 *.png
 *.pdf
-LinearControls/
-Controls/
+data/
+generateSimulatedData/05*/
+figures/
+metrics/
