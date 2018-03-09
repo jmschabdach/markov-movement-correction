@@ -5,8 +5,10 @@ library(xtable)
 # Read in the counts of volumes meeting the FD and DVARS criteria for each registration type from the files
 linDispFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/LinearControls/displacementCounts.csv"
 linIntFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/LinearControls/intensityCounts.csv"
-nonlinDispFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/Controls/displacementCounts.csv"
-nonlinIntFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/Controls/intensityCounts.csv"
+nonlinDispFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/NonlinearControls-CC/displacementCounts.csv"
+nonlinIntFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/NonlinearControls-CC/intensityCounts.csv"
+#nonlinDispFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/NonlinearControls-CC/displacementCounts.csv"
+#nonlinIntFn <- "/home/jenna/Research/CHP-PIRC/markov-movement-correction/data/NonlinearControls-CC/intensityCounts.csv"
 linDispData <- read.csv(linDispFn)
 linIntData <- read.csv(linIntFn)
 nonlinDispData <- read.csv(nonlinDispFn)
@@ -31,7 +33,7 @@ for (subj in unique(linDispData$Subject)){
 
 # for each subject in the nonlinear file, add that subject's data to the correct list
 for (subj in unique(nonlinDispData$Subject)){
-  subjDf <- subset(linDispData, Subject == subj)
+  subjDf <- subset(nonlinDispData, Subject == subj)
   dispGlobalNonlin <- c(dispGlobalNonlin, subjDf$dispFirstVolume)
   dispDAGNonlin <- c(dispDAGNonlin, subjDf$dispHmm)
   # don't grab the original infomration because theoretically it's the same as in the linear file
@@ -92,7 +94,7 @@ for (subj in unique(linIntData$Subject)){
 
 # for each subject in the nonlinear file, add that subject's data to the correct list
 for (subj in unique(nonlinIntData$Subject)){
-  subjDf <- subset(linIntData, Subject == subj)
+  subjDf <- subset(nonlinIntData, Subject == subj)
   intGlobalNonlin <- c(intGlobalNonlin, subjDf$intFirstVolume)
   intDAGNonlin <- c(intDAGNonlin, subjDf$intHmm)
   # don't grab the original infomration because theoretically it's the same as in the linear file
