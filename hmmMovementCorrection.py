@@ -287,8 +287,8 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     elif regType == 'rigid':
         reg.inputs.transforms = ['Rigid']
         reg.inputs.transform_parameters = [(2.0,)]
-        reg.inputs.number_of_iterations = [[1500, 200]]
-        reg.inputs.metric = ['CC']
+        reg.inputs.number_of_iterations = [[100, 20]]
+        reg.inputs.metric = ['CC']  # changed to MI from CC for computational time reasons?
         reg.inputs.metric_weight = [1]
         reg.inputs.radius_or_number_of_bins = [5]
         reg.inputs.convergence_threshold = [1.e-8]
