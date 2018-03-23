@@ -238,6 +238,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     - Saves the registered image and the registration files
     """
     # print("Output filename:", outFn)
+    print(movingImgFn)
     # if not os.path.isfile(outFn):
     #     print("The file to be registered does not exist. Registering now.")
 
@@ -297,6 +298,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.shrink_factors = [[2,1]]
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the default
+        reg.inputs.output_transform_prefix = transformPrefix
 
     reg.inputs.output_warped_image = outFn
     reg.inputs.num_threads = 50
