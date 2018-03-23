@@ -283,6 +283,21 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the default
 
+    elif regType == 'rigid':
+        reg.inputs.transforms = ['Rigid']
+        reg.inputs.transform_parameters = [(2.0,)]
+        reg.inputs.number_of_iterations = [[1500, 200]]
+        reg.inputs.metric = ['CC']
+        reg.inputs.metric_weight = [1]
+        reg.inputs.radius_or_number_of_bins = [5]
+        reg.inputs.convergence_threshold = [1.e-8]
+        reg.inputs.convergence_window_size = [20]
+        reg.inputs.smoothing_sigmas = [[1,0]]
+        reg.inputs.sigma_units = ['vox']
+        reg.inputs.shrink_factors = [[2,1]]
+        reg.inputs.use_estimate_learning_rate_once = [True]
+        reg.inputs.use_histogram_matching = [True] # This is the default
+
     reg.inputs.output_warped_image = outFn
     reg.inputs.num_threads = 50
 
@@ -578,11 +593,11 @@ def main():
     # image filenames
     parser.add_argument('-i', '--inputFn', type=str, help='Full path to the name of the file to correct')
     parser.add_argument('-o', '--outputFn', type=str, help='The name of the file to save the correction to (within the directory containing the original file.')
-    # which type of motion correction
+    # which type of global volume registration framework
     parser.add_argument('-t', '--correctionType', type=str, help='Specify which type of correction to run. '
                         +'Options include: first-timepoint, template, sequential, hmm, stacking-hmm, and testing (use at your own risk)')
     # which type of registration
-    parser.add_argument('-r', '--registrationType', type=str, help='Specify which type of registration to use: affine or nonlinear')
+    parser.add_argument('-r', '--registrationType', type=str, help='Specify which type of registration to use: rigid, affine, or nonlinear')
 
     # now parse the arguments
     args = parser.parse_args()
