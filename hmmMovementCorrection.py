@@ -298,6 +298,10 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.shrink_factors = [[2,1]]
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the default
+        # get the name of the volume being registered
+        volToRegister = movingImgFn.split('/')[-1]
+        volNum = volToRegister.split('.')[0]
+        print("volume number:",volNum)
         reg.inputs.output_transform_prefix = transformPrefix
 
     reg.inputs.output_warped_image = outFn
