@@ -301,8 +301,8 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         # get the name of the volume being registered
         volToRegister = movingImgFn.split('/')[-1]
         volNum = volToRegister.split('.')[0]
-        print("volume number:",volNum)
-        reg.inputs.output_transform_prefix = transformPrefix
+        reg.inputs.output_transform_prefix = transformPrefix+'_'+str(volNum)+'_'
+        print(transformPrefix+'_'+str(volNum)+'_')
 
     reg.inputs.output_warped_image = outFn
     reg.inputs.num_threads = 50
