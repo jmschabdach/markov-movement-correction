@@ -309,6 +309,8 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
 
     if initialize is True:
         reg.inputs.initial_moving_transform = transformPrefix+str(initialRegFile)+'Affine.mat'
+        if regType = 'rigid':
+            reg.inputs.initial_moving_transform = transformPrefix+str(initialRegFile)+'Rigid.mat'
         reg.inputs.invert_initial_moving_transform = False
 
     # print(reg.cmdline)
