@@ -432,6 +432,7 @@ def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=Fals
         if timepointFns[i] == templateFn:
             # copy the template file into the output directory
             shutil.copy2(templateFn, outputDir)
+            print("FOUND THE TEMPLATE FUNCTION")
         else:
             # set the output filename
             outFn = outputDir+str(i).zfill(3)+'.nii.gz'
@@ -447,6 +448,8 @@ def motionCorrection(templateFn, timepointFns, outputDir, baseDir, prealign=Fals
 
     for t in myThreads:
         t.join()
+
+    print(timepointFns)
 
     return registeredFns
 
