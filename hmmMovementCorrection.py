@@ -288,7 +288,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
         reg.inputs.transforms = ['Rigid']
         reg.inputs.transform_parameters = [(2.0,)]
         reg.inputs.number_of_iterations = [[100, 20]]
-        reg.inputs.metric = ['CC']  # changed to MI from CC for computational time reasons?
+        reg.inputs.metric = ['CC']  
         reg.inputs.metric_weight = [1]
         reg.inputs.radius_or_number_of_bins = [5]
         reg.inputs.convergence_threshold = [1.e-8]
@@ -387,7 +387,7 @@ def stackNiftis(origFn, registeredFns, outFn):
 
     imgs = []
     # load all of the images
-    for imgFn in registeredFns:
+    for imgFn in sorted(registeredFns):
         # load the image
         img = load_image(imgFn)
         if len(img.get_data().shape) == 4:
@@ -644,9 +644,14 @@ def main():
         if not os.path.exists(outputDir):
             os.mkdir(outputDir)
 
+        # copy the first image to the output directory
+        shutil.copy(timepointFns[0], outputDir)
+        # print(timepointFns[0])
+
         # register the images sequentially
         templateImg = timepointFns[0]
         registeredFns = motionCorrection(templateImg, timepointFns, outputDir, baseDir, regType=args.registrationType)
+        registeredFns.append(outputDir+'000.nii.gz')
 
     elif args.correctionType == 'template':
         """
