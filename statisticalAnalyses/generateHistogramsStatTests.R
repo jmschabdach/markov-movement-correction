@@ -145,7 +145,7 @@ ks.test(intFirsts, intHmms, alternative = "less")
 
 setwd('/home/jenna/Research/CHP-PIRC/markov-movement-correction/figures/')
 
-saveFigureToFile <- function(saveFn, hist1, hist2, title, xlabel, ylabel, legend1, legend2) {
+saveFigureToFile <- function(saveFn, hist1, hist2, threshold, title, xlabel, ylabel, legend1, legend2, legendX, legendY) {
   png(filename = saveFn,
       width = 17, height = 12, units="cm", bg = "white", res=600)
   # plot densities
@@ -155,27 +155,26 @@ saveFigureToFile <- function(saveFn, hist1, hist2, title, xlabel, ylabel, legend
        ylab = ylabel)
   lines(density(hist2), lty=2)
   # lines(density(dispBOLDs), lty=1, col="blue")
-  abline(v=0.2, col='red')
-  legend(11.75, .8, 
+  abline(v=threshold, col='red', lwd=3)
+  legend(legendX, legendY, 
          c(legend1, legend2, "Threshold"), 
-         lty=c(1,2, 1), lwd=c(2.5, 2.5, 2.5),
+         lty=c(1,2, 1), lwd=c(2, 2, 3.5),
          col=c("black", "black", "red"))
   dev.off()
-  
 }
 
 # save the linear displacement histograms
-saveFigureToFile("linearFDHistograms.png", dispDAGLin, dispGlobalLin, "Histogram of Framewise Displacement Changes (Affine)",
-                 "Displacement (mm)", "Density", "DAG", "Global")
+saveFigureToFile("linearFDHistograms.png", dispDAGLin, dispGlobalLin, 0.2, "Histogram of Framewise Displacement Changes (Affine)",
+                 "Displacement (mm)", "Density", "DAG", "Traditional", 11.75, .83)
 # save the linear intensity histograms
-saveFigureToFile("linearDVARSHistograms.png", intDAGLin, intGlobalLin, "Histogram of Framewise DVARS Changes (Affine)",
-                 "RMS Voxel Intensity (units)", "Density", "DAG", "Global")
+saveFigureToFile("linearDVARSHistograms.png", intDAGLin, intGlobalLin, 25, "Histogram of Framewise DVARS Changes (Affine)",
+                 "RMS Voxel Intensity (units)", "Density", "DAG", "Traditional", 510, .0089)
 # save the nonlinear displacement histograms
-saveFigureToFile("nonlinearFDHistograms.png", dispDAGNonlin, dispGlobalNonlin, "Histogram of Framewise Displacement Changes (Nonlinear)",
-                 "Displacement (mm)", "Density", "DAG", "Global")
+saveFigureToFile("nonlinearFDHistograms.png", dispDAGNonlin, dispGlobalNonlin, 0.2, "Histogram of Framewise Displacement Changes (Nonlinear)",
+                 "Displacement (mm)", "Density", "DAG", "Traditional", 6.4, 1.08)
 # save the nonlinear intensity histograms
-saveFigureToFile("nonlinearDVARSHistograms.png", intDAGNonlin, intGlobalNonlin, "Histogram of Framewise DVARS Changes (Nonlinear)",
-                 "RMS Voxel Intensity (units)", "Density", "DAG", "Global")
+saveFigureToFile("nonlinearDVARSHistograms.png", intDAGNonlin, intGlobalNonlin, 25, "Histogram of Framewise DVARS Changes (Nonlinear)",
+                 "RMS Voxel Intensity (units)", "Density", "DAG", "Traditional", 510, 0.0105)
 
 #------ Make tables with statistics about each method
 
@@ -206,3 +205,34 @@ intTable
 # Now save the tables to files
 print(xtable(dispTable, type = "latex"), file = "dispStatisticsTable.tex")
 print(xtable(intTable, type='latex'), file='intStatisticsTable.tex')
+
+#----------------------------- Scatterplot of FD and DVARs
+
+setwd('/home/jenna/Research/CHP-PIRC/markov-movement-correction/figures/')
+
+saveScatterplotToFile <- function(saveFn, fd, dvars, title, xlabel, ylabel) {
+  png(filename = saveFn,
+      width = 12, height = 12, units="cm", bg = "white", res=600)
+  # scatterplot
+  plot(fd, dvars,
+       main = title,
+       xlab = xlabel,
+       ylab = ylabel,
+       xlim = c(-1, 25),
+       ylim = c(-1, 800))
+  # draw a trend line, with equation?
+  abline(v=0.2, col='red')
+  abline(h=25, col='red')
+  # legend(legendX, legendY, 
+  #        c(legend1, legend2, "Threshold"), 
+  #        lty=c(1,2, 1), lwd=c(2.5, 2.5, 2.5),
+  #        col=c("black", "black", "red"))
+  dev.off()
+}
+
+saveScatterplotToFile("scatterplotOrig.png", dispOrig, intOrig, "FD vs. DVARS: Original Sequences", "Framewise Displacement (mm)", "DVARS (units)")
+saveScatterplotToFile("scatterplotTraditionalLin.png", dispGlobalLin, intGlobalLin, "Traditional Affine Registration", "Framewise Displacement (mm)", "DVARS (units)")
+saveScatterplotToFile("scatterplotTraditionalNonlin.png", dispGlobalNonlin, intGlobalNonlin, "Traditional Nonlinear Registration", "Framewise Displacement (mm)", "DVARS (units)")
+saveScatterplotToFile("scatterplotDAGLin.png", dispDAGLin, intDAGLin, "DAG Affine Registration", "Framewise Displacement (mm)", "DVARS (units)")
+saveScatterplotToFile("scatterplotDAGNonlin.png", dispDAGNonlin, intDAGNonlin, "DAG Nonlinear Registration", "Framewise Displacement (mm)", "DVARS (units)")
+
