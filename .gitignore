@@ -4,3 +4,7 @@ tmp/
 .ipynb_checkpoints/
 *.png
 *.pdf
+data/
+generateSimulatedData/05*/
+figures/
+metrics/

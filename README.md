@@ -32,3 +32,9 @@ subject-id/
 - Evaluate the registration using `calculateSimilarity.sh`.
 - Plot the similarities for each image using the workflow in `figureGeneration.ipynb`.
 - Estimate the movement content in the original image using `fsl_motion_outliers` by MIT. (This utility produces a sparse matrix with ones in the columns where the timepoint has a significant amount of motion when compared to the other timepoints in the image.)
+
+### Evaluating the registration methods
+
+1. Run the command `bash calculateMetrics.sh` to calculate the correlation ratio matrices between every pair of frames in each image AND to calculate Power et al.'s framewise displacement and DVARS changes between every neighboring pair of frames.
+2. Run the command `python condensePowerThresholdInfo.py --dir /path/to/dir/of/subjects/`. This file condenses the files generated in Step 2 into a pair of files containing the framewise displacement and the DVARS changes (displacementCounts.csv and intensityCounts.csv).
+3. Open statisticalAnalyses/temporalKolmogorovSmirnovs.R. Change the paths at the top of the file to the paths to your `displacementCounts.csv` and `intensityCounts.csv` files. Running this file (with valid paths and no further changes) will produce 4 histograms of the framewise displacements and DVARS changes for the linear and nonlinear traditional and DAG based registrations.
