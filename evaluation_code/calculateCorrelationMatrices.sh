@@ -9,16 +9,19 @@ BASE=$1
 
 for i in "$BASE"/* ; do
     if [ -d "$i" ] ; then
+        # set up the directories to reference
         mkdir "$i/metrics/"
         HMM="$i/hmm/"
         FIRST="$i/firstTimepointMatching/"
         STACK="$i/stacking-hmm/"
+        # set up the .csv files to write to
         FIRST_FN="$i/metrics/crossCorrelation-firstTimepoint.csv"
         HMM_FN="$i/metrics/crossCorrelation-hmm.csv"
         STACK_FN="$i/metrics/crossCorrelation-stackingHmm.csv"
+        # calculate the correlation ratio matrices
         bash calculateCorrelationMatrix.sh $FIRST $FIRST_FN
-        # bash calculateCorrelationMatrix.sh $HMM $HMM_FN
-        # bash calculateCorrelationMatrix.sh $STACK $STACK_FN
+        bash calculateCorrelationMatrix.sh $HMM $HMM_FN
+        bash calculateCorrelationMatrix.sh $STACK $STACK_FN
     fi
 done
 

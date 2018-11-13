@@ -20,7 +20,6 @@ for t in "$DIR"* ; do
         # calculate the similarity score and echo it to a file
         cc=$(./utils/correlation.sh $TEMPLATE $f)
         echo -ne "$cc," >> "$OUT_FN"
-        # echo -ne "$cc, "
     done
     # about to have a new template image, want a new line in file
     echo -e "" >> "$OUT_FN"

@@ -13,11 +13,17 @@ for i in "$BASE"/* ; do
     if [ -d "$i" ] ; then
         echo "$i"
         ORIG_DIR="$i/timepoints"
-        FIRST_DIR="$i/firstTimepointMatching"
-        HMM_DIR="$i/hmm"
+        # FIRST_DIR="$i/firstTimepointMatching"
+        # HMM_DIR="$i/hmm"
         ORIG="$i/BOLD.nii"
-        FIRST="$i/corrected_firstTimepoint.nii.gz"
-        HMM="$i/corrected_hmm.nii.gz"
+        if [ -f $ORIG ] ; then
+            echo $ORIG 
+        else ; then
+            ORIG="$i/BOLD.nii.gz"
+            echo $ORIG
+        fi
+        # FIRST="$i/corrected_firstTimepoint.nii.gz"
+        # HMM="$i/corrected_hmm.nii.gz"
         # remove the existing files (original only)
         rm "$ORIG_DIR"/*
         # unzip the files (original only)
@@ -27,10 +33,9 @@ for i in "$BASE"/* ; do
 done
 
 # Calculate correlation ratio matrices
-bash calculateCorrelationMatrices-timepoints.sh $BASE #&
-bash calculateCorrelationMatrices-first.sh $BASE #&
-bash calculateCorrelationMatrices-hmm.sh $BASE #&
-#bash calculateCorrelationMatrices-stacking.sh
+bash calculateCorrelationMatrices.sh $BASE #&
+bash calculateCorrelationMatrices.sh $BASE #&
+bash calculateCorrelationMatrices.sh $BASE #&
 
 # Calculate Power et al. displacement and RMS intensity change
 bash calculatePowerMetrics.sh $BASE
