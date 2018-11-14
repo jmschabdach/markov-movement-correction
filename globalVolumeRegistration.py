@@ -20,10 +20,8 @@ Useage:
 
 from __future__ import print_function
 import numpy as np
-import getpass
 import os
 import argparse
-import time
 import shutil
 import sys
 import time
@@ -42,9 +40,9 @@ from nipype.interfaces import dcmstack
 # threading
 import threading
 
-#---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Threading Classes
-#---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 class traditionalRegistrationThread(threading.Thread):
     """
     Implementation of the threading class.
@@ -97,9 +95,9 @@ class dagRegistrationThread(threading.Thread):
         threading.Thread.join(self)
         return self._return
 
-#---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Motion Correction: Helper Functions
-#---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 def expandTimepoints(imgFn, baseDir):
     """
     Expand an image sequence stored as a .nii.gz file into a collection of 
@@ -265,9 +263,9 @@ def stackNiftis(origFn, registeredFns, outFn):
     save_image(registeredImg, outFn)
     print('Registered files merged to',outFn)
 
-#---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Volume Registration: Big Functions
-#---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 def volumeRegistration(templateFn, timepointFns, outputDir, baseDir, prealign=False, regType='nonlinear'):
     """
     Register each image frame to the template image.
@@ -353,9 +351,9 @@ def dagCorrection(timepoints, outputDir, transformPrefix, regType='nonlinear'):
     return registeredFns
 
 
-#---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Main
-#---------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def main():
     # Set up argument parser
