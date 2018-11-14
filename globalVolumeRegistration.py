@@ -220,7 +220,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     # Keep the user updated with the status of the registration
     print("Starting", regType, "registration for",outFn)
     # Run the registration
-#    reg.run()
+    reg.run()
     # Keep the user updated with the status of the registration
     print("Finished", regType, "registration for",outFn)
 
