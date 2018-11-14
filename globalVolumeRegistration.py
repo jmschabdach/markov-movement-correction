@@ -174,6 +174,7 @@ def registerToTemplate(fixedImgFn, movingImgFn, outFn, outDir, transformPrefix, 
     reg.inputs.write_composite_transform = False
     reg.inputs.collapse_output_transforms = False
     reg.inputs.initialize_transforms_per_stage = False
+    reg.inputs.num_threads = 100
 
     # Specify certain parameters for the nonlinear/['SyN'] registration
     if regType == 'nonlinear':
