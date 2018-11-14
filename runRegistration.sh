@@ -21,9 +21,9 @@ for i in "$BASE"/* ; do
 
         # Run the registration based on the registration type specified
         if [ "$TYPE" == "dag" ] ; then
-            bash runAndNotify.sh python globalVolumeRegistration.py -i $SUB_ORIG -o corrected_dag.nii.gz -t dag -r linear
+            bash runAndNotify.sh python globalVolumeRegistration.py -i $SUB_ORIG -o corrected_dag.nii.gz -t dag -r affine
         elif [ "$TYPE" == "traditional" ] ; then
-            bash runAndNotify.sh python globalVolumeRegistration.py -i $SUB_ORIG -o corrected_traditional.nii.gz -t traditional -r linear
+            bash runAndNotify.sh python globalVolumeRegistration.py -i $SUB_ORIG -o corrected_traditional.nii.gz -t traditional -r affine
         else
             echo "The registration type specified is not valid"
             exit 1
