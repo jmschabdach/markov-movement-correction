@@ -128,7 +128,7 @@ def expandTimepoints(imgFn, baseDir):
     filenames = [outDir+'000.nii.gz']
 
     # for the remaining images
-    for i in xrange(1, img.get_data().shape[3], 1):
+    for i in range(1, img.get_data().shape[3], 1):
         # pull out the image and save it
         tmp = img[:,:,:,i].get_data()[:,:,:,None]
         tmp_img = Image(tmp, coord)
@@ -289,7 +289,7 @@ def volumeRegistration(templateFn, timepointFns, outputDir, baseDir, prealign=Fa
     registeredFns = []
     myThreads = []
     # for each subsequent image
-    for i in xrange(len(timepointFns)):
+    for i in range(len(timepointFns)):
         if timepointFns[i] == templateFn:
             # copy the template file into the output directory
             shutil.copy2(templateFn, outputDir)
@@ -345,7 +345,7 @@ def dagCorrection(timepoints, outputDir, transformPrefix, regType='nonlinear'):
     registerToTemplate(templateFn, timepoints[2], registeredFns[2], outputDir, transformPrefix, initialize=True, initialRegFile=0, regType=regType)
 
     # for each subsequent image
-    for i in xrange(3, len(timepoints)):
+    for i in range(3, len(timepoints)):
         # register the new timepoint to the template, using initialized transform
         registerToTemplate(templateFn, timepoints[i], registeredFns[i], outputDir, transformPrefix, initialize=True, initialRegFile=1, regType=regType)
 
