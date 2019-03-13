@@ -46,6 +46,7 @@ class ImageSequence():
         """
         self.imgFn = imgFn
         self.seqFns = []
+        self.seqDir = seqDir
         self.img = None
         self.coords = None
         self.sequence = []
@@ -149,6 +150,12 @@ class ImageSequence():
         """
         return self.seqFns
 
+    def getSequencePath(self):
+        """
+
+        """
+        return self.seqDir
+
     def getCoordinates(self):
         """
         Return the coordinates of the image
@@ -210,7 +217,7 @@ class ImageSequence():
         - Save the image volume at each timepoint of the image to a new file
 
         Returns:
-        - filenames: list of filenames
+        - None
         """
         outDir = os.path.join(os.path.dirname(self.imgFn), dirName)
         if not os.path.exists(outDir):
