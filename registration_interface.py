@@ -2,6 +2,7 @@ import argparse
 import os
 import numpy as np
 import time
+import shutil
 import registration as reg
 from dagreg import dagRegistration
 from tradreg import *
@@ -33,18 +34,19 @@ def main():
         os.mkdir(transformDir)
 
     # Make the directory for the original image volunmes
-    originalDir = os.path.join(base, 'original/')
+    originalDir = os.path.join(baseDir, 'original/')
     if not os.path.exists(originalDir):
         os.mkdir(originalDir)
 
     # Make the directory for the registered images
     if args.correctionType == 'traditional' or args.correctionType == 'dag':
-        registeredDir = os.path.join(baseDir, args.correctionTpe)
+        registeredDir = os.path.join(baseDir, args.correctionType)
         if not os.path.exists(registeredDir):
             os.mkdir(registeredDir)
 
     # divide the image into timepoints
     timepointFns = reg.expandTimepoints(origFn, originalDir)
+    print(timepointFns)
 
     # Select the specified motion correction algorithm
     registeredFns = []
@@ -56,8 +58,9 @@ def main():
         """
         # register the images sequentially
         templateImg = timepointFns[0]
-        registeredFns = volumeRegistration(templateImg, timepointFns, outputDir, transformDir, regType=args.registrationType)
+        registeredFns = volumeRegistration(templateImg, timepointFns, registeredDir, transformDir, regType=args.registrationType)
         registeredFns.append(outputDir+'000.nii.gz')
+        registeredFns = sorted(registeredFns)
 
     elif args.correctionType == 'dag':
         """
@@ -71,7 +74,7 @@ def main():
           image sequence
         """
         # register the images using dag correction
-        registeredFns = dagCorrection(timepointFns, outputDir, transformDir, regType=args.registrationType)
+        registeredFns = dagRegistration(timepointFns, registeredDir, transformDir, transformType=args.registrationType)
 
     else:
         print("Error: the type of motion correction entered is not currently supported.")

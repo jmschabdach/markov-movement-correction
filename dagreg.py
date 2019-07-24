@@ -6,6 +6,7 @@ Description
 Useage:
 
 """
+import shutil
 import registration as reg
 
 ##
@@ -37,9 +38,9 @@ def dagRegistration(timepoints, outputDir, transformPrefix, transformType='nonli
     transformFns.append(transformFn)
 
     # register the first timepoint to the template
-    reg.registerVolumes(templateFn, timepoints[1], fn, 
+    reg.registerVolumes(templateFn, timepoints[1], imgFn, 
                         transformFn, initialize=None,
-                        regType=regType)
+                        regtype=transformType)
 
     for i in range(2, len(timepoints)):
         # Generate next filenames
@@ -53,6 +54,6 @@ def dagRegistration(timepoints, outputDir, transformPrefix, transformType='nonli
         # Register the ith timepoint to the template using the initialized transform
         reg.registerVolumes(templateFn, timepoints[i], imgFn, 
                             transformFn, initialize=transformFns[-1],
-                            regType=regType)
+                            regtype=transformType)
 
     return registeredFns

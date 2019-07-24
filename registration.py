@@ -1,5 +1,7 @@
 from boldli import ImageManipulatingLibrary as mil
 import numpy as np
+from nipype.interfaces.ants import Registration, ApplyTransforms
+from nipype.algorithms.metrics import Similarity
 
 ##
 # Expand an image sequence stored as a .nii.gz file into
@@ -7,15 +9,15 @@ import numpy as np
 # own .nii.gz file.
 #
 # @param imgFn The time series image's filename
-# @param baseDir The directory in which a directory holding the collection of timepoint files
+# @param outDir The directory in which a directory holding the collection of timepoint files
 #
 # @returns filenames List of strings specifying paths to timepoint files
-def expandTimepoints(imgFn, baseDir):
+def expandTimepoints(imgFn, outDir):
     # Load the image
     sequence, coords = mil.loadBOLD(imgFn)
 
     # Pull out the first volume from the sequence (timepoint 0)
-    vol = mil.isolateVolume(seq, volNum=0)
+    vol = mil.isolateVolume(sequence, volNum=0)
 
     # Save the first volume as timepoints/000.nii.gz
     volImg = mil.convertArrayToImage([vol], coords)
@@ -29,7 +31,7 @@ def expandTimepoints(imgFn, baseDir):
     for i in range(1, sequence.shape[-1], 1):
 
         # Pull out the next volume from the template and save it
-        vol = mil.isolateVolume(seq, volNum=i)
+        vol = mil.isolateVolume(sequence, volNum=i)
 
         # Save the first volume as timepoints/000.nii.gz
         volImg = mil.convertArrayToImage([vol], coords)
@@ -37,7 +39,7 @@ def expandTimepoints(imgFn, baseDir):
         mil.saveBOLD(volImg, fn)
 
         # add the name of the image to the list of filenames
-        filenames.append(outDir+outFn)
+        filenames.append(fn)
 
     return filenames
 
@@ -52,7 +54,7 @@ def expandTimepoints(imgFn, baseDir):
 # @param transformPrefix 
 # @param initialize Optional parameter to specify the location of the transform matrix from the previous registration
 # @param regType Optional parameter to specify the type of registration to use (affine ['Affine'] or nonlinear ['Syn']) Default: nonlinear
-def registerVolumes(fixedImgFn, movinImgFn, regImgOutFn, transformPrefix, initialize=None, regType='nonlinear'):
+def registerVolumes(fixedImgFn, movinImgFn, regImgOutFn, transformPrefix, initialize=None, regtype='nonlinear'):
     # Registration set up: for both Affine and SyN transforms
     reg = Registration()
     reg.inputs.fixed_image = fixedImgFn
@@ -82,7 +84,7 @@ def registerVolumes(fixedImgFn, movinImgFn, regImgOutFn, transformPrefix, initia
     reg.inputs.use_histogram_matching = [True] # This is the default, but specify it anyway
 
     # Registration set up: SyN transforms only -- NEEDS TO BE CHECKED
-    if regType == 'nonlinear':
+    if regtype == 'nonlinear':
         reg.inputs.transforms.append('SyN')
         reg.inputs.transform_parameters.append((0.25, 3.0, 0.0))
         reg.inputs.number_of_iterations.append([100, 50, 30])
@@ -103,11 +105,11 @@ def registerVolumes(fixedImgFn, movinImgFn, regImgOutFn, transformPrefix, initia
         reg.inputs.invert_initial_moving_transform = False
 
     # Keep the user updated with the status of the registration
-    print("Starting", regType, "registration for", outFn)
+    print("Starting", regtype, "registration for", regImgOutFn)
     # Run the registration
     reg.run()
     # Keep the user updated with the status of the registration
-    print("Finished", regType, "registration for", outFn)
+    print("Finished", regtype, "registration for", regImgOutFn)
 
 ##
 # Combine the images in the list of registered image volumes into a single image sequence file and save it
