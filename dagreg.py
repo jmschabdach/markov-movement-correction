@@ -31,11 +31,11 @@ def dagRegistration(timepoints, outputDir, transformPrefix, transformType='nonli
 
     # Generate first registered image filename - Should generalize it better
     imgFn = outputDir+"1".zfill(3)+".nii.gz"
-    transformFn = transformPrefix+"_"+"1".zfill(3)+".nii.gz"
+    transformFn = transformPrefix+"1".zfill(3)+"_"
 
     # Save the image filename and the transform filename
     registeredFns.append(imgFn)
-    transformFns.append(transformFn)
+    transformFns.append(transformFn+"0Affine.mat")
 
     # register the first timepoint to the template
     reg.registerVolumes(templateFn, timepoints[1], imgFn, 
@@ -44,16 +44,16 @@ def dagRegistration(timepoints, outputDir, transformPrefix, transformType='nonli
 
     for i in range(2, len(timepoints)):
         # Generate next filenames
-        imgFn = outputDir+str.zfill(i)+".nii.gz"
-        transformFn = transformPrefix+"_"+str(i).zfill(3)+"_"
-
-        # Save the image filename and the transform filename
-        registeredFns.append(imgFn)
-        transformFns.append(transformFn)
+        imgFn = outputDir+str(i).zfill(3)+".nii.gz"
+        transformFn = transformPrefix+str(i).zfill(3)+"_"
 
         # Register the ith timepoint to the template using the initialized transform
         reg.registerVolumes(templateFn, timepoints[i], imgFn, 
                             transformFn, initialize=transformFns[-1],
                             regtype=transformType)
+
+        # Save the image filename and the transform filename
+        registeredFns.append(imgFn)
+        transformFns.append(transformFn+"1Affine.mat")
 
     return registeredFns

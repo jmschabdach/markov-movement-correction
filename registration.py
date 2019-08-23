@@ -101,7 +101,7 @@ def registerVolumes(fixedImgFn, movinImgFn, regImgOutFn, transformPrefix, initia
 
     # If the registration is initialized, set a few more parameters
     if initialize is not None:
-        reg.inputs.initial_moving_transform = transformPrefix+str(initialize)+'Affine.mat'
+        reg.inputs.initial_moving_transform = initialize
         reg.inputs.invert_initial_moving_transform = False
 
     # Keep the user updated with the status of the registration

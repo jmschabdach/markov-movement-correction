@@ -6,6 +6,7 @@ import shutil
 import registration as reg
 from dagreg import dagRegistration
 from tradreg import *
+from boldli import ImageManipulatingLibrary as mil
 
 def main():
     # Set up argument parser
@@ -25,8 +26,6 @@ def main():
     # image filename
     origFn = args.inputFn.replace("//", '/')
     baseDir = origFn.rsplit("/", 1)[0]+'/'
-    print(origFn)
-    print(baseDir)
 
     # Make the directory for the transform parameters
     transformDir = os.path.join(baseDir,'transforms/')
@@ -40,13 +39,12 @@ def main():
 
     # Make the directory for the registered images
     if args.correctionType == 'traditional' or args.correctionType == 'dag':
-        registeredDir = os.path.join(baseDir, args.correctionType)
+        registeredDir = os.path.join(baseDir, args.correctionType+"/")
         if not os.path.exists(registeredDir):
             os.mkdir(registeredDir)
 
     # divide the image into timepoints
     timepointFns = reg.expandTimepoints(origFn, originalDir)
-    print(timepointFns)
 
     # Select the specified motion correction algorithm
     registeredFns = []
@@ -81,11 +79,11 @@ def main():
         print("       Entered:", args.correctionType)
 
     # load the template image
-    img, coord = reg.loadBOLD(timepointFns[0])
+    img, coord = mil.loadBOLD(timepointFns[0])
 
     # combine the registered timepoints into 1 file
     comboFn = os.path.join(baseDir,args.outputFn)
-    registration.stackNiftis(origFn, registeredFns, comboFn)
+    reg.stackNiftis(origFn, registeredFns, comboFn)
 
     return origFn, args.correctionType
 
