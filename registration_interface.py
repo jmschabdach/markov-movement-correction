@@ -22,10 +22,13 @@ def main():
 
     # now parse the arguments
     args = parser.parse_args()
+    print(args)
 
     # image filename
     origFn = args.inputFn.replace("//", '/')
     baseDir = origFn.rsplit("/", 1)[0]+'/'
+    print(origFn)
+    print(baseDir)
 
     # Make the directory for the transform parameters
     transformDir = os.path.join(baseDir,'transforms/')
@@ -81,9 +84,12 @@ def main():
     # load the template image
     img, coord = mil.loadBOLD(timepointFns[0])
 
+    print(registeredFns)
+    print(baseDir)
+
     # combine the registered timepoints into 1 file
     comboFn = os.path.join(baseDir,args.outputFn)
-    reg.stackNiftis(origFn, registeredFns, comboFn)
+    reg.stackNiftis(registeredFns, coord, comboFn)
 
     return origFn, args.correctionType
 
