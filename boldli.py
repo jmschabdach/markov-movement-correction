@@ -28,6 +28,8 @@ class ImageManipulatingLibrary:
     #
     # @returns vol The isolated volume
     def isolateVolume(seq, volNum=0):
+        # Check the shape of the image
+        print(seq.shape)
         # Pull out the volume of interest from the sequence
         vol = seq[:,:,:, volNum].get_data()[:,:,:, None]
         # Make sure that the volume only has 3 dimensions
