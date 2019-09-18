@@ -30,11 +30,15 @@ class ImageManipulatingLibrary:
     def isolateVolume(seq, volNum=0):
         # Check the shape of the image
         print(seq.shape)
-        # Pull out the volume of interest from the sequence
-        vol = seq[:,:,:, volNum].get_data()[:,:,:, None]
-        # Make sure that the volume only has 3 dimensions
-        if len(vol.shape) == 4:
+        if len(seq.shape) == 4:
+            # Pull out the volume of interest from the sequence
+            vol = seq[:,:,:, volNum].get_data()[:,:,:, None]
+            # Make sure that the volume only has 3 dimensions
             vol = np.squeeze(vol)
+        elif len(seq.shape) == 3:
+            vol = seq.get_data()
+        else:
+            print("The volume must have 3 or 4 dimensions. Given volume has shape:", seq.shape)
 
         return vol
 

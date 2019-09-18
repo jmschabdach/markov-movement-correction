@@ -41,6 +41,7 @@ print(img.shape)
 imgs = []
 for fn in files:
     img = load_image(fn)
+    print(img.shape)
     if len(img.get_data().shape) == 4:
         imgs.append(np.squeeze(img.get_data()))
     else:
