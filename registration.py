@@ -119,17 +119,23 @@ def registerVolumes(fixedImgFn, movinImgFn, regImgOutFn, transformPrefix, initia
 # @param outFn String specifying where the registered image sequence should be saved
 def stackNiftis(registeredFns, coords, outFn):
 
+    print("Inside stackNiftis. Printing list of registered filenames.")
+    print(registeredFns)
+
     imgs = []
 
     # Load all of the images
     for imgFn in sorted(registeredFns):
         # load a single image - use mil here
-        img = mil.loadBOLD(imgFn)
+        img, noCoords = mil.loadBOLD(imgFn)
         # get the contents of the image
         vol = mil.isolateVolume(img)
         imgs.append(vol)
 
+    # Conver the list of images to an array
+    imgSeq = np.stack(imgs, axis=-1)
+    print(imgSeq.shape)
     # Convert array of images to an Image object
-    imgSequence = mil.convertArrayToImage(imgs)
+    imgSequence = mil.convertArrayToImage(imgSeq, coords)
     mil.saveBOLD(imgSequence, outFn)
     print('Individual image volume files merged to',outFn)
