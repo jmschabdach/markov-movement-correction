@@ -35,7 +35,7 @@ outImgBase = imgFn.split('/')[-1].split('.')[0]
 
 # split the image
 coord = img.coordmap
-for i in xrange(img.get_data().shape[3]):
+for i in range(img.get_data().shape[3]):
     tmp = img[:,:,:,i].get_data()[:,:,:,None]
     tmpImg = Image(tmp, coord)
     outFn = outDir+str(i).zfill(3)+'.nii.gz'
