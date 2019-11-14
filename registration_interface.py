@@ -82,7 +82,7 @@ def main():
         print("       Entered:", args.correctionType)
     
 
-    registeredFns = ["./dag/"+str(i).zfill(3)+".nii.gz" for i in range(10)]
+    # registeredFns = ["./dag/"+str(i).zfill(3)+".nii.gz" for i in range(10)]
 
     # load the template image
     img, coord = mil.loadBOLD(origFn)

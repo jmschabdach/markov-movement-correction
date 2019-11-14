@@ -43,7 +43,7 @@ class traditionalRegistrationThread(threading.Thread):
 # @param regType The type of transformations to use (either "affine" or "nonlinear")
 #
 # @returns registeredFns A list of filenames of the registered files
-def volumeRegistration(referenceFn, timepoints, outputDir, transformDir, regType='nonlinear'):
+def volumeRegistration(referenceFn, timepointFns, outputDir, transformDir, regType='nonlinear'):
     # Create lists of registered images, transform parameters, and threads
     registeredFns = []
     transformFns = []

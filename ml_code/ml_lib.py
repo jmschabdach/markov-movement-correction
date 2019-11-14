@@ -169,11 +169,14 @@ class visualization():
     def viewDataArray(data):
         sns.heatmap(data)
 
-    def showClusterResults(features, classes, title=""):
+    def showClusterResults(features, classes, title="", fn=""):
         fig = plt.figure()
-        plt.scatter(features[:, 0], features[:, 1], c=classes, cmap='viridis')
+        plt.scatter(features[:, 0], features[:, 1], c=classes, cmap='jet', alpha=.7)
         plt.title(title)
         plt.show()
+
+        if not fn == "":
+            fig.savefig("figures/"+fn, bbox_inches='tight')
 
     def graphAgglomerativeClustering(data, classes, sitesLookup):
         current_palette = sns.color_palette("bright")
