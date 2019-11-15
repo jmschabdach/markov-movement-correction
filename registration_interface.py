@@ -60,7 +60,6 @@ def main():
         # register the images sequentially
         templateImg = timepointFns[0]
         registeredFns = volumeRegistration(templateImg, timepointFns, registeredDir, transformDir, regType=args.registrationType)
-        registeredFns.append(outputDir+'000.nii.gz')
         registeredFns = sorted(registeredFns)
 
     elif args.correctionType == 'dag':
@@ -82,7 +81,7 @@ def main():
         print("       Entered:", args.correctionType)
     
 
-    # registeredFns = ["./dag/"+str(i).zfill(3)+".nii.gz" for i in range(10)]
+    #registeredFns = ["./dag/"+str(i).zfill(3)+".nii.gz" for i in range(10)]
 
     # load the template image
     img, coord = mil.loadBOLD(origFn)

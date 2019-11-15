@@ -2,6 +2,7 @@ from boldli import ImageManipulatingLibrary as mil
 import numpy as np
 from nipype.interfaces.ants import Registration, ApplyTransforms
 from nipype.algorithms.metrics import Similarity
+import os
 
 ##
 # Expand an image sequence stored as a .nii.gz file into
@@ -55,6 +56,12 @@ def expandTimepoints(imgFn, outDir):
 # @param initialize Optional parameter to specify the location of the transform matrix from the previous registration
 # @param regType Optional parameter to specify the type of registration to use (affine ['Affine'] or nonlinear ['Syn']) Default: nonlinear
 def registerVolumes(fixedImgFn, movinImgFn, regImgOutFn, transformPrefix, initialize=None, regtype='nonlinear'):
+
+    # if the registered image already exists, skip the registration
+    if os.path.exists(regImgOutFn):
+        print("File", regImgOutFn, "already exists. Skipping registration.")
+        return
+    
     # Registration set up: for both Affine and SyN transforms
     reg = Registration()
     reg.inputs.fixed_image = fixedImgFn

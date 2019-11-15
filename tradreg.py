@@ -8,6 +8,8 @@ Useage:
 """
 
 import threading
+import shutil
+import tempfile
 import registration as reg
 
 class traditionalRegistrationThread(threading.Thread):
@@ -29,7 +31,7 @@ class traditionalRegistrationThread(threading.Thread):
 
     def run(self):
         print("Starting traditional registration for", self.name)
-        reg.regsisterVolumes(self.templateFn, self.timepointFn, self.outputFn, self.transformPrefix, regType=self.regType)
+        reg.registerVolumes(self.templateFn, self.timepointFn, self.outputFn, self.transformPrefix, regtype=self.regType)
         print("Finished traditional registration for", self.name)
 
 
@@ -48,26 +50,38 @@ def volumeRegistration(referenceFn, timepointFns, outputDir, transformDir, regTy
     registeredFns = []
     transformFns = []
     myThreads = []
+    newReferenceDirs = []
+    count=0
+    maxThreads=10
     # for each subsequent image
     for i in range(len(timepointFns)):
-        if timepointFns[i] == templateFn:
+        outFn = outputDir+str(i).zfill(3)+'.nii.gz'
+        registeredFns.append(outFn)
+        if timepointFns[i] == referenceFn:
             # copy the template file into the output directory
             shutil.copy(referenceFn, outputDir)
             print("FOUND THE TEMPLATE FILE")
         else:
             # set the output filename
-            outFn = outputDir+str(i).zfill(3)+'.nii.gz'
-            registeredFns.append(outFn)
-            templateFns = transformDir+str.zfill(i)+"_" #+'tmp/output_'
+            #templateFns = transformDir+str(i).zfill(3)+"_" #+'tmp/output_'
+            # make a new copy of the reference volume - trying to solve errors on H2P
+            newDir = tempfile.mkdtemp()
+            shutil.copy(referenceFn, newDir)
+            newReferenceFn = os.path.join(newDir, referenceFn)
             # start a thread to register the new timepoint to the template
-            t = traditionalRegistrationThread(i, str(i).zfill(3), referenceFn,
+            t = traditionalRegistrationThread(i, str(i).zfill(3), newReferenceFn,
                                               timepointFns[i], outFn, outputDir,
                                               transformDir+"trad_"+str(i).zfill(3)+"_", regType=regType)
             myThreads.append(t)
+            newReferenceDirs.append(newDir)
             t.start()
+            count += 1
 
-
-    for t in myThreads:
-        t.join()
+        if count >= maxThreads:
+            for t in myThreads:
+                t.join()
+            for d in newReferenceDirs:
+                shutil.rmtree(d)
+            count=0
 
     return registeredFns
