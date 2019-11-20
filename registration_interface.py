@@ -3,6 +3,7 @@ import os
 import numpy as np
 import time
 import shutil
+import logging
 import registration as reg
 from dagreg import dagRegistration
 from tradreg import *
@@ -121,19 +122,20 @@ if __name__ == "__main__":
     # write the time to a file
     subj = subjFn.split("/")[-2]
     baseDir = subjFn.split(subj)[0]
-    fn = baseDir+"timeToRun.csv"
+    #fn = baseDir+"timeToRun.csv"
     timeLine = subj+", "+ method+", "+ str(totalDays).zfill(2) + ":" + str(totalHours).zfill(2) + ":" + str(totalMins).zfill(2) + ":" + str(totalSecs).zfill(2) + "\n"
+    print(timeLine)
     # if the file aready exists
-    if not os.path.isfile(fn):
-        # open the file in write
-        with open(fn, "w") as file:
-            headerLine = "Subject, Method, RunTime (DD:HH:MM:SS)\n"
-            # write the header line
-            file.write(headerLine)
-            # write the time line
-            file.write(timeLine)
-
-    else:
-        with open(fn, "a+") as file:
-            # write the time line
-            file.write(timeLine)
+#    if not os.path.isfile(fn):
+#        # open the file in write
+#        with open(fn, "w") as file:
+#            headerLine = "Subject, Method, RunTime (DD:HH:MM:SS)\n"
+#            # write the header line
+#            file.write(headerLine)
+#            # write the time line
+#            file.write(timeLine)
+#
+#    else:
+#        with open(fn, "a+") as file:
+#            # write the time line
+#            file.write(timeLine)

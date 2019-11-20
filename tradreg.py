@@ -10,6 +10,7 @@ Useage:
 import threading
 import shutil
 import tempfile
+import os
 import registration as reg
 
 class traditionalRegistrationThread(threading.Thread):
@@ -50,13 +51,14 @@ def volumeRegistration(referenceFn, timepointFns, outputDir, transformDir, regTy
     registeredFns = []
     transformFns = []
     myThreads = []
-    newReferenceDirs = []
-    count=0
-    maxThreads=10
+
+    maxThreads = 20
+    count = 0
     # for each subsequent image
     for i in range(len(timepointFns)):
         outFn = outputDir+str(i).zfill(3)+'.nii.gz'
         registeredFns.append(outFn)
+
         if timepointFns[i] == referenceFn:
             # copy the template file into the output directory
             shutil.copy(referenceFn, outputDir)
@@ -73,15 +75,22 @@ def volumeRegistration(referenceFn, timepointFns, outputDir, transformDir, regTy
                                               timepointFns[i], outFn, outputDir,
                                               transformDir+"trad_"+str(i).zfill(3)+"_", regType=regType)
             myThreads.append(t)
-            newReferenceDirs.append(newDir)
             t.start()
             count += 1
 
-        if count >= maxThreads:
+        if (count >= maxThreads):
             for t in myThreads:
                 t.join()
-            for d in newReferenceDirs:
-                shutil.rmtree(d)
-            count=0
+
+            print("Max number of threads reached:", len(myThreads))
+            myThreads = []
+            print("Reset the list of threads:", len(myThreads))
+            count = 0
+
+        elif i == (len(timepointFns) - 1):
+            print("Last set of threads started.")
+            for t in myThreads:
+                t.join()
+            print("Last set of threads completed.")
 
     return registeredFns
