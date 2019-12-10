@@ -41,7 +41,7 @@ for subj in $SITE/*/ ; do
     
     if [ $status -eq 0 ] ; then
         echo "Redundant directory detected, removing it now"
-        #rm -rf $DIR
+        rm -rf $DIR
     else
         echo "OOPS: Sequence and directory contain different info or an error occurred"
     fi
