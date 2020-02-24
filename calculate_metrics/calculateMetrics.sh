@@ -5,7 +5,6 @@
 # Usage: bash calculateMetrics.sh /path/to/image.nii.gz
 
 IMG=$1
-DIR=$2
 
 OUTDIR=$(dirname "${IMG}")
 TYPE=$(basename "${IMG}" | cut -f 1 -d ".")
@@ -14,7 +13,7 @@ CORR_OUT="$OUTDIR/metrics/$TYPE-correlation-matrix.csv"
 MI_OUT="$OUTDIR/metrics/$TYPE-fsl-mi-matrix.csv"
 
 # Calculate correlation ratio matrices
-bash calculateCorrelationMatrix.sh $DIR $CORR_OUT
+bash calculateCorrelationMatrix.sh $OUTDIR $CORR_OUT
 echo "Finished computing correlation ratio matrix"
 
 # Calculate Power et al. displacement and RMS intensity change
@@ -26,5 +25,5 @@ python calculateDiceMI.py -i $IMG
 echo "Finished computing Dice and MI matrices"
 
 # Calculate mutual information matrix using fsl
-bash calculateMIMatrix.sh $DIR $MI_OUT
+bash calculateMIMatrix.sh $OUTDIR $MI_OUT
 echo "Finished computing MI matrix using FSL"
