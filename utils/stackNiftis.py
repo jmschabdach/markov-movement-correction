@@ -13,7 +13,6 @@ parser.add_argument('-d', '--directory', help='Directory containing a series of 
                     required=True)
 parser.add_argument('-o', '--out-image', help='Filename of the output image to write to (default directory is the input directory)',
                     default='', required=True)
-parser.add_argument('-c', '--coordinate_image', help='Name of the image with the correct coordinate map', required=True)
 
 # parse the args
 args = parser.parse_args()
@@ -25,17 +24,11 @@ if not os.path.exists(imgsDir):
     raise IOError('Error: the specified directory does not exist')
 
 # check that directory contains .nii or .nii.gz images
-files = [join(imgsDir, f) for f in listdir(imgsDir) if isfile(join(imgsDir, f)) and (f.endswith('.nii.gz') or f.endswith('.nii'))]
+files = sorted([join(imgsDir, f) for f in listdir(imgsDir) if isfile(join(imgsDir, f)) and (f.endswith('.nii.gz') or f.endswith('.nii'))])
 
 # make the output file name
 if outFn == '':
     outFn = imgsDir+outFn
-
-# get the coordinates
-img = load_image(args.coordinate_image)
-coords = img.coordmap
-print(coords)
-print(img.shape)
 
 # Now stack the images
 imgs = []
@@ -48,8 +41,9 @@ for fn in files:
         imgs.append(img.get_data())
 
 imgStack = np.stack(imgs, axis=-1)
-print(imgStack.shape)
-print(coords)
+
+# get the coordinates
+coords = load_image(files[0]).coordmap
 
 # and save the stacked image
 registeredImg = Image(imgStack, coords)
